@@ -1,0 +1,298 @@
+contract:
+  schema_version: 2
+  contract_version: 1
+  last_reviewed_at: null
+  review_owner: 0disoft
+  review_interval_days: 60
+  approved_by: []
+  adr_refs: []
+  exception_refs: []
+
+service:
+  id: auth-ui
+  display_name: zdp-auth-ui
+  owner: 0disoft
+  repo: zdp-auth-ui
+  aliases: []
+  status: experiment
+  tier: tier2
+  risk_level: medium
+  public_docs_url: null
+  runbook_url: RUNBOOK.md
+
+lifecycle:
+  stage: package-boundary
+  promotion_target_tier: tier1
+  sunset_review_at: null
+  degradation_policy: route users to a minimal app-owned login surface while core identity remains authoritative
+
+domain:
+  type: platform
+  user_facing: true
+  public_api: false
+  money_movement: false
+  regulated: false
+
+runtime:
+  edge: null
+  core: svelte
+  framework: auth-ui-package
+  database: none
+  cache: null
+  object_storage: null
+  home_region: null
+  public_domains: []
+  candidate_public_domains: []
+  canonical_domain: null
+  domain_status: none
+
+cost:
+  cost_center: auth-ui
+  owner: 0disoft
+  monthly_budget_limit_usd: 0
+  warn_at_percent: 80
+  block_at_percent: 100
+  unit_metrics:
+    - auth-ui-package-check
+    - auth-ui-locale-check
+  per_action_budget: []
+  provider_cost_dimensions: []
+  gross_margin_floor_percent: null
+  automatic_actions: []
+
+monetization:
+  model: none
+  primary_unit: none
+  credit_policy:
+    enabled: false
+    wallet_scope: common_zdp_wallet
+    ledger_owner: zdp-money-ledger
+    per_feature_price_catalog_required: false
+    lot_types: []
+    deduction_priority: []
+    lot_expiry_policy: []
+    subscription_credit_bundles_allowed: false
+    auto_recharge_allowed: false
+    low_balance_threshold: null
+    recharge_limit: null
+  subscription_policy:
+    allowed: false
+    scope: none
+    all_services_unlimited_bundle_allowed: false
+  ad_policy:
+    ads_supported: false
+    credit_ad_removal_allowed: false
+    ad_removal_scope: none
+    ad_removal_period_days: null
+    auto_renew_with_credits_allowed: false
+  refund_policy:
+    provider_capability_check_required: false
+    provider_partial_refund_required: false
+    internal_partial_adjustment_supported: false
+    used_credit_refund_policy: null
+
+data:
+  owner_domain: frontend
+  classes: []
+  datastores: []
+  pii_level: medium
+  residency: null
+  retention_days: null
+  payment_data: false
+  money_movement: false
+  message_content: false
+  ai_user_data: false
+  crypto_key_material: false
+  append_only_required: false
+  encryption_key_owner: null
+  backup_retention_days: null
+  legal_hold_supported: false
+  redaction_policy: no token, password, provider secret, passkey challenge, authorization header, or raw account payload in UI state, logs, examples, or tests
+  export_supported: false
+  deletion:
+    required: false
+    sla_days: null
+    targets: []
+    propagation_events: []
+    backup_policy: null
+    tombstone_days: null
+    legal_hold_policy: null
+    manual_review_required: false
+    evidence_required: false
+
+access:
+  auth_required: false
+  tenant_boundary: none
+  object_level_auth_required: false
+  permission_model: none
+  privileged_operations:
+    - auth-provider-list-change
+    - passkey-ui-flow-change
+    - recovery-copy-change
+  rebac_model_ref: null
+  break_glass_policy: null
+  service_accounts: []
+  admin_roles: []
+
+audit:
+  required: false
+  events: []
+  sink: null
+  retention_days: null
+  immutable: false
+  redaction_policy: no secrets, tokens, passwords, authorization headers, passkey challenges, or raw provider payloads
+  reason_required_for_admin_access: false
+  evidence_export_supported: false
+
+idempotency:
+  required: false
+  scope: null
+  key_source: null
+  dedupe_window_seconds: null
+  store: null
+  conflict_policy: null
+  replay_safe: false
+  retry_policy: null
+
+observability:
+  product_metrics:
+    - auth-ui-rendered
+    - auth-ui-provider-selected
+  operational_metrics:
+    - auth-ui-contract-drift
+    - auth-ui-locale-coverage
+  otel:
+    service_name: auth-ui
+    environment: null
+    required_attributes:
+      - service_id
+      - cost_center
+    propagation_headers:
+      - traceparent
+      - x-request-id
+    sampling_policy: null
+    provider_span_required: false
+    cost_attributes:
+      - cost_center
+    redacted_attributes:
+      - password
+      - token
+      - authorization
+      - cookie
+      - passkey_challenge
+      - provider_payload
+
+dependencies:
+  services:
+    - core-api
+    - client-sdks
+    - design-system
+  datastores: []
+  queues: []
+  workers: []
+  internal_apis: []
+  fallback_paths:
+    - consuming app renders a minimal local auth form while zdp-core-platform remains authoritative
+
+providers: []
+
+ai:
+  enabled: false
+  sensitive_data: false
+  long_streaming: false
+  tools:
+    required: false
+    allowlist: []
+  provider_policy:
+    no_prompt_training_required: false
+    zero_data_retention_required: false
+    retention_exception_ref: null
+  provider_capabilities:
+    stream_cancellation_required: false
+    tool_calling_required: false
+    prompt_caching_allowed: false
+    response_caching_allowed: false
+  budgets:
+    max_input_tokens: null
+    max_output_tokens: null
+    max_usd_per_request: null
+    max_tool_calls_per_request: null
+
+api:
+  exposure: none
+  versioning: null
+  auth_scheme: null
+  rate_limit_policy: null
+  openapi_required: false
+  sdks:
+    ts: false
+    dart: false
+    rust: false
+  deprecation_policy: null
+  compatibility_policy: semver required before package publish
+
+events:
+  cloudevents_required: false
+  produced: []
+  consumed: []
+  replay_supported: false
+  dead_letter_policy: null
+
+release:
+  environments:
+    - local
+  rollback_required: true
+  migration_policy: no datastore migrations in auth UI package
+  change_approval: manual approval required before broad auth screen adoption
+  freeze_windows: []
+  canary_policy: consumer opt-in before broad adoption
+  feature_flag_required: true
+
+reliability:
+  rpo: auth UI contract evidence recoverable from git history
+  rto: 4h for auth UI contract reconstruction
+  slo_availability: auth UI package available during planned work
+  slo_latency_p95_ms: 1000
+  night_page: false
+  backup_required: true
+  restore_drill_required: false
+  status_page_required: false
+  queue_replay_policy: null
+
+policy_gates:
+  required_linter_rules:
+    - ZDP-REPO-BASELINE-001
+    - ZDP-REPO-MARKDOWN-001
+    - ZDP-XCUT-SECHEADER-001
+
+human_review_required:
+  - auth provider list changes
+  - passkey UI flow changes
+  - account recovery wording
+  - redirect or callback surface changes
+  - package release
+
+exit:
+  success_criteria:
+    - Astro, SvelteKit, and Tauri Svelte surfaces can share auth UI without copying login forms
+    - active Korean and English copy stay behind message keys
+    - planned 10-locale contract is visible before translation expansion
+    - auth UI does not own identity, credential, token, session, permission, consent, payment, or audit truth
+  kill_criteria:
+    - auth UI stores or verifies credentials, tokens, passkey challenges, or OAuth provider payloads
+    - auth UI calls core datastores directly
+    - product-specific signup policies move into this package
+  sunset_plan: null
+  owner: 0disoft
+  review_at: null
+  user_notice_days: null
+  data_export_window_days: null
+  dependency_removal_checklist:
+    - remove auth UI package imports from consumers
+    - keep zdp-core-platform auth endpoints authoritative
+    - archive locale and provider UI decisions
+
+notes:
+  - This repository is a shared auth UI package, not an identity service.
+  - It uses Svelte components so Astro can consume it as islands and SvelteKit/Tauri Svelte can consume it directly.
+  - Korean and English are active first; Spanish, Chinese, Hindi, French, Japanese, German, Portuguese, and Indonesian are planned.

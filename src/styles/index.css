@@ -1,0 +1,17 @@
+@import "zdp-design-system/styles.css";
+
+.zdp-auth-ui {
+  color: var(--zdp-color-ink-normal);
+  font-family: var(--zdp-font-family-sans);
+  line-height: var(--zdp-type-body-line-height);
+  text-wrap: var(--zdp-i18n-text-wrap);
+  word-break: var(--zdp-i18n-word-break);
+  overflow-wrap: var(--zdp-i18n-overflow-wrap);
+}
+
+.zdp-auth-ui *,
+.zdp-auth-ui *::before,
+.zdp-auth-ui *::after {
+  box-sizing: border-box;
+}
+
