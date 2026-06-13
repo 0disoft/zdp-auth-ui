@@ -33,6 +33,7 @@ const requiredFiles = [
   'RUNBOOK.md',
   'SECURITY.md',
   'service.yaml',
+  '.github/workflows/ci.yml',
   'vite.config.ts',
   'src/lib/auth-contract.ts',
   'src/lib/i18n.ts',
@@ -41,10 +42,23 @@ const requiredFiles = [
   'src/styles/index.css'
 ] as const;
 
-const [packageSource, readme, service, i18nSource, publicEntry, passkeySource] = await Promise.all([
+const [
+  packageSource,
+  changelog,
+  readme,
+  runbook,
+  service,
+  ciWorkflow,
+  i18nSource,
+  publicEntry,
+  passkeySource
+] = await Promise.all([
   readFile(join(root, 'package.json'), 'utf8'),
+  readFile(join(root, 'CHANGELOG.md'), 'utf8'),
   readFile(join(root, 'README.md'), 'utf8'),
+  readFile(join(root, 'RUNBOOK.md'), 'utf8'),
   readFile(join(root, 'service.yaml'), 'utf8'),
+  readFile(join(root, '.github', 'workflows', 'ci.yml'), 'utf8'),
   readFile(join(root, 'src', 'lib', 'i18n.ts'), 'utf8'),
   readFile(join(root, 'src', 'lib', 'index.ts'), 'utf8'),
   readFile(join(root, 'src', 'lib', 'passkey.ts'), 'utf8')
@@ -52,9 +66,11 @@ const [packageSource, readme, service, i18nSource, publicEntry, passkeySource] =
 const packageJson = JSON.parse(packageSource) as PackageJson;
 
 checkRequiredFiles();
-checkPackageJson(packageJson);
+checkPackageJson(packageJson, changelog);
 checkLocaleContract(readme, i18nSource);
 checkServiceBoundary(service);
+checkCiWorkflow(ciWorkflow);
+checkRunbook(runbook);
 checkPublicEntry(publicEntry);
 checkPasskeyBoundary(passkeySource);
 await checkSvelteCompilation();
@@ -71,9 +87,13 @@ function checkRequiredFiles(): void {
   }
 }
 
-function checkPackageJson(packageJson: PackageJson): void {
-  if (packageJson.version !== '0.1.0') {
-    failures.push('package.json version must start at 0.1.0 for the initial auth UI package boundary.');
+function checkPackageJson(packageJson: PackageJson, changelog: string): void {
+  if (!packageJson.version || !/^\d+\.\d+\.\d+$/.test(packageJson.version)) {
+    failures.push('package.json version must be an explicit semver value.');
+  }
+
+  if (packageJson.version && !changelog.includes(`## ${packageJson.version}`)) {
+    failures.push(`CHANGELOG.md must include the current package version ${packageJson.version}.`);
   }
 
   if (packageJson.dependencies?.['zdp-design-system'] !== 'file:../zdp-design-system') {
@@ -151,6 +171,39 @@ function checkServiceBoundary(service: string): void {
   ]) {
     if (!service.includes(requiredText)) {
       failures.push(`service.yaml must include boundary text: ${requiredText}.`);
+    }
+  }
+}
+
+function checkCiWorkflow(ciWorkflow: string): void {
+  for (const requiredText of [
+    'actions/checkout@v6',
+    'Checkout auth UI',
+    'Checkout design system',
+    '0disoft/zdp-design-system',
+    'secrets.ZDP_CI_READ_TOKEN || github.token',
+    'projects/zdp-platforms/client-surfaces/zdp-auth-ui',
+    'projects/zdp-platforms/client-surfaces/zdp-design-system',
+    'oven-sh/setup-bun@v2',
+    'bun install --frozen-lockfile',
+    'bun run check',
+    'bun run build'
+  ]) {
+    if (!ciWorkflow.includes(requiredText)) {
+      failures.push(`.github/workflows/ci.yml must include auth UI CI contract: ${requiredText}.`);
+    }
+  }
+}
+
+function checkRunbook(runbook: string): void {
+  for (const requiredText of [
+    'ZDP_CI_READ_TOKEN',
+    'zdp-design-system',
+    'bun run check',
+    'bun run build'
+  ]) {
+    if (!runbook.includes(requiredText)) {
+      failures.push(`RUNBOOK.md must include auth UI CI operation text: ${requiredText}.`);
     }
   }
 }

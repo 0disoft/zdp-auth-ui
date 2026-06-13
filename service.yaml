@@ -55,6 +55,7 @@ cost:
   unit_metrics:
     - auth-ui-package-check
     - auth-ui-locale-check
+    - auth-ui-ci-check-build
   per_action_budget: []
   provider_cost_dimensions: []
   gross_margin_floor_percent: null
@@ -296,3 +297,4 @@ notes:
   - This repository is a shared auth UI package, not an identity service.
   - It uses Svelte components so Astro can consume it as islands and SvelteKit/Tauri Svelte can consume it directly.
   - Korean and English are active first; Spanish, Chinese, Hindi, French, Japanese, German, Portuguese, and Indonesian are planned.
+  - CI checks out private sibling zdp-design-system with ZDP_CI_READ_TOKEN before running bun run check and bun run build.

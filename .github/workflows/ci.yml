@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  auth-ui-package:
+    name: auth-ui-package
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        working-directory: projects/zdp-platforms/client-surfaces/zdp-auth-ui
+
+    steps:
+      - name: Checkout auth UI
+        uses: actions/checkout@v6
+        with:
+          path: projects/zdp-platforms/client-surfaces/zdp-auth-ui
+
+      - name: Checkout design system
+        uses: actions/checkout@v6
+        with:
+          repository: 0disoft/zdp-design-system
+          token: ${{ secrets.ZDP_CI_READ_TOKEN || github.token }}
+          path: projects/zdp-platforms/client-surfaces/zdp-design-system
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install auth UI dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Check
+        run: bun run check
+
+      - name: Build
+        run: bun run build

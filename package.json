@@ -1,6 +1,6 @@
 {
   "name": "zdp-auth-ui",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "ZDP shared authentication UI package for Astro, SvelteKit, and Tauri Svelte surfaces.",

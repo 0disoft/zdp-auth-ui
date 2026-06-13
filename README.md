@@ -90,7 +90,9 @@ import 'zdp-auth-ui/styles.css';
 
 ```bash
 bun run check
+bun run build
 ```
 
 `check`는 package export, locale 계약, service boundary, Svelte compile surface, 금지 dependency를 함께 확인한다.
 
+GitHub Actions CI는 `zdp-auth-ui`와 private sibling `zdp-design-system`을 같은 workspace 모양으로 checkout한 뒤 `bun install --frozen-lockfile`, `bun run check`, `bun run build`를 실행한다. private design-system checkout에는 repository secret `ZDP_CI_READ_TOKEN`을 설정한다.
