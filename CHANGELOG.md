@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Tightened auth shell mode-change typing so Svelte consumers keep `ZdpAuthMode` instead of widened string values.
+
 ## 0.1.1
 
 - Added GitHub Actions CI for the auth UI package boundary.

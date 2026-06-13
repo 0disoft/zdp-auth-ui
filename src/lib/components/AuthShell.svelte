@@ -34,7 +34,7 @@
   $: title = messages.title[mode];
   $: summary = messages.summary[mode];
   $: primaryAction = messages.actions[mode];
-  $: nextMode = mode === 'login' ? 'signup' : 'login';
+  $: nextMode = getNextMode(mode);
   $: nextModeLabel = mode === 'login' ? messages.links.signup : messages.links.login;
 
   function handleSubmit(event: SubmitEvent): void {
@@ -48,6 +48,10 @@
 
   function handleModeChange(event: MouseEvent): void {
     onmodechange?.({ mode: nextMode }, event);
+  }
+
+  function getNextMode(currentMode: ZdpAuthMode): ZdpAuthMode {
+    return currentMode === 'login' ? 'signup' : 'login';
   }
 </script>
 
@@ -151,4 +155,3 @@
     gap: var(--zdp-space-3);
   }
 </style>
-

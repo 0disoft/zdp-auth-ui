@@ -185,7 +185,11 @@ function checkCiWorkflow(ciWorkflow: string): void {
     'projects/zdp-platforms/client-surfaces/zdp-auth-ui',
     'projects/zdp-platforms/client-surfaces/zdp-design-system',
     'oven-sh/setup-bun@v2',
+    'Install design system dependencies',
+    'Build design system package surface',
+    'working-directory: projects/zdp-platforms/client-surfaces/zdp-design-system',
     'bun install --frozen-lockfile',
+    'bun run package:build',
     'bun run check',
     'bun run build'
   ]) {
