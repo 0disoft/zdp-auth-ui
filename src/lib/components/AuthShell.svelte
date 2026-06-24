@@ -21,7 +21,7 @@
   export let mode: ZdpAuthMode = 'login';
   export let providers: readonly ZdpAuthProvider[] = [];
   export let action: string | null = null;
-  export let method: 'get' | 'post' = 'post';
+  export let method: 'post' = 'post';
   export let status: string | null = null;
   export let invalid = false;
   export let termsHref: string | null = null;
@@ -36,9 +36,13 @@
   $: primaryAction = messages.actions[mode];
   $: nextMode = getNextMode(mode);
   $: nextModeLabel = mode === 'login' ? messages.links.signup : messages.links.login;
+  $: formMethod = getFormMethod(method);
 
   function handleSubmit(event: SubmitEvent): void {
     const form = event.currentTarget as HTMLFormElement;
+    if (onsubmit || !action) {
+      event.preventDefault();
+    }
     onsubmit?.({ mode, form }, event);
   }
 
@@ -53,26 +57,30 @@
   function getNextMode(currentMode: ZdpAuthMode): ZdpAuthMode {
     return currentMode === 'login' ? 'signup' : 'login';
   }
+
+  function getFormMethod(_method: 'post'): 'post' {
+    return 'post';
+  }
 </script>
 
 <Surface padding="lg">
   <form
     class="zdp-auth-shell"
     action={action ?? undefined}
-    {method}
+    method={formMethod}
     data-mode={mode}
     novalidate
     onsubmit={handleSubmit}
   >
     <Stack gap="md">
       <header class="zdp-auth-shell__header">
-        <p class="zdp-auth-shell__eyebrow">8ailors</p>
+        <p class="zdp-auth-shell__eyebrow">{messages.brand}</p>
         <h1>{title}</h1>
         <p>{summary}</p>
       </header>
 
       {#if providers.length > 0}
-        <div class="zdp-auth-shell__providers" aria-label={messages.actions.usePasskey}>
+        <div class="zdp-auth-shell__providers" role="group" aria-label={messages.providers.groupLabel}>
           {#each providers as provider (provider.id)}
             <ProviderButton {provider} onclick={handleProviderSelect} />
           {/each}
@@ -93,7 +101,7 @@
         {/if}
       </Inline>
 
-      <nav class="zdp-auth-shell__links" aria-label="Account help">
+      <nav class="zdp-auth-shell__links" aria-label={messages.navigation.accountHelp}>
         {#if mode !== 'recovery'}
           <Link href="?mode=recovery">{messages.links.recovery}</Link>
         {/if}

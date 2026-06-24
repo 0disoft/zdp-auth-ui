@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { readFile, readdir } from 'node:fs/promises';
+import { extname, join, relative } from 'node:path';
 import { compile, type Warning } from 'svelte/compiler';
 
 interface PackageJson {
@@ -24,6 +24,8 @@ const componentPaths = [
   'src/lib/components/PasswordField.svelte',
   'src/lib/components/ProviderButton.svelte'
 ] as const;
+const sourceBoundaryExtensions = new Set(['.svelte', '.ts']);
+const forbiddenSourceBoundaryTexts = ['fetch(', 'localStorage', 'sessionStorage', 'document.cookie'] as const;
 const requiredFiles = [
   'AGENTS.md',
   'BOUNDARY.md',
@@ -64,15 +66,18 @@ const [
   readFile(join(root, 'src', 'lib', 'passkey.ts'), 'utf8')
 ]);
 const packageJson = JSON.parse(packageSource) as PackageJson;
+const sourceFiles = await readSourceFiles(join(root, 'src', 'lib'));
 
 checkRequiredFiles();
 checkPackageJson(packageJson, changelog);
 checkLocaleContract(readme, i18nSource);
+checkMessageCatalog(i18nSource);
 checkServiceBoundary(service);
 checkCiWorkflow(ciWorkflow);
 checkRunbook(runbook);
 checkPublicEntry(publicEntry);
 checkPasskeyBoundary(passkeySource);
+checkSourceBoundary(sourceFiles);
 await checkSvelteCompilation();
 
 if (failures.length > 0) {
@@ -157,6 +162,24 @@ function checkLocaleContract(readme: string, i18nSource: string): void {
   }
 }
 
+function checkMessageCatalog(i18nSource: string): void {
+  for (const requiredText of [
+    'readonly brand: string;',
+    'readonly groupLabel: string;',
+    'readonly navigation: {',
+    'readonly accountHelp: string;',
+    "brand: '8ailors'",
+    "groupLabel: '인증 수단 선택'",
+    "groupLabel: 'Choose sign-in method'",
+    "accountHelp: '계정 도움말'",
+    "accountHelp: 'Account help'"
+  ]) {
+    if (!i18nSource.includes(requiredText)) {
+      failures.push(`src/lib/i18n.ts must keep auth shell message key: ${requiredText}.`);
+    }
+  }
+}
+
 function checkServiceBoundary(service: string): void {
   for (const requiredText of [
     'id: auth-ui',
@@ -236,10 +259,43 @@ function checkPasskeyBoundary(passkeySource: string): void {
     }
   }
 
-  for (const forbiddenText of ['fetch(', 'localStorage', 'sessionStorage', 'document.cookie']) {
+  for (const forbiddenText of forbiddenSourceBoundaryTexts) {
     if (passkeySource.includes(forbiddenText)) {
       failures.push(`src/lib/passkey.ts must not own runtime auth storage or server calls: ${forbiddenText}.`);
     }
+  }
+}
+
+function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
+  for (const sourceFile of sourceFiles) {
+    for (const forbiddenText of forbiddenSourceBoundaryTexts) {
+      if (sourceFile.source.includes(forbiddenText)) {
+        failures.push(`${sourceFile.relativePath} must not own runtime auth storage or server calls: ${forbiddenText}.`);
+      }
+    }
+  }
+
+  const authShell = sourceFiles.find((sourceFile) => sourceFile.relativePath === 'src/lib/components/AuthShell.svelte');
+  if (!authShell) {
+    failures.push('src/lib/components/AuthShell.svelte must be included in source boundary checks.');
+    return;
+  }
+
+  for (const requiredText of [
+    'event.preventDefault();',
+    "export let method: 'post' = 'post';",
+    'method={formMethod}',
+    'aria-label={messages.providers.groupLabel}',
+    'aria-label={messages.navigation.accountHelp}',
+    '{messages.brand}'
+  ]) {
+    if (!authShell.source.includes(requiredText)) {
+      failures.push(`src/lib/components/AuthShell.svelte must keep auth boundary guard: ${requiredText}.`);
+    }
+  }
+
+  if (authShell.source.includes("'get' | 'post'")) {
+    failures.push("src/lib/components/AuthShell.svelte must not expose GET form submission.");
   }
 }
 
@@ -263,4 +319,39 @@ async function checkSvelteCompilation(): Promise<void> {
       failures.push(`${relativePath} has Svelte warnings: ${warnings.map((warning) => warning.message).join('; ')}`);
     }
   }
+}
+
+interface SourceFile {
+  readonly relativePath: string;
+  readonly source: string;
+}
+
+async function readSourceFiles(directory: string): Promise<SourceFile[]> {
+  const relativePaths = await listSourceFilePaths(directory);
+  return Promise.all(
+    relativePaths.map(async (relativePath) => ({
+      relativePath,
+      source: await readFile(join(root, relativePath), 'utf8')
+    }))
+  );
+}
+
+async function listSourceFilePaths(directory: string): Promise<string[]> {
+  const entries = await readdir(directory, { withFileTypes: true });
+  const paths = await Promise.all(
+    entries.map(async (entry) => {
+      const fullPath = join(directory, entry.name);
+      if (entry.isDirectory()) {
+        return listSourceFilePaths(fullPath);
+      }
+
+      if (!entry.isFile() || !sourceBoundaryExtensions.has(extname(entry.name))) {
+        return [];
+      }
+
+      return [relative(root, fullPath).replaceAll('\\', '/')];
+    })
+  );
+
+  return paths.flat().sort();
 }

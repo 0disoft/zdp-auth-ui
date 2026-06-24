@@ -79,6 +79,8 @@ import 'zdp-auth-ui/styles.css';
 
 소비 앱은 이 패키지에서 발생한 submit/provider/passkey 선택을 받아 자기 API 클라이언트나 SDK에 연결한다. 이 패키지는 `fetch`, cookie, localStorage, sessionStorage, DB, provider secret을 직접 다루지 않는다.
 
+`AuthShell`은 submit callback이 있거나 명시적인 `action`이 없으면 브라우저 기본 form 제출을 막는다. 명시적인 native form fallback도 password가 URL과 로그에 남지 않도록 POST만 허용한다.
+
 ## rodi-site-template-svelte에서 반영한 후보
 
 - `@simplewebauthn/browser`: passkey 브라우저 ceremony helper 후보로 도입했다. 서버 검증과 credential 저장은 이 저장소가 소유하지 않는다.
@@ -93,6 +95,6 @@ bun run check
 bun run build
 ```
 
-`check`는 package export, locale 계약, service boundary, Svelte compile surface, 금지 dependency를 함께 확인한다.
+`check`는 package export, locale 계약, service boundary, auth UI source boundary, Svelte compile surface, 금지 dependency를 함께 확인한다.
 
 GitHub Actions CI는 `zdp-auth-ui`와 private sibling `zdp-design-system`을 같은 workspace 모양으로 checkout한 뒤 design-system `dist/` package surface를 `bun run package:build`로 만든다. 그 다음 auth UI install, `bun run check`, `bun run build`를 실행한다. private design-system checkout에는 repository secret `ZDP_CI_READ_TOKEN`을 설정한다.

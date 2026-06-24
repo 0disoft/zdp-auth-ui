@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.1.2
+
+- Prevented auth shell submit callbacks and missing actions from falling through to native form submission.
+- Constrained auth shell form submission to POST and moved brand, provider group, and account-help labels behind message keys.
+- Expanded the auth UI checker source-boundary scan across `src/lib` auth UI source files.
 - Tightened auth shell mode-change typing so Svelte consumers keep `ZdpAuthMode` instead of widened string values.
 
 ## 0.1.1

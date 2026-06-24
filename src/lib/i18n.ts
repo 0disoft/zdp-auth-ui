@@ -7,6 +7,7 @@ export type ZdpAuthActiveLocale = (typeof zdpAuthActiveLocales)[number];
 export type ZdpAuthPlannedLocale = (typeof zdpAuthPlannedLocales)[number];
 
 export interface ZdpAuthMessages {
+  readonly brand: string;
   readonly title: {
     readonly login: string;
     readonly signup: string;
@@ -31,10 +32,14 @@ export interface ZdpAuthMessages {
     readonly hidePassword: string;
   };
   readonly providers: {
+    readonly groupLabel: string;
     readonly passkey: string;
     readonly google: string;
     readonly github: string;
     readonly email: string;
+  };
+  readonly navigation: {
+    readonly accountHelp: string;
   };
   readonly links: {
     readonly login: string;
@@ -51,6 +56,7 @@ export interface ZdpAuthMessages {
 
 export const zdpAuthMessages: Record<ZdpAuthActiveLocale, ZdpAuthMessages> = {
   ko: {
+    brand: '8ailors',
     title: {
       login: '로그인',
       signup: '계정 만들기',
@@ -75,10 +81,14 @@ export const zdpAuthMessages: Record<ZdpAuthActiveLocale, ZdpAuthMessages> = {
       hidePassword: '비밀번호 숨기기'
     },
     providers: {
+      groupLabel: '인증 수단 선택',
       passkey: '패스키',
       google: 'Google',
       github: 'GitHub',
       email: '이메일'
+    },
+    navigation: {
+      accountHelp: '계정 도움말'
     },
     links: {
       login: '이미 계정이 있어요',
@@ -93,6 +103,7 @@ export const zdpAuthMessages: Record<ZdpAuthActiveLocale, ZdpAuthMessages> = {
     }
   },
   en: {
+    brand: '8ailors',
     title: {
       login: 'Sign in',
       signup: 'Create account',
@@ -117,10 +128,14 @@ export const zdpAuthMessages: Record<ZdpAuthActiveLocale, ZdpAuthMessages> = {
       hidePassword: 'Hide password'
     },
     providers: {
+      groupLabel: 'Choose sign-in method',
       passkey: 'Passkey',
       google: 'Google',
       github: 'GitHub',
       email: 'Email'
+    },
+    navigation: {
+      accountHelp: 'Account help'
     },
     links: {
       login: 'I already have an account',
@@ -143,4 +158,3 @@ export function isActiveAuthLocale(locale: string): locale is ZdpAuthActiveLocal
 export function getAuthMessages(locale: ZdpAuthLocale | string): ZdpAuthMessages {
   return isActiveAuthLocale(locale) ? zdpAuthMessages[locale] : zdpAuthMessages.en;
 }
-
