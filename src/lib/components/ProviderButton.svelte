@@ -9,11 +9,16 @@
   function handleClick(event: MouseEvent): void {
     onclick?.(provider, event);
   }
+
+  function getProviderMark(provider: ZdpAuthProvider): string {
+    const source = provider.iconLabel ?? provider.label;
+    return Array.from(source.trim())[0]?.toLocaleUpperCase() ?? '';
+  }
 </script>
 
 <Button variant="secondary" size="md" disabled={disabled || provider.disabled} onclick={handleClick}>
   <span class="zdp-auth-provider-button__mark" aria-hidden="true">
-    {(provider.iconLabel ?? provider.label).slice(0, 1)}
+    {getProviderMark(provider)}
   </span>
   <span>{provider.label}</span>
 </Button>
@@ -28,7 +33,9 @@
     height: var(--zdp-control-choice-size);
     justify-content: center;
     line-height: 1;
-    width: var(--zdp-control-choice-size);
+    min-width: var(--zdp-control-choice-size);
+    overflow: hidden;
+    padding-inline: var(--zdp-space-1);
+    text-align: center;
   }
 </style>
-

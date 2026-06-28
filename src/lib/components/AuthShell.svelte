@@ -76,7 +76,7 @@
       <header class="zdp-auth-shell__header">
         <p class="zdp-auth-shell__eyebrow">{messages.brand}</p>
         <h1>{title}</h1>
-        <p>{summary}</p>
+        <p class="zdp-auth-shell__summary">{summary}</p>
       </header>
 
       {#if providers.length > 0}
@@ -91,10 +91,10 @@
       <slot />
 
       {#if status}
-        <p class="zdp-auth-shell__status" role={invalid ? 'alert' : 'status'}>{status}</p>
+        <p class="zdp-auth-shell__status" role={invalid ? 'alert' : 'status'} aria-live={invalid ? 'assertive' : 'polite'}>{status}</p>
       {/if}
 
-      <Inline gap="sm">
+      <Inline gap="sm" align="stretch" justify="between">
         <Button type="submit">{primaryAction}</Button>
         {#if mode !== 'recovery'}
           <Button type="button" variant="secondary" onclick={handleModeChange}>{nextModeLabel}</Button>
@@ -120,16 +120,23 @@
   .zdp-auth-shell {
     color: var(--zdp-color-ink-normal);
     min-width: 0;
+    text-wrap: var(--zdp-i18n-text-wrap);
+    word-break: var(--zdp-i18n-word-break);
+    overflow-wrap: var(--zdp-i18n-overflow-wrap);
   }
 
   .zdp-auth-shell__header {
     display: grid;
     gap: var(--zdp-space-2);
+    min-width: 0;
   }
 
   .zdp-auth-shell__header h1,
-  .zdp-auth-shell__header p {
+  .zdp-auth-shell__header p,
+  .zdp-auth-shell__summary {
     margin: 0;
+    min-width: 0;
+    overflow-wrap: var(--zdp-i18n-overflow-wrap);
   }
 
   .zdp-auth-shell__header h1 {
@@ -147,6 +154,7 @@
   .zdp-auth-shell__providers {
     display: grid;
     gap: var(--zdp-space-2);
+    min-width: 0;
   }
 
   .zdp-auth-shell__status {
@@ -154,6 +162,8 @@
     font-size: var(--zdp-type-body-small-size);
     line-height: var(--zdp-type-body-small-line-height);
     margin: 0;
+    min-width: 0;
+    overflow-wrap: var(--zdp-i18n-overflow-wrap);
   }
 
   .zdp-auth-shell__links {
@@ -161,5 +171,6 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--zdp-space-3);
+    min-width: 0;
   }
 </style>

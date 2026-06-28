@@ -26,6 +26,19 @@ const componentPaths = [
 ] as const;
 const sourceBoundaryExtensions = new Set(['.svelte', '.ts']);
 const forbiddenSourceBoundaryTexts = ['fetch(', 'localStorage', 'sessionStorage', 'document.cookie'] as const;
+const componentDesignSystemImports: Record<string, readonly string[]> = {
+  'src/lib/components/ProviderButton.svelte': ['Button'],
+  'src/lib/components/PasswordField.svelte': [
+    'ErrorText',
+    'Field',
+    'HelpText',
+    'IconButton',
+    'Input',
+    'Label'
+  ],
+  'src/lib/components/AuthShell.svelte': ['Button', 'Divider', 'Inline', 'Link', 'Stack', 'Surface']
+} as const;
+const rawColorPattern = /#(?:[0-9a-fA-F]{3,8})\b|rgb[a]?\(|hsl[a]?\(|oklch\(/;
 const requiredFiles = [
   'AGENTS.md',
   'BOUNDARY.md',
@@ -296,6 +309,62 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
 
   if (authShell.source.includes("'get' | 'post'")) {
     failures.push("src/lib/components/AuthShell.svelte must not expose GET form submission.");
+  }
+
+  checkDesignSystemConsumption(sourceFiles);
+  checkRawColorUsage(sourceFiles);
+}
+
+function checkDesignSystemConsumption(sourceFiles: readonly SourceFile[]): void {
+  for (const [relativePath, expectedImports] of Object.entries(componentDesignSystemImports)) {
+    const sourceFile = sourceFiles.find((file) => file.relativePath === relativePath);
+    if (!sourceFile) {
+      failures.push(`${relativePath} must be included in design-system consumption checks.`);
+      continue;
+    }
+
+    const designSystemImports = getDesignSystemImportNames(sourceFile.source);
+    if (designSystemImports.size === 0) {
+      failures.push(`${relativePath} must consume zdp-design-system public exports.`);
+      continue;
+    }
+
+    for (const expectedImport of expectedImports) {
+      if (!designSystemImports.has(expectedImport)) {
+        failures.push(`${relativePath} must use design-system export ${expectedImport}.`);
+      }
+    }
+  }
+}
+
+function getDesignSystemImportNames(source: string): Set<string> {
+  const importNames = new Set<string>();
+  const importPattern = /import\s*{([\s\S]*?)}\s*from\s+['"]zdp-design-system['"];?/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = importPattern.exec(source))) {
+    for (const rawSpecifier of match[1].split(',')) {
+      const specifier = rawSpecifier.trim();
+      if (!specifier) {
+        continue;
+      }
+
+      importNames.add(specifier.split(/\s+as\s+/)[0].trim());
+    }
+  }
+
+  return importNames;
+}
+
+function checkRawColorUsage(sourceFiles: readonly SourceFile[]): void {
+  for (const sourceFile of sourceFiles) {
+    if (!componentPaths.includes(sourceFile.relativePath as (typeof componentPaths)[number])) {
+      continue;
+    }
+
+    if (rawColorPattern.test(sourceFile.source)) {
+      failures.push(`${sourceFile.relativePath} must use design-system color tokens, not raw hex/rgb/hsl/oklch literals.`);
+    }
   }
 }
 

@@ -1,5 +1,12 @@
 <script lang="ts">
-  import { Button, ErrorText, Field, HelpText, Input, Label } from 'zdp-design-system';
+  import {
+    ErrorText,
+    Field,
+    HelpText,
+    IconButton,
+    Input,
+    Label
+  } from 'zdp-design-system';
   import { getAuthMessages, type ZdpAuthLocale } from '../i18n';
 
   export let id: string;
@@ -39,16 +46,72 @@
       {required}
       {disabled}
     />
-    <Button
+    <IconButton
       variant="secondary"
       size="sm"
       type="button"
       disabled={disabled}
       ariaPressed={visible}
+      ariaLabel={toggleLabel}
       onclick={() => (visible = !visible)}
     >
-      {toggleLabel}
-    </Button>
+      {#if visible}
+        <svg
+          class="zdp-auth-password-field__toggle-icon"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            d="M3 12s3.25-6 9-6 9 6 9 6-3.25 6-9 6-9-6-9-6Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+          />
+          <path
+            d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+          />
+          <path
+            d="M4 4l16 16"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-width="2"
+          />
+        </svg>
+      {:else}
+        <svg
+          class="zdp-auth-password-field__toggle-icon"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            d="M3 12s3.25-6 9-6 9 6 9 6-3.25 6-9 6-9-6-9-6Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+          />
+          <path
+            d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+          />
+        </svg>
+      {/if}
+    </IconButton>
   </div>
   {#if helpText && helpId}
     <HelpText id={helpId}>{helpText}</HelpText>
@@ -71,5 +134,10 @@
       grid-template-columns: minmax(0, 1fr);
     }
   }
-</style>
 
+  .zdp-auth-password-field__toggle-icon {
+    display: block;
+    height: 100%;
+    width: 100%;
+  }
+</style>
