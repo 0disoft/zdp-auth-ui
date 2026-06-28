@@ -297,4 +297,4 @@ notes:
   - This repository is a shared auth UI package, not an identity service.
   - It uses Svelte components so Astro can consume it as islands and SvelteKit/Tauri Svelte can consume it directly.
   - Korean and English are active first; Spanish, Chinese, Hindi, French, Japanese, German, Portuguese, and Indonesian are planned.
-  - CI checks out private sibling zdp-design-system with ZDP_CI_READ_TOKEN before running bun run check and bun run build.
+  - CI checks out sibling zdp-design-system before running bun run check and bun run build; public sibling checkout can use github.token, while private siblings require ZDP_CI_READ_TOKEN fallback.
