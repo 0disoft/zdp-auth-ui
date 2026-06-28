@@ -13,6 +13,8 @@ GitHub Actions checks out `zdp-auth-ui` and sibling `zdp-design-system` under `p
 
 Public sibling checkouts can use `github.token`. Keep repository secret `ZDP_CI_READ_TOKEN` only for private sibling repositories; the token needs contents read access to those repositories.
 
+If GitHub Actions does not start because account billing or spending limits block private repository runners, treat that run as a CI environment gate rather than a package check failure. Use the workspace-root `mf run zdp_auth_ui_check` receipt plus local `bun run check`/`bun run build` output as the current merge/release evidence until Actions can run again.
+
 ## Failure Response
 
 - If package export validation fails, fix `package.json` and `src/lib/index.ts` together.
