@@ -200,7 +200,7 @@ function checkServiceBoundary(service: string): void {
 
 function checkCiWorkflow(ciWorkflow: string): void {
   for (const requiredText of [
-    'actions/checkout@v6',
+    'actions/checkout@v7',
     'Checkout auth UI',
     'Checkout design system',
     '0disoft/zdp-design-system',

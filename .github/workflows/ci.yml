@@ -24,12 +24,12 @@ jobs:
 
     steps:
       - name: Checkout auth UI
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: projects/zdp-platforms/client-surfaces/zdp-auth-ui
 
       - name: Checkout design system
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: 0disoft/zdp-design-system
           token: ${{ secrets.ZDP_CI_READ_TOKEN || github.token }}

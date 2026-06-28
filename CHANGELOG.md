@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Updated the CI contract checker and documentation for `actions/checkout@v7` and the now-public `zdp-design-system` sibling checkout.
+
 ## 0.1.2
 
 - Prevented auth shell submit callbacks and missing actions from falling through to native form submission.
