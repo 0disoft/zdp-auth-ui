@@ -75,11 +75,11 @@ import 'zdp-auth-ui/styles.css';
 
 ## 경계
 
-`zdp-auth-ui`는 화면 구조와 사용자가 누르는 표면만 제공한다. 실제 인증, 세션, 패스키 challenge, OAuth callback, 이메일 인증, 계정 생성은 `zdp-core-platform`과 API 계약이 소유한다.
+`zdp-auth-ui`는 화면 구조와 사용자가 누르는 표면만 제공한다. 실제 인증, 세션, 패스키 challenge, OAuth callback, 이메일 인증, 계정 생성, 추천 코드 적용은 `zdp-core-platform`과 API 계약이 소유한다.
 
 소비 앱은 이 패키지에서 발생한 submit/provider/passkey 선택을 받아 자기 API 클라이언트나 SDK에 연결한다. 이 패키지는 `fetch`, cookie, localStorage, sessionStorage, DB, provider secret을 직접 다루지 않는다.
 
-`AuthShell`은 submit callback이 있거나 명시적인 `action`이 없으면 브라우저 기본 form 제출을 막는다. 명시적인 native form fallback도 password가 URL과 로그에 남지 않도록 POST만 허용한다.
+`AuthShell`은 submit callback이 있거나 명시적인 `action`이 없으면 브라우저 기본 form 제출을 막는다. 명시적인 native form fallback도 password가 URL과 로그에 남지 않도록 POST만 허용한다. 회원가입 화면에 `referralCode`를 넘기면 submit detail과 POST hidden field에만 포함하고, 이 패키지는 추천 코드 검증·보상·저장을 하지 않는다.
 
 ## rodi-site-template-svelte에서 반영한 후보
 

@@ -15,6 +15,7 @@ export interface ZdpAuthProvider {
 export interface ZdpAuthSubmitDetail {
   readonly mode: ZdpAuthMode;
   readonly form: HTMLFormElement;
+  readonly referralCode: string | null;
 }
 
 export interface ZdpAuthProviderSelectDetail {
@@ -24,4 +25,3 @@ export interface ZdpAuthProviderSelectDetail {
 export interface ZdpAuthModeChangeDetail {
   readonly mode: ZdpAuthMode;
 }
-

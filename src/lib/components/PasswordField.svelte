@@ -47,7 +47,7 @@
       {disabled}
     />
     <IconButton
-      variant="secondary"
+      variant="ghost"
       size="sm"
       type="button"
       disabled={disabled}

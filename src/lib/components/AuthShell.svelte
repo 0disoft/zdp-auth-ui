@@ -24,6 +24,8 @@
   export let method: 'post' = 'post';
   export let status: string | null = null;
   export let invalid = false;
+  export let referralCode: string | null = null;
+  export let referralCodeFieldName = 'referral_code';
   export let termsHref: string | null = null;
   export let privacyHref: string | null = null;
   export let onsubmit: ((detail: ZdpAuthSubmitDetail, event: SubmitEvent) => void) | null = null;
@@ -37,13 +39,15 @@
   $: nextMode = getNextMode(mode);
   $: nextModeLabel = mode === 'login' ? messages.links.signup : messages.links.login;
   $: formMethod = getFormMethod(method);
+  $: normalizedReferralCode = normalizeOptionalFormValue(referralCode);
+  $: normalizedReferralCodeFieldName = normalizeOptionalFormValue(referralCodeFieldName) ?? 'referral_code';
 
   function handleSubmit(event: SubmitEvent): void {
     const form = event.currentTarget as HTMLFormElement;
     if (onsubmit || !action) {
       event.preventDefault();
     }
-    onsubmit?.({ mode, form }, event);
+    onsubmit?.({ mode, form, referralCode: normalizedReferralCode }, event);
   }
 
   function handleProviderSelect(provider: ZdpAuthProvider, event: MouseEvent): void {
@@ -60,6 +64,11 @@
 
   function getFormMethod(_method: 'post'): 'post' {
     return 'post';
+  }
+
+  function normalizeOptionalFormValue(value: string | null): string | null {
+    const trimmed = value?.trim();
+    return trimmed ? trimmed : null;
   }
 </script>
 
@@ -89,6 +98,15 @@
       {/if}
 
       <slot />
+
+      {#if mode === 'signup' && normalizedReferralCode}
+        <input
+          type="hidden"
+          name={normalizedReferralCodeFieldName}
+          value={normalizedReferralCode}
+          autocomplete="off"
+        />
+      {/if}
 
       {#if status}
         <p class="zdp-auth-shell__status" role={invalid ? 'alert' : 'status'} aria-live={invalid ? 'assertive' : 'polite'}>{status}</p>
