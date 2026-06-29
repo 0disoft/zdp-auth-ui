@@ -249,6 +249,52 @@ release:
   canary_policy: consumer opt-in before broad adoption
   feature_flag_required: true
 
+automation:
+  ci:
+    required: true
+    provider: github-actions
+    workflow_names:
+      - CI
+    required_status_checks:
+      - CI / auth-ui-package
+    missing_reason: null
+    private_dependency_token_required: true
+    required_secrets:
+      - ZDP_CI_READ_TOKEN
+  dependency_updates:
+    renovate_enabled: false
+    dependabot_enabled: false
+    conflict_policy: manual dependency review until shared package release automation is adopted
+  ruleset:
+    required: false
+    required_status_checks: []
+    admin_bypass_policy: null
+  release_helper:
+    enabled: false
+    version_source_of_truth: package.json
+    changelog_policy: manual changelog until package release automation is adopted
+  auto_merge:
+    enabled: false
+    required_checks: []
+    owner_review_required: true
+    major_update_allowed: false
+  stale_bot:
+    enabled: false
+    exempt_labels:
+      - security
+      - privacy
+      - auth
+    security_issue_auto_close_allowed: false
+  templates:
+    issue_forms_secret_warning: false
+    pr_template_secret_warning: false
+    forbidden_submission_classes:
+      - secrets
+      - credentials
+      - authorization headers
+      - provider payloads
+      - customer raw data
+
 reliability:
   rpo: auth UI contract evidence recoverable from git history
   rto: 4h for auth UI contract reconstruction
