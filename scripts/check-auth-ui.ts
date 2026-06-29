@@ -16,9 +16,9 @@ interface PackageJson {
 
 const root = process.cwd();
 const failures: string[] = [];
-const expectedLocales = ['en', 'es', 'zh', 'hi', 'ko', 'fr', 'ja', 'de', 'pt', 'id'] as const;
+const expectedLocales = ['en', 'zh', 'es', 'fr', 'hi', 'ko', 'ja', 'vi', 'ru', 'id', 'ms', 'th'] as const;
 const activeLocales = ['ko', 'en'] as const;
-const plannedLocales = ['es', 'zh', 'hi', 'fr', 'ja', 'de', 'pt', 'id'] as const;
+const plannedLocales = ['zh', 'es', 'fr', 'hi', 'ja', 'vi', 'ru', 'id', 'ms', 'th'] as const;
 const componentPaths = [
   'src/lib/components/AuthShell.svelte',
   'src/lib/components/PasswordField.svelte',

@@ -1,6 +1,6 @@
-export const zdpAuthTargetLocales = ['en', 'es', 'zh', 'hi', 'ko', 'fr', 'ja', 'de', 'pt', 'id'] as const;
+export const zdpAuthTargetLocales = ['en', 'zh', 'es', 'fr', 'hi', 'ko', 'ja', 'vi', 'ru', 'id', 'ms', 'th'] as const;
 export const zdpAuthActiveLocales = ['ko', 'en'] as const;
-export const zdpAuthPlannedLocales = ['es', 'zh', 'hi', 'fr', 'ja', 'de', 'pt', 'id'] as const;
+export const zdpAuthPlannedLocales = ['zh', 'es', 'fr', 'hi', 'ja', 'vi', 'ru', 'id', 'ms', 'th'] as const;
 
 export type ZdpAuthLocale = (typeof zdpAuthTargetLocales)[number];
 export type ZdpAuthActiveLocale = (typeof zdpAuthActiveLocales)[number];
