@@ -2,6 +2,13 @@ export const zdpAuthTargetLocales = ['en', 'zh', 'es', 'fr', 'hi', 'ko', 'ja', '
 export const zdpAuthActiveLocales = ['ko', 'en'] as const;
 export const zdpAuthPlannedLocales = ['zh', 'es', 'fr', 'hi', 'ja', 'vi', 'ru', 'id', 'ms', 'th'] as const;
 
+/*
+ * mf:anchor zdp.auth-ui.message-catalog
+ * purpose: Locate auth UI message catalogs and active/planned locale boundaries for reusable client auth surfaces.
+ * search: auth messages, active locales, planned locales, login copy, provider labels
+ * invariant: User-visible auth copy stays message-keyed and product-facing, with no implementation or server-authority text in labels.
+ * risk: authn, privacy, config
+ */
 export type ZdpAuthLocale = (typeof zdpAuthTargetLocales)[number];
 export type ZdpAuthActiveLocale = (typeof zdpAuthActiveLocales)[number];
 export type ZdpAuthPlannedLocale = (typeof zdpAuthPlannedLocales)[number];

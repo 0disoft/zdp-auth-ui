@@ -1,6 +1,13 @@
 export const zdpAuthModes = ['login', 'signup', 'recovery'] as const;
 export type ZdpAuthMode = (typeof zdpAuthModes)[number];
 
+/*
+ * mf:anchor zdp.auth-ui.public-auth-contract
+ * purpose: Locate the reusable auth UI event and provider contract shared by Astro, SvelteKit, and Tauri consumers.
+ * search: auth modes, provider selection, submit detail, mode change, reusable auth UI
+ * invariant: UI contracts describe browser interaction only and never own identity, session, permission, or token truth.
+ * risk: authn, authz, privacy
+ */
 export const zdpAuthProviderKinds = ['passkey', 'oauth', 'email'] as const;
 export type ZdpAuthProviderKind = (typeof zdpAuthProviderKinds)[number];
 
