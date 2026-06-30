@@ -86,7 +86,7 @@ import 'zdp-auth-ui/styles.css';
 ## rodi-site-template-svelte에서 반영한 후보
 
 - `@simplewebauthn/browser`: passkey 브라우저 ceremony helper 후보로 도입했다. 서버 검증과 credential 저장은 이 저장소가 소유하지 않는다.
-- `zdp-design-system`: 인증 화면의 시각 기준이며 npm package range `^0.46.0`으로 소비한다.
+- `zdp-design-system`: 인증 화면의 시각 기준이며 npm package range `^0.46.1`로 소비한다.
 
 `better-auth`, `drizzle-orm`, `@libsql/client`, server captcha, cookie consent, sitemap, markdown renderer는 인증 UI 패키지에 넣지 않는다.
 

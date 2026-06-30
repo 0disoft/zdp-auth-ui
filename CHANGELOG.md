@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.1.8
+
+- Updated the published design-system dependency to `zdp-design-system ^0.46.1` so auth UI consumers resolve the latest design-system package surface without a nested older copy.
+
 ## 0.1.7
 
 - Updated the published design-system dependency to `zdp-design-system ^0.46.0` so auth UI consumers share the same Svelte peer floor and generated package surface.

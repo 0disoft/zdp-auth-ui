@@ -1,3 +1,8 @@
+# mf:anchor zdp.auth-ui.service-contract
+# purpose: Locate the shared auth UI package contract for login, signup, recovery, passkey, provider choice, and locale surfaces.
+# search: auth UI, login, signup, recovery, passkey, provider choice, locale copy
+# invariant: Auth UI cannot own identity, session, refresh token, OAuth secret, permission, entitlement, consent, payment, or audit truth.
+# risk: authz, privacy, security
 contract:
   schema_version: 2
   contract_version: 1
