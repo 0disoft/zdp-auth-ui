@@ -73,7 +73,7 @@ en, zh, es, fr, hi, ko, ja, vi, ru, id, ms, th
 import 'zdp-auth-ui/styles.css';
 ```
 
-`zdp-auth-ui`의 root Svelte compiler/type condition은 source entry를 유지하고, JavaScript import와 CSS entry는 `dist/` 산출물을 가리킨다. 순수 TypeScript subpath인 `./i18n`, `./contract`는 `dist/*.d.ts`와 `dist/*.js`를 사용한다. `bun run build`는 Vite library bundle을 만든 뒤 `dist/styles.css`, `dist/index.d.ts`, `dist/i18n.d.ts`, `dist/contract.d.ts`를 생성한다. 소비 앱은 `src/` deep import를 쓰지 않는다.
+`zdp-auth-ui`의 root Svelte compiler/type condition, JavaScript import, CSS entry는 모두 `dist/` 산출물을 가리킨다. 순수 TypeScript subpath인 `./i18n`, `./contract`도 `dist/*.d.ts`와 `dist/*.js`를 사용한다. `bun run build`는 Vite library bundle을 만든 뒤 `dist/styles.css`, `dist/index.d.ts`, `dist/i18n.d.ts`, `dist/contract.d.ts`를 생성한다. 소비 앱은 `src/` deep import를 쓰지 않고, npm clean consumer도 package source를 다시 컴파일하지 않는다.
 
 ## 경계
 

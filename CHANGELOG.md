@@ -4,6 +4,12 @@
 
 - No unreleased changes.
 
+## 0.1.6
+
+- Moved the root `types` and `svelte` package conditions to the generated `dist/` surface so clean Svelte/Vite consumers do not recompile package source from `node_modules`.
+- Removed `src/` from the published npm file list.
+- Raised the Svelte peer dependency floor to `^5.56.0` to match the compiler/runtime surface verified by clean Svelte/Vite consumers.
+
 ## 0.1.5
 
 - Moved JavaScript and CSS package exports to the generated `dist/` package surface while keeping the root Svelte compiler and type conditions on source.

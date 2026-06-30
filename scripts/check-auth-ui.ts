@@ -142,8 +142,8 @@ function checkPackageJson(packageJson: PackageJson, changelog: string): void {
     }
   }
 
-  if (packageJson.peerDependencies?.svelte !== '^5.0.0') {
-    failures.push('Svelte must stay a peer dependency for Astro/SvelteKit/Tauri consumers.');
+  if (packageJson.peerDependencies?.svelte !== '^5.56.0') {
+    failures.push('Svelte must stay a ^5.56.0 peer dependency for Astro/SvelteKit/Tauri consumers.');
   }
 
   if (packageJson.scripts?.check !== 'bun scripts/check-auth-ui.ts') {
@@ -162,8 +162,8 @@ function checkPackageExports(packageJson: PackageJson): void {
     [
       '.',
       {
-        types: './src/lib/index.ts',
-        svelte: './src/lib/index.ts',
+        types: './dist/index.d.ts',
+        svelte: './dist/index.js',
         import: './dist/index.js',
         default: './dist/index.js'
       }
@@ -195,7 +195,7 @@ function checkPackageExports(packageJson: PackageJson): void {
     }
 
     if (JSON.stringify(actualValue) !== JSON.stringify(expectedValue)) {
-      failures.push(`package.json export ${exportPath} must point at the dist package surface.`);
+      failures.push(`package.json export ${exportPath} must point at the generated dist package surface.`);
     }
   }
 
@@ -203,8 +203,8 @@ function checkPackageExports(packageJson: PackageJson): void {
     failures.push('package.json files must include dist/ for public package consumption.');
   }
 
-  if (!packageJson.files?.includes('src/')) {
-    failures.push('package.json files must include src/ for Svelte compiler condition consumption.');
+  if (packageJson.files?.includes('src/')) {
+    failures.push('package.json files must not publish src/ because clean consumers must use the generated dist package surface.');
   }
 
   if (!packageJson.sideEffects?.includes('./dist/styles.css')) {

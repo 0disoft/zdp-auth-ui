@@ -16,7 +16,7 @@
         "vite": "^7.3.5",
       },
       "peerDependencies": {
-        "svelte": "^5.0.0",
+        "svelte": "^5.56.0",
       },
     },
   },
