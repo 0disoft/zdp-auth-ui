@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.1.7
+
+- Updated the published design-system dependency to `zdp-design-system ^0.46.0` so auth UI consumers share the same Svelte peer floor and generated package surface.
+
 ## 0.1.6
 
 - Moved the root `types` and `svelte` package conditions to the generated `dist/` surface so clean Svelte/Vite consumers do not recompile package source from `node_modules`.

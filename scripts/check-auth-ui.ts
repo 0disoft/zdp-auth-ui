@@ -114,8 +114,8 @@ function checkPackageJson(packageJson: PackageJson, changelog: string): void {
     failures.push(`CHANGELOG.md must include the current package version ${packageJson.version}.`);
   }
 
-  if (packageJson.dependencies?.['zdp-design-system'] !== '^0.45.0') {
-    failures.push('zdp-auth-ui must consume the published zdp-design-system package range ^0.45.0.');
+  if (packageJson.dependencies?.['zdp-design-system'] !== '^0.46.0') {
+    failures.push('zdp-auth-ui must consume the published zdp-design-system package range ^0.46.0.');
   }
 
   if ((packageJson as { private?: boolean }).private !== false) {
