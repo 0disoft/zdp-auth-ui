@@ -258,9 +258,8 @@ automation:
     required_status_checks:
       - CI / auth-ui-package
     missing_reason: null
-    private_dependency_token_required: true
-    required_secrets:
-      - ZDP_CI_READ_TOKEN
+    private_dependency_token_required: false
+    required_secrets: []
   dependency_updates:
     renovate_enabled: false
     dependabot_enabled: false
@@ -344,4 +343,4 @@ notes:
   - It uses Svelte components so Astro can consume it as islands and SvelteKit/Tauri Svelte can consume it directly.
   - Korean and English are active first; Chinese, Spanish, French, Hindi, Japanese, Vietnamese, Russian, Indonesian, Malay, and Thai are planned.
   - Consuming deployments must apply auth UI security headers including Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, and frame-ancestors or X-Frame-Options. CSP unsafe-inline and unsafe-eval require a nonce, hash, or reviewed exception.
-  - CI checks out sibling zdp-design-system before running bun run check and bun run build; public sibling checkout can use github.token, while private siblings require ZDP_CI_READ_TOKEN fallback.
+  - CI checks out only zdp-auth-ui, resolves published zdp-design-system from npm, then runs bun run build and bun run check.

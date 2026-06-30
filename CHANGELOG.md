@@ -4,6 +4,12 @@
 
 - No unreleased changes.
 
+## 0.1.5
+
+- Moved JavaScript and CSS package exports to the generated `dist/` package surface while keeping the root Svelte compiler and type conditions on source.
+- Added generated declaration files and a single published `styles.css` entry for consumer imports.
+- Documented the mustflow npm publish preparation flow.
+
 ## 0.1.4
 
 - Switched `zdp-design-system` consumption from a local sibling checkout to the published npm package range.

@@ -5,9 +5,13 @@ export default defineConfig({
   plugins: [svelte()],
   build: {
     lib: {
-      entry: 'src/lib/index.ts',
+      entry: {
+        index: 'src/lib/index.ts',
+        i18n: 'src/lib/i18n.ts',
+        contract: 'src/lib/auth-contract.ts'
+      },
       formats: ['es'],
-      fileName: 'index'
+      fileName: (_format, entryName) => `${entryName}.js`
     },
     rollupOptions: {
       external: ['@simplewebauthn/browser', 'svelte', 'zdp-design-system']

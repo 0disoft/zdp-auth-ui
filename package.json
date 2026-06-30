@@ -1,6 +1,6 @@
 {
   "name": "zdp-auth-ui",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": false,
   "license": "MIT",
   "type": "module",
@@ -15,24 +15,26 @@
   "homepage": "https://github.com/0disoft/zdp-auth-ui#readme",
   "exports": {
     ".": {
-      "svelte": "./src/lib/index.ts",
       "types": "./src/lib/index.ts",
-      "default": "./src/lib/index.ts"
+      "svelte": "./src/lib/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
-    "./styles.css": "./src/styles/index.css",
+    "./styles.css": "./dist/styles.css",
     "./i18n": {
-      "types": "./src/lib/i18n.ts",
-      "import": "./src/lib/i18n.ts",
-      "default": "./src/lib/i18n.ts"
+      "types": "./dist/i18n.d.ts",
+      "import": "./dist/i18n.js",
+      "default": "./dist/i18n.js"
     },
     "./contract": {
-      "types": "./src/lib/auth-contract.ts",
-      "import": "./src/lib/auth-contract.ts",
-      "default": "./src/lib/auth-contract.ts"
+      "types": "./dist/contract.d.ts",
+      "import": "./dist/contract.js",
+      "default": "./dist/contract.js"
     }
   },
   "files": [
     "src/",
+    "dist/",
     "README.md",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
@@ -43,10 +45,11 @@
     "LICENSE"
   ],
   "sideEffects": [
-    "./src/styles/index.css"
+    "./dist/styles.css"
   ],
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && bun scripts/build-package-surface.ts",
+    "build:bundle": "vite build",
     "check": "bun scripts/check-auth-ui.ts",
     "package:check": "bun scripts/check-auth-ui.ts"
   },

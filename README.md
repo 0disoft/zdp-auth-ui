@@ -11,7 +11,7 @@ ZDP의 공통 인증 UI 패키지다.
 - 12개 target locale 계획 계약
 - `zdp-design-system` 기반 form, button, focus, surface 소비
 - passkey browser ceremony helper boundary
-- public package export와 소비 계약 검사
+- dist 기반 public package export와 소비 계약 검사
 
 ## 현재 제외
 
@@ -73,6 +73,8 @@ en, zh, es, fr, hi, ko, ja, vi, ru, id, ms, th
 import 'zdp-auth-ui/styles.css';
 ```
 
+`zdp-auth-ui`의 root Svelte compiler/type condition은 source entry를 유지하고, JavaScript import와 CSS entry는 `dist/` 산출물을 가리킨다. 순수 TypeScript subpath인 `./i18n`, `./contract`는 `dist/*.d.ts`와 `dist/*.js`를 사용한다. `bun run build`는 Vite library bundle을 만든 뒤 `dist/styles.css`, `dist/index.d.ts`, `dist/i18n.d.ts`, `dist/contract.d.ts`를 생성한다. 소비 앱은 `src/` deep import를 쓰지 않는다.
+
 ## 경계
 
 `zdp-auth-ui`는 화면 구조와 사용자가 누르는 표면만 제공한다. 실제 인증, 세션, 패스키 challenge, OAuth callback, 이메일 인증, 계정 생성, 추천 코드 적용은 `zdp-core-platform`과 API 계약이 소유한다.
@@ -91,12 +93,12 @@ import 'zdp-auth-ui/styles.css';
 ## 검증
 
 ```bash
-bun run check
 bun run build
+bun run check
 ```
 
-`check`는 package export, locale 계약, service boundary, auth UI source boundary, Svelte compile surface, 금지 dependency를 함께 확인한다.
+`build`는 npm package에 들어갈 dist surface를 만들고, `check`는 package export, locale 계약, service boundary, auth UI source boundary, Svelte compile surface, 금지 dependency를 함께 확인한다.
 
-이 저장소가 private 상태이면 GitHub Actions hosted runner가 account billing 또는 spending limit 상태 때문에 job 시작 전에 막힐 수 있다. 이 경우 실패한 Actions run은 코드 검증 실패가 아니라 CI 실행 환경 gate로 본다. 현재 package 변경 검증 증거는 workspace root에서 실행한 `mf run zdp_auth_ui_check` receipt와 위 로컬 check/build 결과를 우선한다.
+이 저장소가 private 상태이면 GitHub Actions hosted runner가 account billing 또는 spending limit 상태 때문에 job 시작 전에 막힐 수 있다. 이 경우 실패한 Actions run은 코드 검증 실패가 아니라 CI 실행 환경 gate로 본다. 현재 package 변경 검증 증거는 workspace root에서 실행한 `mf run zdp_auth_ui_build`, `mf run zdp_auth_ui_check`, `mf run zdp_auth_ui_npm_pack_dry_run` receipt를 우선한다.
 
-GitHub Actions CI는 `zdp-auth-ui`만 checkout하고 published `zdp-design-system` npm package를 `bun install --frozen-lockfile`로 해결한다. 그 다음 auth UI `bun run check`, `bun run build`를 실행한다.
+GitHub Actions CI는 `zdp-auth-ui`만 checkout하고 published `zdp-design-system` npm package를 `bun install --frozen-lockfile`로 해결한다. 그 다음 auth UI `bun run build`, `bun run check`를 실행한다.

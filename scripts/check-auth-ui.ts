@@ -150,18 +150,65 @@ function checkPackageJson(packageJson: PackageJson, changelog: string): void {
     failures.push('package.json scripts.check must run scripts/check-auth-ui.ts.');
   }
 
-  if (packageJson.scripts?.build !== 'vite build') {
-    failures.push('package.json scripts.build must run vite build.');
+  if (packageJson.scripts?.build !== 'vite build && bun scripts/build-package-surface.ts') {
+    failures.push('package.json scripts.build must run vite build and scripts/build-package-surface.ts.');
   }
 
-  for (const exportPath of ['.', './styles.css', './i18n', './contract']) {
-    if (!packageJson.exports?.[exportPath]) {
+  checkPackageExports(packageJson);
+}
+
+function checkPackageExports(packageJson: PackageJson): void {
+  const expectedExports = new Map<string, unknown>([
+    [
+      '.',
+      {
+        types: './src/lib/index.ts',
+        svelte: './src/lib/index.ts',
+        import: './dist/index.js',
+        default: './dist/index.js'
+      }
+    ],
+    ['./styles.css', './dist/styles.css'],
+    [
+      './i18n',
+      {
+        types: './dist/i18n.d.ts',
+        import: './dist/i18n.js',
+        default: './dist/i18n.js'
+      }
+    ],
+    [
+      './contract',
+      {
+        types: './dist/contract.d.ts',
+        import: './dist/contract.js',
+        default: './dist/contract.js'
+      }
+    ]
+  ]);
+
+  for (const [exportPath, expectedValue] of expectedExports) {
+    const actualValue = packageJson.exports?.[exportPath];
+    if (!actualValue) {
       failures.push(`package.json must export ${exportPath}.`);
+      continue;
+    }
+
+    if (JSON.stringify(actualValue) !== JSON.stringify(expectedValue)) {
+      failures.push(`package.json export ${exportPath} must point at the dist package surface.`);
     }
   }
 
-  if (!packageJson.sideEffects?.includes('./src/styles/index.css')) {
-    failures.push('package.json sideEffects must preserve ./src/styles/index.css.');
+  if (!packageJson.files?.includes('dist/')) {
+    failures.push('package.json files must include dist/ for public package consumption.');
+  }
+
+  if (!packageJson.files?.includes('src/')) {
+    failures.push('package.json files must include src/ for Svelte compiler condition consumption.');
+  }
+
+  if (!packageJson.sideEffects?.includes('./dist/styles.css')) {
+    failures.push('package.json sideEffects must preserve ./dist/styles.css.');
   }
 }
 
