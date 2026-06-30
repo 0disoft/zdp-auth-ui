@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-- Updated the CI contract checker and documentation for `actions/checkout@v7` and the now-public `zdp-design-system` sibling checkout.
+- No unreleased changes.
+
+## 0.1.4
+
+- Switched `zdp-design-system` consumption from a local sibling checkout to the published npm package range.
+- Added public package metadata and MIT license for npm package consumption.
 
 ## 0.1.3
 

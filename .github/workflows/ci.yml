@@ -28,23 +28,8 @@ jobs:
         with:
           path: projects/zdp-platforms/client-surfaces/zdp-auth-ui
 
-      - name: Checkout design system
-        uses: actions/checkout@v7
-        with:
-          repository: 0disoft/zdp-design-system
-          token: ${{ secrets.ZDP_CI_READ_TOKEN || github.token }}
-          path: projects/zdp-platforms/client-surfaces/zdp-design-system
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
-
-      - name: Install design system dependencies
-        working-directory: projects/zdp-platforms/client-surfaces/zdp-design-system
-        run: bun install --frozen-lockfile
-
-      - name: Build design system package surface
-        working-directory: projects/zdp-platforms/client-surfaces/zdp-design-system
-        run: bun run package:build
 
       - name: Install auth UI dependencies
         run: bun install --frozen-lockfile

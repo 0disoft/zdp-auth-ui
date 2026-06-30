@@ -84,7 +84,7 @@ import 'zdp-auth-ui/styles.css';
 ## rodi-site-template-svelte에서 반영한 후보
 
 - `@simplewebauthn/browser`: passkey 브라우저 ceremony helper 후보로 도입했다. 서버 검증과 credential 저장은 이 저장소가 소유하지 않는다.
-- `zdp-design-system`: 인증 화면의 시각 기준이다.
+- `zdp-design-system`: 인증 화면의 시각 기준이며 npm package range `^0.45.0`으로 소비한다.
 
 `better-auth`, `drizzle-orm`, `@libsql/client`, server captcha, cookie consent, sitemap, markdown renderer는 인증 UI 패키지에 넣지 않는다.
 
@@ -97,6 +97,6 @@ bun run build
 
 `check`는 package export, locale 계약, service boundary, auth UI source boundary, Svelte compile surface, 금지 dependency를 함께 확인한다.
 
-이 저장소가 private 상태이면 GitHub Actions hosted runner가 account billing 또는 spending limit 상태 때문에 job 시작 전에 막힐 수 있다. 이 경우 실패한 Actions run은 코드 검증 실패가 아니라 CI 실행 환경 gate로 본다. 현재 package 변경 전 검증 증거는 workspace root에서 실행한 `mf run zdp_auth_ui_check` receipt와 위 로컬 check/build 결과를 우선한다.
+이 저장소가 private 상태이면 GitHub Actions hosted runner가 account billing 또는 spending limit 상태 때문에 job 시작 전에 막힐 수 있다. 이 경우 실패한 Actions run은 코드 검증 실패가 아니라 CI 실행 환경 gate로 본다. 현재 package 변경 검증 증거는 workspace root에서 실행한 `mf run zdp_auth_ui_check` receipt와 위 로컬 check/build 결과를 우선한다.
 
-GitHub Actions CI는 `zdp-auth-ui`와 sibling `zdp-design-system`을 같은 workspace 모양으로 checkout한 뒤 design-system `dist/` package surface를 `bun run package:build`로 만든다. 그 다음 auth UI install, `bun run check`, `bun run build`를 실행한다. 공개 sibling은 `github.token`으로 읽고, private sibling이 추가되면 repository secret `ZDP_CI_READ_TOKEN`을 설정한다.
+GitHub Actions CI는 `zdp-auth-ui`만 checkout하고 published `zdp-design-system` npm package를 `bun install --frozen-lockfile`로 해결한다. 그 다음 auth UI `bun run check`, `bun run build`를 실행한다.

@@ -114,8 +114,22 @@ function checkPackageJson(packageJson: PackageJson, changelog: string): void {
     failures.push(`CHANGELOG.md must include the current package version ${packageJson.version}.`);
   }
 
-  if (packageJson.dependencies?.['zdp-design-system'] !== 'file:../zdp-design-system') {
-    failures.push('zdp-auth-ui must consume zdp-design-system through the public sibling package.');
+  if (packageJson.dependencies?.['zdp-design-system'] !== '^0.45.0') {
+    failures.push('zdp-auth-ui must consume the published zdp-design-system package range ^0.45.0.');
+  }
+
+  if ((packageJson as { private?: boolean }).private !== false) {
+    failures.push('package.json private must be false for public npm package consumption.');
+  }
+
+  if ((packageJson as { license?: string }).license !== 'MIT') {
+    failures.push('package.json license must be MIT for public package consumption.');
+  }
+
+  for (const publicPackageFile of ['LICENSE', 'CONTRIBUTING.md', 'BOUNDARY.md', 'RUNBOOK.md', 'SECURITY.md', 'service.yaml']) {
+    if (!packageJson.files?.includes(publicPackageFile)) {
+      failures.push(`package.json files must include ${publicPackageFile} for public package consumption.`);
+    }
   }
 
   if (!packageJson.dependencies?.['@simplewebauthn/browser']) {
@@ -215,17 +229,9 @@ function checkCiWorkflow(ciWorkflow: string): void {
   for (const requiredText of [
     'actions/checkout@v7',
     'Checkout auth UI',
-    'Checkout design system',
-    '0disoft/zdp-design-system',
-    'secrets.ZDP_CI_READ_TOKEN || github.token',
     'projects/zdp-platforms/client-surfaces/zdp-auth-ui',
-    'projects/zdp-platforms/client-surfaces/zdp-design-system',
     'oven-sh/setup-bun@v2',
-    'Install design system dependencies',
-    'Build design system package surface',
-    'working-directory: projects/zdp-platforms/client-surfaces/zdp-design-system',
     'bun install --frozen-lockfile',
-    'bun run package:build',
     'bun run check',
     'bun run build'
   ]) {
@@ -233,11 +239,22 @@ function checkCiWorkflow(ciWorkflow: string): void {
       failures.push(`.github/workflows/ci.yml must include auth UI CI contract: ${requiredText}.`);
     }
   }
+
+  for (const forbiddenText of [
+    'Checkout design system',
+    '0disoft/zdp-design-system',
+    'projects/zdp-platforms/client-surfaces/zdp-design-system',
+    'ZDP_CI_READ_TOKEN'
+  ]) {
+    if (ciWorkflow.includes(forbiddenText)) {
+      failures.push(`.github/workflows/ci.yml must not require sibling design-system checkout: ${forbiddenText}.`);
+    }
+  }
 }
 
 function checkRunbook(runbook: string): void {
   for (const requiredText of [
-    'ZDP_CI_READ_TOKEN',
+    'published `zdp-design-system` npm package',
     'zdp-design-system',
     'bun run check',
     'bun run build'
