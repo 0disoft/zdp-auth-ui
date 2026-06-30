@@ -73,7 +73,7 @@ en, zh, es, fr, hi, ko, ja, vi, ru, id, ms, th
 import 'zdp-auth-ui/styles.css';
 ```
 
-`zdp-auth-ui`의 root Svelte compiler/type condition, JavaScript import, CSS entry는 모두 `dist/` 산출물을 가리킨다. 순수 TypeScript subpath인 `./i18n`, `./contract`도 `dist/*.d.ts`와 `dist/*.js`를 사용한다. `bun run build`는 Vite library bundle을 만든 뒤 `dist/styles.css`, `dist/index.d.ts`, `dist/i18n.d.ts`, `dist/contract.d.ts`를 생성한다. 소비 앱은 `src/` deep import를 쓰지 않고, npm clean consumer도 package source를 다시 컴파일하지 않는다.
+`zdp-auth-ui`의 root Svelte compiler/type condition, JavaScript import, CSS entry는 모두 `dist/` 산출물을 가리킨다. 순수 TypeScript subpath인 `./i18n`, `./contract`도 `dist/*.d.ts`와 `dist/*.js`를 사용한다. `bun run build`는 Vite library bundle을 만든 뒤 `dist/styles.css`, `dist/index.d.ts`, `dist/i18n.d.ts`, `dist/contract.d.ts`를 생성한다. 소비 앱은 `src/` deep import를 쓰지 않고, npm clean consumer도 package source를 다시 컴파일하지 않는다. `examples/clean-consumer/AuthUiCleanConsumer.svelte`는 package root import, message-keyed provider labels, password label/help/error override, submit/provider/mode callbacks만 쓰는 최소 소비 fixture다.
 
 ## 경계
 
@@ -86,7 +86,7 @@ import 'zdp-auth-ui/styles.css';
 ## rodi-site-template-svelte에서 반영한 후보
 
 - `@simplewebauthn/browser`: passkey 브라우저 ceremony helper 후보로 도입했다. 서버 검증과 credential 저장은 이 저장소가 소유하지 않는다.
-- `zdp-design-system`: 인증 화면의 시각 기준이며 npm package range `^0.45.0`으로 소비한다.
+- `zdp-design-system`: 인증 화면의 시각 기준이며 npm package range `^0.46.0`으로 소비한다.
 
 `better-auth`, `drizzle-orm`, `@libsql/client`, server captcha, cookie consent, sitemap, markdown renderer는 인증 UI 패키지에 넣지 않는다.
 
@@ -97,7 +97,7 @@ bun run build
 bun run check
 ```
 
-`build`는 npm package에 들어갈 dist surface를 만들고, `check`는 package export, locale 계약, service boundary, auth UI source boundary, Svelte compile surface, 금지 dependency를 함께 확인한다.
+`build`는 npm package에 들어갈 dist surface를 만들고, `check`는 package export, locale 계약, service boundary, auth UI source boundary, clean consumer fixture, Svelte compile surface, 금지 dependency를 함께 확인한다.
 
 이 저장소가 private 상태이면 GitHub Actions hosted runner가 account billing 또는 spending limit 상태 때문에 job 시작 전에 막힐 수 있다. 이 경우 실패한 Actions run은 코드 검증 실패가 아니라 CI 실행 환경 gate로 본다. 현재 package 변경 검증 증거는 workspace root에서 실행한 `mf run zdp_auth_ui_build`, `mf run zdp_auth_ui_check`, `mf run zdp_auth_ui_npm_pack_dry_run` receipt를 우선한다.
 

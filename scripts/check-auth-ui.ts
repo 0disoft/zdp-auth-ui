@@ -24,6 +24,9 @@ const componentPaths = [
   'src/lib/components/PasswordField.svelte',
   'src/lib/components/ProviderButton.svelte'
 ] as const;
+const exampleComponentPaths = [
+  'examples/clean-consumer/AuthUiCleanConsumer.svelte'
+] as const;
 const sourceBoundaryExtensions = new Set(['.svelte', '.ts']);
 const forbiddenSourceBoundaryTexts = ['fetch(', 'localStorage', 'sessionStorage', 'document.cookie'] as const;
 const componentDesignSystemImports: Record<string, readonly string[]> = {
@@ -48,6 +51,7 @@ const requiredFiles = [
   'RUNBOOK.md',
   'SECURITY.md',
   'service.yaml',
+  'examples/clean-consumer/AuthUiCleanConsumer.svelte',
   '.github/workflows/ci.yml',
   'vite.config.ts',
   'src/lib/auth-contract.ts',
@@ -80,6 +84,12 @@ const [
 ]);
 const packageJson = JSON.parse(packageSource) as PackageJson;
 const sourceFiles = await readSourceFiles(join(root, 'src', 'lib'));
+const exampleFiles = await Promise.all(
+  exampleComponentPaths.map(async (relativePath) => ({
+    relativePath,
+    source: await readFile(join(root, relativePath), 'utf8')
+  }))
+);
 
 checkRequiredFiles();
 checkPackageJson(packageJson, changelog);
@@ -91,6 +101,7 @@ checkRunbook(runbook);
 checkPublicEntry(publicEntry);
 checkPasskeyBoundary(passkeySource);
 checkSourceBoundary(sourceFiles);
+checkCleanConsumerExamples(exampleFiles);
 await checkSvelteCompilation();
 
 if (failures.length > 0) {
@@ -379,6 +390,60 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
   checkRawColorUsage(sourceFiles);
 }
 
+function checkCleanConsumerExamples(exampleFiles: readonly SourceFile[]): void {
+  for (const exampleFile of exampleFiles) {
+    for (const forbiddenText of forbiddenSourceBoundaryTexts) {
+      if (exampleFile.source.includes(forbiddenText)) {
+        failures.push(`${exampleFile.relativePath} must not own runtime auth storage or server calls: ${forbiddenText}.`);
+      }
+    }
+  }
+
+  const cleanConsumer = exampleFiles.find(
+    (exampleFile) => exampleFile.relativePath === 'examples/clean-consumer/AuthUiCleanConsumer.svelte'
+  );
+  if (!cleanConsumer) {
+    failures.push('examples/clean-consumer/AuthUiCleanConsumer.svelte must be included in clean consumer checks.');
+    return;
+  }
+
+  for (const requiredText of [
+    "from 'zdp-auth-ui'",
+    'AuthShell',
+    'PasswordField',
+    'getAuthMessages',
+    'type ZdpAuthMode',
+    'type ZdpAuthProvider',
+    'type ZdpAuthSubmitDetail',
+    'onsubmit={handleSubmit}',
+    'onmodechange=',
+    'onproviderselect=',
+    'termsHref="/terms"',
+    'privacyHref="/privacy"',
+    'helpText=',
+    'errorText='
+  ]) {
+    if (!cleanConsumer.source.includes(requiredText)) {
+      failures.push(`Clean consumer example is missing auth UI consumption contract: ${requiredText}.`);
+    }
+  }
+
+  for (const forbiddenText of [
+    'from \'./src',
+    'from "../src',
+    'from "../../src',
+    'authorization',
+    'refreshToken',
+    'accessToken',
+    'providerSecret',
+    'passkeyChallenge'
+  ]) {
+    if (cleanConsumer.source.includes(forbiddenText)) {
+      failures.push(`Clean consumer example must not deep import or store auth authority data: ${forbiddenText}.`);
+    }
+  }
+}
+
 function checkDesignSystemConsumption(sourceFiles: readonly SourceFile[]): void {
   for (const [relativePath, expectedImports] of Object.entries(componentDesignSystemImports)) {
     const sourceFile = sourceFiles.find((file) => file.relativePath === relativePath);
@@ -433,7 +498,7 @@ function checkRawColorUsage(sourceFiles: readonly SourceFile[]): void {
 }
 
 async function checkSvelteCompilation(): Promise<void> {
-  for (const relativePath of componentPaths) {
+  for (const relativePath of [...componentPaths, ...exampleComponentPaths]) {
     const source = await readFile(join(root, relativePath), 'utf8');
     const warnings: Warning[] = [];
 
