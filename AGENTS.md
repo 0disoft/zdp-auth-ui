@@ -1,5 +1,19 @@
 # AGENTS.md
 
+## Read Order
+
+1. `AGENTS.md`
+2. `BOUNDARY.md`
+3. `SECURITY.md`
+4. `CHECKLIST.md`
+5. `VALIDATION.md`
+6. `.agents/README.md`
+7. `.agents/context-map.md`
+8. Matching `.agents/checklists/*.md`
+9. Matching `.agents/skills/*/SKILL.md`
+10. Matching `.agents/validations/*.md`
+11. Relevant `docs/**`, `service.yaml`, `package.json`, `src/**`, `scripts/**`, `examples/**`
+
 ## Scope
 
 This repository owns shared authentication UI surfaces for ZDP client screens.

@@ -1,0 +1,45 @@
+# CHECKLIST.md
+
+이 저장소는 ZDP client surface가 공유하는 인증 UI package를 소유한다. 작업 전 변경 대상이 UI boundary, package surface, locale messages, passkey ceremony, security copy, consumer fixture 중 어디인지 먼저 고른다.
+
+## Common Boundary
+
+- Identity, session, refresh token, OAuth secret, permission, entitlement, consent, payment, audit truth를 소유하지 않는다.
+- Component state, examples, tests, logs에 password, token, authorization header, provider secret, passkey challenge, raw provider payload를 남기지 않는다.
+- Authentication result는 consuming app, client SDK or BFF, `zdp-core-platform` 경로로 넘긴다.
+- Product-specific signup policy, referral reward, recovery eligibility, provider allowlist truth를 이 package에 넣지 않는다.
+
+## Package Surface
+
+- Public imports are package root, `./styles.css`, `./i18n`, and `./contract`.
+- Export entries must point at `dist/**`, not `src/**`.
+- Clean consumer fixtures must use package imports and message-keyed labels.
+- CSS is a package side effect only through `./dist/styles.css`.
+- Package publish evidence must include build, check, and npm pack dry-run intents before release work.
+
+## Locale Messages
+
+- Active locales are `ko` and `en`.
+- Planned locales remain planned until translation work starts.
+- User-facing auth text stays behind message keys.
+- UI labels must be product-facing, not implementation explanations.
+- Copy that changes phishing risk, account recovery meaning, redirect expectation, or provider trust requires human review.
+
+## Passkey And Provider UI
+
+- Browser helper may prepare WebAuthn ceremony data only from a user-triggered interaction.
+- Challenge creation, attestation/assertion verification, credential storage, and session issue stay in `zdp-core-platform`.
+- Provider selection UI must not embed provider secrets, callback payloads, or authorization headers.
+- Native form fallback must use POST when password fields are present.
+
+## Design System
+
+- Use `zdp-design-system` public exports and shared CSS.
+- Do not fork local form, focus, surface, or button primitives unless a package boundary change is reviewed.
+- Keep auth UI reusable across Astro islands, SvelteKit app shells, and Tauri Svelte shells.
+
+## Manual Gates
+
+- Broad auth screen adoption requires manual approval.
+- Package release requires manual approval and publish-specific mustflow intents.
+- CI billing or private-runner startup failures are environment gates, not package validation failures.
