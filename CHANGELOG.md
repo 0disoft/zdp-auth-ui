@@ -7,6 +7,7 @@
 ## 0.1.10
 
 - Added a real Chromium regression gate proving native required-field validation blocks auth submit callbacks and focuses the invalid password field.
+- Updated the published design-system dependency to `zdp-design-system ^0.46.4` so the release consumes the Card semantics and browser accessibility gate package surface.
 
 ## 0.1.9
 
