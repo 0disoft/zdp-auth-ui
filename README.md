@@ -81,12 +81,12 @@ import 'zdp-auth-ui/styles.css';
 
 소비 앱은 이 패키지에서 발생한 submit/provider/passkey 선택을 받아 자기 API 클라이언트나 SDK에 연결한다. 이 패키지는 `fetch`, cookie, localStorage, sessionStorage, DB, provider secret을 직접 다루지 않는다.
 
-`AuthShell`은 submit callback이 있거나 명시적인 `action`이 없으면 브라우저 기본 form 제출을 막는다. 명시적인 native form fallback도 password가 URL과 로그에 남지 않도록 POST만 허용한다. 회원가입 화면에 `referralCode`를 넘기면 submit detail과 POST hidden field에만 포함하고, 이 패키지는 추천 코드 검증·보상·저장을 하지 않는다.
+`AuthShell`은 submit callback이 있거나 명시적인 `action`이 없으면 브라우저 기본 form 제출을 막는다. 명시적인 native form fallback도 password가 URL과 로그에 남지 않도록 POST만 허용하고, `required` 같은 브라우저 constraint validation을 그대로 유지한다. 회원가입 화면에 `referralCode`를 넘기면 submit detail과 POST hidden field에만 포함하고, 이 패키지는 추천 코드 검증·보상·저장을 하지 않는다.
 
 ## rodi-site-template-svelte에서 반영한 후보
 
 - `@simplewebauthn/browser`: passkey 브라우저 ceremony helper 후보로 도입했다. 서버 검증과 credential 저장은 이 저장소가 소유하지 않는다.
-- `zdp-design-system`: 인증 화면의 시각 기준이며 npm package range `^0.46.1`로 소비한다.
+- `zdp-design-system`: 인증 화면의 시각 기준이며 npm package range `^0.46.3`으로 소비한다.
 
 `better-auth`, `drizzle-orm`, `@libsql/client`, server captcha, cookie consent, sitemap, markdown renderer는 인증 UI 패키지에 넣지 않는다.
 

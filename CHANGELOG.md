@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.1.9
+
+- Kept native browser constraint validation enabled for explicit POST fallback forms, added regression coverage for required password fields, and adopted `zdp-design-system ^0.46.3`.
+
 ## 0.1.8
 
 - Updated the published design-system dependency to `zdp-design-system ^0.46.1` so auth UI consumers resolve the latest design-system package surface without a nested older copy.

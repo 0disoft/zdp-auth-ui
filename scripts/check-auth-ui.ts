@@ -125,8 +125,8 @@ function checkPackageJson(packageJson: PackageJson, changelog: string): void {
     failures.push(`CHANGELOG.md must include the current package version ${packageJson.version}.`);
   }
 
-  if (packageJson.dependencies?.['zdp-design-system'] !== '^0.46.1') {
-    failures.push('zdp-auth-ui must consume the published zdp-design-system package range ^0.46.1.');
+  if (packageJson.dependencies?.['zdp-design-system'] !== '^0.46.3') {
+    failures.push('zdp-auth-ui must consume the published zdp-design-system package range ^0.46.3.');
   }
 
   if ((packageJson as { private?: boolean }).private !== false) {
@@ -386,6 +386,10 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
     failures.push("src/lib/components/AuthShell.svelte must not expose GET form submission.");
   }
 
+  if (authShell.source.includes('novalidate')) {
+    failures.push('src/lib/components/AuthShell.svelte must keep native constraint validation enabled for POST fallback forms.');
+  }
+
   checkDesignSystemConsumption(sourceFiles);
   checkRawColorUsage(sourceFiles);
 }
@@ -441,6 +445,10 @@ function checkCleanConsumerExamples(exampleFiles: readonly SourceFile[]): void {
     if (cleanConsumer.source.includes(forbiddenText)) {
       failures.push(`Clean consumer example must not deep import or store auth authority data: ${forbiddenText}.`);
     }
+  }
+
+  if (!/<PasswordField[\s\S]*?\brequired\b[\s\S]*?\/>/.test(cleanConsumer.source)) {
+    failures.push('Clean consumer example must keep a required PasswordField as native validation evidence.');
   }
 }
 

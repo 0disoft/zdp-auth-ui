@@ -78,7 +78,6 @@
     action={action ?? undefined}
     method={formMethod}
     data-mode={mode}
-    novalidate
     onsubmit={handleSubmit}
   >
     <Stack gap="md">
