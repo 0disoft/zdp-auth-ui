@@ -39,3 +39,6 @@ jobs:
 
       - name: Check
         run: bun run check
+
+      - name: Check browser accessibility
+        run: bun run browser:check

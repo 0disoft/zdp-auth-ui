@@ -7,6 +7,7 @@
 | Change scope | Check |
 | --- | --- |
 | auth UI source, locale messages, service boundary, source boundary | `zdp_auth_ui_check` |
+| native browser form validation and focus behavior | `zdp_auth_ui_browser_accessibility_check` |
 | package build output or `dist/**` surface | `zdp_auth_ui_build` |
 | npm package contents or release readiness | `zdp_auth_ui_npm_pack_dry_run` |
 | clean consumer behavior after pack evidence | `zdp_auth_ui_clean_consumer_local_smoke` or `zdp_auth_ui_clean_consumer_smoke` |

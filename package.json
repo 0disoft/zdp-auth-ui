@@ -1,6 +1,6 @@
 {
   "name": "zdp-auth-ui",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "private": false,
   "license": "MIT",
   "type": "module",
@@ -49,6 +49,7 @@
   "scripts": {
     "build": "vite build && bun scripts/build-package-surface.ts",
     "build:bundle": "vite build",
+    "browser:check": "node scripts/check-browser-accessibility.mjs",
     "check": "bun scripts/check-auth-ui.ts",
     "package:check": "bun scripts/check-auth-ui.ts"
   },
@@ -59,6 +60,7 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^6.2.4",
     "@types/node": "^24.12.4",
+    "playwright-core": "1.61.1",
     "svelte": "^5.56.1",
     "typescript": "^5.9.3",
     "vite": "^7.3.5"

@@ -6,15 +6,17 @@ Use the workspace-root mustflow intents for agent-run validation:
 
 - `zdp_auth_ui_build`
 - `zdp_auth_ui_check`
+- `zdp_auth_ui_browser_accessibility_check`
 
 ## CI Contract
 
 GitHub Actions checks out `zdp-auth-ui`, resolves the published `zdp-design-system` npm package from the frozen lockfile, then runs the auth UI package build and check aliases.
 
-The CI operation is intentionally direct and package-local:
+The CI operation is intentionally direct and package-local, with the browser check using the hosted runner's system Chrome:
 
 - `bun run build`
 - `bun run check`
+- `bun run browser:check`
 
 If GitHub Actions does not start because account billing or spending limits block private repository runners, treat that run as a CI environment gate rather than a package check failure. Use workspace-root receipts for `zdp_auth_ui_build`, `zdp_auth_ui_check`, and `zdp_auth_ui_npm_pack_dry_run` as the current merge/release evidence until Actions can run again.
 

@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.1.10
+
+- Added a real Chromium regression gate proving native required-field validation blocks auth submit callbacks and focuses the invalid password field.
+
 ## 0.1.9
 
 - Kept native browser constraint validation enabled for explicit POST fallback forms, added regression coverage for required password fields, and adopted `zdp-design-system ^0.46.3`.
