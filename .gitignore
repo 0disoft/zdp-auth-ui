@@ -3,4 +3,4 @@ dist/
 .svelte-kit/
 .vite/
 *.log
-
+/reports/
