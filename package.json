@@ -52,7 +52,8 @@
     "build:bundle": "vite build",
     "browser:check": "node scripts/check-browser-accessibility.mjs",
     "check": "bun scripts/check-bun-registry-lock.ts && bun scripts/check-auth-ui.ts && bun run release:check",
-    "release:check": "bun scripts/check-release-workflow.ts",
+    "release:artifact:check": "bun scripts/build-release-artifact.ts --check",
+    "release:check": "bun scripts/check-release-workflow.ts && bun run release:artifact:check",
     "package:check": "bun run check"
   },
   "dependencies": {

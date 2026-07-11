@@ -94,28 +94,7 @@ jobs:
 
       - name: Build package artifact
         id: package_artifact
-        run: |
-          npm pkg set "gitHead=$GITHUB_SHA"
-          pack_json="$(npm pack --json)"
-          tarball="$(printf '%s' "$pack_json" | node -e '
-            let input = "";
-            process.stdin.setEncoding("utf8");
-            process.stdin.on("data", chunk => input += chunk);
-            process.stdin.on("end", () => {
-              const result = JSON.parse(input);
-              if (!Array.isArray(result) || typeof result[0]?.filename !== "string") {
-                throw new Error("npm pack did not return a tarball filename.");
-              }
-              process.stdout.write(result[0].filename);
-            });
-          ')"
-          integrity="$(node -e '
-            const { createHash } = require("node:crypto");
-            const { readFileSync } = require("node:fs");
-            process.stdout.write(`sha512-${createHash("sha512").update(readFileSync(process.argv[1])).digest("base64")}`);
-          ' "$tarball")"
-          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
-          echo "integrity=$integrity" >> "$GITHUB_OUTPUT"
+        run: bun scripts/build-release-artifact.ts --git-head "$GITHUB_SHA" --github-output "$GITHUB_OUTPUT"
 
       - name: Publish package
         if: steps.npm_state.outputs.already_published != 'true'
