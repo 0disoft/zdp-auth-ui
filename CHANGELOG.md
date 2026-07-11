@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.1.11
+
+- Replaced copied design-system version checks with package range, Bun registry integrity, and installed-package reconciliation.
+- Added regression fixtures for malformed integrity, duplicate lock entries, and incompatible caret-range resolutions.
+
 ## 0.1.10
 
 - Added a real Chromium regression gate proving native required-field validation blocks auth submit callbacks and focuses the invalid password field.

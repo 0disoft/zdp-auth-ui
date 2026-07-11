@@ -2,8 +2,13 @@ import { existsSync } from 'node:fs';
 import { readFile, readdir } from 'node:fs/promises';
 import { extname, join, relative } from 'node:path';
 import { compile, type Warning } from 'svelte/compiler';
+import {
+  assertVersionSatisfiesCaretRange,
+  readBunRegistryLockEntry
+} from './bun-registry-lock';
 
 interface PackageJson {
+  readonly name?: string;
   readonly version?: string;
   readonly dependencies?: Record<string, string>;
   readonly devDependencies?: Record<string, string>;
@@ -70,7 +75,9 @@ const [
   ciWorkflow,
   i18nSource,
   publicEntry,
-  passkeySource
+  passkeySource,
+  bunLockSource,
+  installedDesignSystemSource
 ] = await Promise.all([
   readFile(join(root, 'package.json'), 'utf8'),
   readFile(join(root, 'CHANGELOG.md'), 'utf8'),
@@ -80,9 +87,12 @@ const [
   readFile(join(root, '.github', 'workflows', 'ci.yml'), 'utf8'),
   readFile(join(root, 'src', 'lib', 'i18n.ts'), 'utf8'),
   readFile(join(root, 'src', 'lib', 'index.ts'), 'utf8'),
-  readFile(join(root, 'src', 'lib', 'passkey.ts'), 'utf8')
+  readFile(join(root, 'src', 'lib', 'passkey.ts'), 'utf8'),
+  readFile(join(root, 'bun.lock'), 'utf8'),
+  readFile(join(root, 'node_modules', 'zdp-design-system', 'package.json'), 'utf8')
 ]);
 const packageJson = JSON.parse(packageSource) as PackageJson;
+const installedDesignSystem = JSON.parse(installedDesignSystemSource) as PackageJson;
 const sourceFiles = await readSourceFiles(join(root, 'src', 'lib'));
 const exampleFiles = await Promise.all(
   exampleComponentPaths.map(async (relativePath) => ({
@@ -92,7 +102,7 @@ const exampleFiles = await Promise.all(
 );
 
 checkRequiredFiles();
-checkPackageJson(packageJson, changelog);
+checkPackageJson(packageJson, changelog, bunLockSource, installedDesignSystem);
 checkLocaleContract(readme, i18nSource);
 checkMessageCatalog(i18nSource);
 checkServiceBoundary(service);
@@ -116,7 +126,12 @@ function checkRequiredFiles(): void {
   }
 }
 
-function checkPackageJson(packageJson: PackageJson, changelog: string): void {
+function checkPackageJson(
+  packageJson: PackageJson,
+  changelog: string,
+  bunLockSource: string,
+  installedDesignSystem: PackageJson
+): void {
   if (!packageJson.version || !/^\d+\.\d+\.\d+$/.test(packageJson.version)) {
     failures.push('package.json version must be an explicit semver value.');
   }
@@ -125,8 +140,26 @@ function checkPackageJson(packageJson: PackageJson, changelog: string): void {
     failures.push(`CHANGELOG.md must include the current package version ${packageJson.version}.`);
   }
 
-  if (packageJson.dependencies?.['zdp-design-system'] !== '^0.46.4') {
-    failures.push('zdp-auth-ui must consume the published zdp-design-system package range ^0.46.4.');
+  const designSystemRange = packageJson.dependencies?.['zdp-design-system'];
+  if (designSystemRange === undefined) {
+    failures.push('zdp-auth-ui must consume the published zdp-design-system package.');
+  } else {
+    try {
+      const lockEntry = readBunRegistryLockEntry(bunLockSource, 'zdp-design-system');
+      assertVersionSatisfiesCaretRange(lockEntry.version, designSystemRange, 'zdp-design-system');
+
+      if (installedDesignSystem.name !== 'zdp-design-system') {
+        throw new Error('installed package name must be zdp-design-system.');
+      }
+
+      if (installedDesignSystem.version !== lockEntry.version) {
+        throw new Error(
+          `installed zdp-design-system@${installedDesignSystem.version ?? 'unknown'} must match bun.lock ${lockEntry.version}.`
+        );
+      }
+    } catch (error) {
+      failures.push(error instanceof Error ? error.message : String(error));
+    }
   }
 
   if ((packageJson as { private?: boolean }).private !== false) {
@@ -157,8 +190,8 @@ function checkPackageJson(packageJson: PackageJson, changelog: string): void {
     failures.push('Svelte must stay a ^5.56.0 peer dependency for Astro/SvelteKit/Tauri consumers.');
   }
 
-  if (packageJson.scripts?.check !== 'bun scripts/check-auth-ui.ts') {
-    failures.push('package.json scripts.check must run scripts/check-auth-ui.ts.');
+  if (packageJson.scripts?.check !== 'bun scripts/check-bun-registry-lock.ts && bun scripts/check-auth-ui.ts') {
+    failures.push('package.json scripts.check must run the lock fixture and auth UI contract checker.');
   }
 
   if (packageJson.scripts?.build !== 'vite build && bun scripts/build-package-surface.ts') {

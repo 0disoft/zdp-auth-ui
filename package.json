@@ -1,6 +1,6 @@
 {
   "name": "zdp-auth-ui",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "private": false,
   "license": "MIT",
   "type": "module",
@@ -50,8 +50,8 @@
     "build": "vite build && bun scripts/build-package-surface.ts",
     "build:bundle": "vite build",
     "browser:check": "node scripts/check-browser-accessibility.mjs",
-    "check": "bun scripts/check-auth-ui.ts",
-    "package:check": "bun scripts/check-auth-ui.ts"
+    "check": "bun scripts/check-bun-registry-lock.ts && bun scripts/check-auth-ui.ts",
+    "package:check": "bun run check"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.3.0",
