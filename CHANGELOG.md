@@ -7,7 +7,7 @@
 ## 0.1.12
 
 - Packed once per release and verified the published registry integrity against that exact tarball so validation and publication cannot diverge.
-- Added a tag-triggered release workflow that builds and verifies the package, performs token-authenticated public npm publishing, verifies the exact registry version, and creates the matching GitHub Release. npm provenance remains unavailable while the source repository is private.
+- Added a tag-triggered release workflow that builds and verifies the package, performs GitHub Actions OIDC trusted publishing without a long-lived npm token, verifies the exact registry version, and creates the matching GitHub Release. npm provenance remains unavailable while the source repository is private.
 - Pinned the Bun CI and release toolchain and bounded tag publishing with per-tag concurrency and a 20-minute job timeout.
 - Bound reruns and post-publish verification to npm's immutable `gitHead` so moved or mismatched release tags cannot create a misleading GitHub Release.
 

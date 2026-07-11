@@ -264,8 +264,7 @@ automation:
       - CI / auth-ui-package
     missing_reason: null
     private_dependency_token_required: false
-    required_secrets:
-      - NPM_TOKEN
+    required_secrets: []
   dependency_updates:
     renovate_enabled: false
     dependabot_enabled: false

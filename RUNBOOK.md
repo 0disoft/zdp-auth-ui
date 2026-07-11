@@ -22,8 +22,8 @@ If GitHub Actions does not start because account billing or spending limits bloc
 
 ## Package Publish
 
-정식 release는 `package.json`과 같은 `v<version>` 태그를 push해서 시작한다. 태그 workflow는 build, package check, browser check, npm pack을 다시 실행하고 token 기반 public npm publish와 exact-version registry 확인이 끝난 뒤 같은 태그의 GitHub Release를 만든다. source repository가 private인 동안 npm provenance attestation은 지원되지 않는다.
-GitHub Actions에는 repository secret `NPM_TOKEN`이 필요하다. workflow는 npm publish step에만 이 값을 전달하며 secret 값은 source, log, example, package artifact에 기록하지 않는다.
+정식 release는 `package.json`과 같은 `v<version>` 태그를 push해서 시작한다. 태그 workflow는 build, package check, browser check, npm pack을 다시 실행하고 GitHub Actions OIDC 기반 npm trusted publishing과 exact-version registry 확인이 끝난 뒤 같은 태그의 GitHub Release를 만든다. source repository가 private인 동안 npm provenance attestation은 지원되지 않는다.
+첫 release 전에 npm의 `zdp-auth-ui` package 설정에서 Trusted Publisher를 GitHub Actions, organization `0disoft`, repository `zdp-auth-ui`, workflow filename `publish-npm.yml`, allowed action `npm publish`로 등록해야 한다. workflow는 GitHub-hosted runner와 `id-token: write`를 사용하며 장기 publish token이나 `NPM_TOKEN` repository secret은 사용하지 않는다.
 
 Publish preparation uses the workspace-root mustflow intents instead of ad-hoc npm commands:
 
@@ -33,7 +33,7 @@ Publish preparation uses the workspace-root mustflow intents instead of ad-hoc n
 - `zdp_auth_ui_npm_publish_dry_run` after explicit release and network approval
 - `zdp_auth_ui_npm_publish_public` after explicit release and network approval
 
-The publish wrapper reads `NODE_AUTH_TOKEN` through a temporary npm user config. Do not write token values into this repository.
+These manual fallback intents are separate from the tag workflow. Their publish wrapper reads a caller-provided `NODE_AUTH_TOKEN` through a temporary npm user config; the normal GitHub Actions release path uses OIDC and no token. Do not write token values into this repository.
 
 ## Failure Response
 

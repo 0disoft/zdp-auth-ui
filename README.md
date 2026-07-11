@@ -98,7 +98,7 @@ bun run check
 ```
 
 `build`는 npm package에 들어갈 dist surface를 만들고, `check`는 package export, locale 계약, service boundary, auth UI source boundary, clean consumer fixture, Svelte compile surface, 금지 dependency를 함께 확인한다.
-`release:check`는 `v<package version>` 태그가 build, package/browser 검증, token 기반 public npm publish, exact-version registry 확인, 같은 태그의 GitHub Release 생성으로 이어지는 workflow 계약을 확인한다. source repository가 private인 동안 npm provenance attestation은 만들지 않는다.
+`release:check`는 `v<package version>` 태그가 build, package/browser 검증, GitHub Actions OIDC 기반 npm trusted publishing, exact-version registry 확인, 같은 태그의 GitHub Release 생성으로 이어지는 workflow 계약을 확인한다. 첫 release 전에 npm package 설정의 Trusted Publisher를 `0disoft/zdp-auth-ui`와 `publish-npm.yml`에 연결해야 한다. source repository가 private인 동안 npm provenance attestation은 만들지 않는다.
 
 이 저장소가 private 상태이면 GitHub Actions hosted runner가 account billing 또는 spending limit 상태 때문에 job 시작 전에 막힐 수 있다. 이 경우 실패한 Actions run은 코드 검증 실패가 아니라 CI 실행 환경 gate로 본다. 현재 package 변경 검증 증거는 workspace root에서 실행한 `mf run zdp_auth_ui_build`, `mf run zdp_auth_ui_check`, `mf run zdp_auth_ui_npm_pack_dry_run` receipt를 우선한다.
 
