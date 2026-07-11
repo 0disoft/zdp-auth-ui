@@ -8,6 +8,7 @@
 
 - Added a tag-triggered release workflow that builds and verifies the package, performs token-authenticated public npm publishing, verifies the exact registry version, and creates the matching GitHub Release. npm provenance remains unavailable while the source repository is private.
 - Pinned the Bun CI and release toolchain and bounded tag publishing with per-tag concurrency and a 20-minute job timeout.
+- Bound reruns and post-publish verification to npm's immutable `gitHead` so moved or mismatched release tags cannot create a misleading GitHub Release.
 
 ## 0.1.11
 

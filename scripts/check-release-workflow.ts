@@ -32,6 +32,10 @@ assert.equal(
   workflow.match(/if: steps\.npm_state\.outputs\.already_published != 'true'/g)?.length,
   2
 );
+assert.ok(workflow.includes('name: Verify existing npm source anchor'));
+assert.ok(workflow.includes("if: steps.npm_state.outputs.already_published == 'true'"));
+assert.ok(workflow.includes('npm view "${package_name}@${package_version}" gitHead'));
+assert.ok(workflow.includes('does not match release tag SHA ${GITHUB_SHA}'));
 assert.ok(workflow.includes('name: Verify tagged commit is on main'));
 assert.ok(workflow.includes('git merge-base --is-ancestor "$GITHUB_SHA" "origin/main"'));
 assert.ok(workflow.includes('Release tag must point to a commit contained in origin/main.'));
