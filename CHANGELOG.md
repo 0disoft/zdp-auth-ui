@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.1.12
+
+- Added a tag-triggered release workflow that builds and verifies the package, publishes with npm provenance, verifies the exact registry version, and creates the matching GitHub Release.
+
 ## 0.1.11
 
 - Replaced copied design-system version checks with package range, Bun registry integrity, and installed-package reconciliation.

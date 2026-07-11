@@ -23,6 +23,7 @@
 - Package surface: `package.json`, `src/lib/index.ts`, `src/lib/i18n.ts`, `src/lib/contract.ts`
 - Dist builder: `scripts/build-package-surface.ts`
 - Package checker: `scripts/check-auth-ui.ts`
+- Release workflow: `.github/workflows/publish-npm.yml`, `scripts/check-release-workflow.ts`
 - Consumer fixture: `examples/clean-consumer/AuthUiCleanConsumer.svelte`
 - Boundary docs: `BOUNDARY.md`, `SECURITY.md`
 - Operator docs: `RUNBOOK.md`
