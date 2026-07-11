@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-  id-token: write
 
 concurrency:
   group: npm-release-${{ github.repository }}-${{ github.ref }}
@@ -19,6 +18,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Verify release credential
         env:
@@ -76,7 +77,7 @@ jobs:
 
       - name: Publish package
         if: steps.npm_state.outputs.already_published != 'true'
-        run: npm publish --access public --provenance
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
