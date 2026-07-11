@@ -18,6 +18,8 @@ assert.ok(workflow.includes('- "v*"'));
 assert.ok(workflow.includes('contents: write'));
 assert.ok(workflow.includes('id-token: write'));
 assert.ok(workflow.includes('uses: actions/checkout@v7'));
+assert.ok(workflow.includes('name: Verify release credential'));
+assert.ok(workflow.includes('NPM_TOKEN repository secret is required for npm publish.'));
 assert.ok(workflow.includes('uses: actions/setup-node@v6'));
 assert.ok(workflow.includes('registry-url: https://registry.npmjs.org'));
 assert.ok(workflow.includes('uses: oven-sh/setup-bun@v2'));

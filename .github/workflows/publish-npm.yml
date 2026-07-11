@@ -15,6 +15,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Verify release credential
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NPM_TOKEN" ]; then
+            echo "::error::NPM_TOKEN repository secret is required for npm publish."
+            exit 1
+          fi
+
       - uses: actions/setup-node@v6
         with:
           node-version: 24
