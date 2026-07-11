@@ -9,6 +9,7 @@ const packageJson = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
   version?: unknown;
 };
 const changelog = readFileSync(join(root, 'CHANGELOG.md'), 'utf8');
+const serviceContract = readFileSync(join(root, 'service.yaml'), 'utf8');
 
 assert.equal(typeof packageJson.version, 'string', 'package.json must declare a string version.');
 assert.match(workflow, /^name: Publish npm package$/m);
@@ -33,6 +34,7 @@ assert.ok(workflow.includes('npm view "${package_name}@${package_version}" dist.
 assert.ok(workflow.includes('CHANGELOG.md does not contain'));
 assert.ok(workflow.includes('gh release create "$GITHUB_REF_NAME"'));
 assert.ok(!workflow.includes('release:\n'));
+assert.ok(serviceContract.includes('required_secrets:\n      - NPM_TOKEN'));
 assert.ok(
   changelog.includes(`## ${packageJson.version}`),
   `CHANGELOG.md must contain a ${packageJson.version} release section.`

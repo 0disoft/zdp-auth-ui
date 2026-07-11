@@ -23,6 +23,7 @@ If GitHub Actions does not start because account billing or spending limits bloc
 ## Package Publish
 
 정식 release는 `package.json`과 같은 `v<version>` 태그를 push해서 시작한다. 태그 workflow는 build, package check, browser check, npm pack을 다시 실행하고 npm provenance publish와 exact-version registry 확인이 끝난 뒤 같은 태그의 GitHub Release를 만든다.
+GitHub Actions에는 repository secret `NPM_TOKEN`이 필요하다. workflow는 npm publish step에만 이 값을 전달하며 secret 값은 source, log, example, package artifact에 기록하지 않는다.
 
 Publish preparation uses the workspace-root mustflow intents instead of ad-hoc npm commands:
 
