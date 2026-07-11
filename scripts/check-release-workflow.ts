@@ -23,9 +23,13 @@ assert.ok(workflow.includes('group: npm-release-${{ github.repository }}-${{ git
 assert.ok(workflow.includes('cancel-in-progress: false'));
 assert.ok(workflow.includes('timeout-minutes: 20'));
 assert.ok(workflow.includes('uses: actions/checkout@v7'));
+assert.ok(workflow.includes('fetch-depth: 0'));
 assert.ok(workflow.includes('persist-credentials: false'));
 assert.ok(workflow.includes('name: Verify release credential'));
 assert.ok(workflow.includes('NPM_TOKEN repository secret is required for npm publish.'));
+assert.ok(workflow.includes('name: Verify tagged commit is on main'));
+assert.ok(workflow.includes('git merge-base --is-ancestor "$GITHUB_SHA" "origin/main"'));
+assert.ok(workflow.includes('Release tag must point to a commit contained in origin/main.'));
 assert.ok(workflow.includes('uses: actions/setup-node@v6'));
 assert.ok(workflow.includes('registry-url: https://registry.npmjs.org'));
 assert.ok(workflow.includes('uses: oven-sh/setup-bun@v2'));
