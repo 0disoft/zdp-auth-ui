@@ -27,6 +27,11 @@ assert.ok(workflow.includes('fetch-depth: 0'));
 assert.ok(workflow.includes('persist-credentials: false'));
 assert.ok(workflow.includes('name: Verify release credential'));
 assert.ok(workflow.includes('NPM_TOKEN repository secret is required for npm publish.'));
+assert.ok(workflow.indexOf('name: Check npm registry state') < workflow.indexOf('name: Verify release credential'));
+assert.equal(
+  workflow.match(/if: steps\.npm_state\.outputs\.already_published != 'true'/g)?.length,
+  2
+);
 assert.ok(workflow.includes('name: Verify tagged commit is on main'));
 assert.ok(workflow.includes('git merge-base --is-ancestor "$GITHUB_SHA" "origin/main"'));
 assert.ok(workflow.includes('Release tag must point to a commit contained in origin/main.'));
