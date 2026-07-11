@@ -7,6 +7,7 @@
 ## 0.1.12
 
 - Added a tag-triggered release workflow that builds and verifies the package, publishes with npm provenance, verifies the exact registry version, and creates the matching GitHub Release.
+- Pinned the Bun CI and release toolchain and bounded tag publishing with per-tag concurrency and a 20-minute job timeout.
 
 ## 0.1.11
 
