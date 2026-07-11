@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const workflow = readFileSync(join(root, '.github', 'workflows', 'publish-npm.yml'), 'utf8');
+const ciWorkflow = readFileSync(join(root, '.github', 'workflows', 'ci.yml'), 'utf8');
 const packageJson = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8')) as {
   packageManager?: unknown;
   repository?: { url?: unknown };
@@ -13,6 +14,7 @@ const packageJson = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 const changelog = readFileSync(join(root, 'CHANGELOG.md'), 'utf8');
 const serviceContract = readFileSync(join(root, 'service.yaml'), 'utf8');
 const actionReferences = [...workflow.matchAll(/^\s*- uses:\s+([^\s#]+)/gm)].map((match) => match[1]);
+const ciActionReferences = [...ciWorkflow.matchAll(/^\s*(?:-\s+)?uses:\s+([^\s#]+)/gm)].map((match) => match[1]);
 
 assert.equal(typeof packageJson.version, 'string', 'package.json must declare a string version.');
 assert.equal(packageJson.packageManager, 'bun@1.3.14');
@@ -46,6 +48,15 @@ assert.ok(actionReferences.length > 0, 'Release workflow must use at least one e
 assert.ok(
   actionReferences.every((reference) => /@[0-9a-f]{40}$/.test(reference)),
   'Every release workflow action must be pinned to a full commit SHA.'
+);
+assert.ok(ciWorkflow.includes('permissions:\n  contents: read'));
+assert.ok(ciWorkflow.includes('uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7'));
+assert.ok(ciWorkflow.includes('persist-credentials: false'));
+assert.ok(ciWorkflow.includes('uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2'));
+assert.ok(ciActionReferences.length > 0, 'Main CI must use at least one external action.');
+assert.ok(
+  ciActionReferences.every((reference) => /@[0-9a-f]{40}$/.test(reference)),
+  'Every main CI action must be pinned to a full commit SHA.'
 );
 assert.ok(workflow.includes('bun-version: 1.3.14'));
 assert.ok(workflow.includes('name: Verify npm trusted publishing support'));

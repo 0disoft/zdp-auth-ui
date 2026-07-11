@@ -6,6 +6,7 @@
 
 ## 0.1.12
 
+- Applied the immutable Action and non-persistent checkout policy to main package CI while preserving its explicit read-only token permission.
 - Attached the exact npm tarball and a machine-readable SHA-512/source manifest to each GitHub Release, with byte-for-byte verification on idempotent reruns.
 - Pinned every release workflow action to a verified upstream commit SHA so mutable action tags cannot change code executed with npm OIDC and release permissions.
 - Packed once per release and verified the published registry integrity against that exact tarball so validation and publication cannot diverge.

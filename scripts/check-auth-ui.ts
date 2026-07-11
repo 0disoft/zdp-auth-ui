@@ -323,10 +323,12 @@ function checkServiceBoundary(service: string): void {
 
 function checkCiWorkflow(ciWorkflow: string): void {
   for (const requiredText of [
-    'actions/checkout@v7',
+    'permissions:\n  contents: read',
+    'actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7',
+    'persist-credentials: false',
     'Checkout auth UI',
     'projects/zdp-platforms/client-surfaces/zdp-auth-ui',
-    'oven-sh/setup-bun@v2',
+    'oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2',
     'bun install --frozen-lockfile',
     'bun run check',
     'bun run build'
@@ -334,6 +336,16 @@ function checkCiWorkflow(ciWorkflow: string): void {
     if (!ciWorkflow.includes(requiredText)) {
       failures.push(`.github/workflows/ci.yml must include auth UI CI contract: ${requiredText}.`);
     }
+  }
+
+  const actionReferences = [...ciWorkflow.matchAll(/^\s*(?:-\s+)?uses:\s+([^\s#]+)/gm)].map(
+    (match) => match[1]
+  );
+  if (
+    actionReferences.length === 0 ||
+    !actionReferences.every((reference) => /@[0-9a-f]{40}$/.test(reference))
+  ) {
+    failures.push('.github/workflows/ci.yml must pin every external Action to a full commit SHA.');
   }
 
   for (const forbiddenText of [

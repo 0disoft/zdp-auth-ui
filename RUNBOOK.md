@@ -14,6 +14,8 @@ GitHub Actions checks out `zdp-auth-ui`, resolves the published `zdp-design-syst
 
 The CI operation is intentionally direct and package-local, with the browser check using the hosted runner's system Chrome:
 
+Main CI grants only `contents: read`, pins every external Action to a reviewed full commit SHA, and disables checkout credential persistence.
+
 - `bun run build`
 - `bun run check`
 - `bun run browser:check`

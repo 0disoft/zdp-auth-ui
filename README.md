@@ -103,5 +103,6 @@ bun run check
 이 저장소가 private 상태이면 GitHub Actions hosted runner가 account billing 또는 spending limit 상태 때문에 job 시작 전에 막힐 수 있다. 이 경우 실패한 Actions run은 코드 검증 실패가 아니라 CI 실행 환경 gate로 본다. 현재 package 변경 검증 증거는 workspace root에서 실행한 `mf run zdp_auth_ui_build`, `mf run zdp_auth_ui_check`, `mf run zdp_auth_ui_npm_pack_dry_run` receipt를 우선한다.
 
 GitHub Actions CI는 `zdp-auth-ui`만 checkout하고 published `zdp-design-system` npm package를 `bun install --frozen-lockfile`로 해결한다. 그 다음 auth UI `bun run build`, `bun run check`를 실행한다.
+Main CI token은 `contents: read`로 제한하고 외부 Action은 reviewed full commit SHA만 실행하며 checkout credential persistence를 끈다.
 
 디자인 시스템 검사는 버전이나 integrity를 검사 코드에 복사하지 않는다. `package.json`의 caret range, `bun.lock` registry tuple과 SHA-512 digest, `node_modules`의 실제 설치 버전을 순서대로 대조한다.
