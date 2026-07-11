@@ -6,6 +6,7 @@
 
 ## 0.1.12
 
+- Attached the exact npm tarball and a machine-readable SHA-512/source manifest to each GitHub Release, with byte-for-byte verification on idempotent reruns.
 - Pinned every release workflow action to a verified upstream commit SHA so mutable action tags cannot change code executed with npm OIDC and release permissions.
 - Packed once per release and verified the published registry integrity against that exact tarball so validation and publication cannot diverge.
 - Added a tag-triggered release workflow that builds and verifies the package, performs GitHub Actions OIDC trusted publishing without a long-lived npm token, verifies the exact registry version, and creates the matching GitHub Release. npm provenance remains unavailable while the source repository is private.

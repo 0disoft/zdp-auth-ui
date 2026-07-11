@@ -155,13 +155,25 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_MANIFEST: ${{ steps.package_artifact.outputs.manifest }}
+          RELEASE_TARBALL: ${{ steps.package_artifact.outputs.tarball }}
         run: |
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            echo "Release ${GITHUB_REF_NAME} already exists."
+            release_assets="$(mktemp -d)"
+            trap 'rm -rf "$release_assets"' EXIT
+            gh release download "$GITHUB_REF_NAME" \
+              --pattern "$RELEASE_TARBALL" \
+              --pattern "$RELEASE_MANIFEST" \
+              --dir "$release_assets"
+            cmp "$RELEASE_TARBALL" "$release_assets/$RELEASE_TARBALL"
+            cmp "$RELEASE_MANIFEST" "$release_assets/$RELEASE_MANIFEST"
+            echo "Release ${GITHUB_REF_NAME} and its package assets already exist and match."
             exit 0
           fi
 
           gh release create "$GITHUB_REF_NAME" \
+            "$RELEASE_TARBALL#npm package tarball" \
+            "$RELEASE_MANIFEST#npm release artifact manifest" \
             --verify-tag \
             --title "$GITHUB_REF_NAME" \
             --notes-file release-notes.md

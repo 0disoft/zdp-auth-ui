@@ -62,6 +62,7 @@ function assertRelativePackagePath(path: string): void {
 async function buildArtifact(gitHead: string, artifactDirectory: string): Promise<{
   readonly tarball: string;
   readonly integrity: string;
+  readonly manifest: string;
 }> {
   assert.match(gitHead, /^[0-9a-f]{40}$/i, 'gitHead must be a 40-character Git commit SHA.');
 
@@ -113,7 +114,21 @@ async function buildArtifact(gitHead: string, artifactDirectory: string): Promis
     assert.equal(packedManifest.name, manifest.name, 'Packed package name changed.');
     assert.equal(packedManifest.version, manifest.version, 'Packed package version changed.');
 
-    return { tarball, integrity };
+    const releaseManifest = resolve(artifactDirectory, 'release-artifact.json');
+    await writeFile(
+      releaseManifest,
+      `${JSON.stringify({
+        schemaVersion: 'zdp.npm-release-artifact/v1',
+        package: manifest.name,
+        version: manifest.version,
+        gitHead,
+        tarball: filename,
+        integrity
+      }, null, 2)}\n`,
+      'utf8'
+    );
+
+    return { tarball, integrity, manifest: releaseManifest };
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });
   }
@@ -135,10 +150,10 @@ if (checkOnly) {
 } else {
   assert.ok(gitHeadIndex >= 0 && args[gitHeadIndex + 1], 'Missing --git-head value.');
   assert.ok(githubOutputIndex >= 0 && args[githubOutputIndex + 1], 'Missing --github-output value.');
-  const { tarball, integrity } = await buildArtifact(args[gitHeadIndex + 1], root);
+  const { tarball, integrity, manifest } = await buildArtifact(args[gitHeadIndex + 1], root);
   await appendFile(
     args[githubOutputIndex + 1],
-    `tarball=${basename(tarball)}\nintegrity=${integrity}\n`,
+    `tarball=${basename(tarball)}\nintegrity=${integrity}\nmanifest=${basename(manifest)}\n`,
     'utf8'
   );
 }
