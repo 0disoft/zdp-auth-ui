@@ -190,8 +190,13 @@ function checkPackageJson(
     failures.push('Svelte must stay a ^5.56.0 peer dependency for Astro/SvelteKit/Tauri consumers.');
   }
 
-  if (packageJson.scripts?.check !== 'bun scripts/check-bun-registry-lock.ts && bun scripts/check-auth-ui.ts') {
-    failures.push('package.json scripts.check must run the lock fixture and auth UI contract checker.');
+  if (
+    packageJson.scripts?.check
+    !== 'bun scripts/check-bun-registry-lock.ts && bun scripts/check-auth-ui.ts && bun run release:check'
+  ) {
+    failures.push(
+      'package.json scripts.check must run the lock fixture, auth UI contract checker, and release workflow checker.'
+    );
   }
 
   if (packageJson.scripts?.build !== 'vite build && bun scripts/build-package-surface.ts') {
