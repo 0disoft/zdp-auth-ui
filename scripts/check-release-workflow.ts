@@ -12,6 +12,7 @@ const packageJson = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 };
 const changelog = readFileSync(join(root, 'CHANGELOG.md'), 'utf8');
 const serviceContract = readFileSync(join(root, 'service.yaml'), 'utf8');
+const actionReferences = [...workflow.matchAll(/^\s*- uses:\s+([^\s#]+)/gm)].map((match) => match[1]);
 
 assert.equal(typeof packageJson.version, 'string', 'package.json must declare a string version.');
 assert.equal(packageJson.packageManager, 'bun@1.3.14');
@@ -24,7 +25,7 @@ assert.ok(workflow.includes('id-token: write'));
 assert.ok(workflow.includes('group: npm-release-${{ github.repository }}-${{ github.ref }}'));
 assert.ok(workflow.includes('cancel-in-progress: false'));
 assert.ok(workflow.includes('timeout-minutes: 20'));
-assert.ok(workflow.includes('uses: actions/checkout@v7'));
+assert.ok(workflow.includes('uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7'));
 assert.ok(workflow.includes('fetch-depth: 0'));
 assert.ok(workflow.includes('persist-credentials: false'));
 assert.equal(
@@ -38,9 +39,14 @@ assert.ok(workflow.includes('does not match release tag SHA ${GITHUB_SHA}'));
 assert.ok(workflow.includes('name: Verify tagged commit is on main'));
 assert.ok(workflow.includes('git merge-base --is-ancestor "$GITHUB_SHA" "origin/main"'));
 assert.ok(workflow.includes('Release tag must point to a commit contained in origin/main.'));
-assert.ok(workflow.includes('uses: actions/setup-node@v6'));
+assert.ok(workflow.includes('uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6'));
 assert.ok(workflow.includes('registry-url: https://registry.npmjs.org'));
-assert.ok(workflow.includes('uses: oven-sh/setup-bun@v2'));
+assert.ok(workflow.includes('uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2'));
+assert.ok(actionReferences.length > 0, 'Release workflow must use at least one external action.');
+assert.ok(
+  actionReferences.every((reference) => /@[0-9a-f]{40}$/.test(reference)),
+  'Every release workflow action must be pinned to a full commit SHA.'
+);
 assert.ok(workflow.includes('bun-version: 1.3.14'));
 assert.ok(workflow.includes('name: Verify npm trusted publishing support'));
 assert.ok(workflow.includes('npm 11.5.1 or later is required'));
