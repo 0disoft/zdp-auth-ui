@@ -11,6 +11,7 @@ ZDP의 공통 인증 UI 패키지다.
 - 12개 target locale 계획 계약
 - `zdp-design-system` 기반 form, button, focus, surface 소비
 - passkey browser ceremony helper boundary
+- feature-gated desktop product-link approval and denial UI
 - dist 기반 public package export와 소비 계약 검사
 
 ## 현재 제외
@@ -73,7 +74,7 @@ en, zh, es, fr, hi, ko, ja, vi, ru, id, ms, th
 import 'zdp-auth-ui/styles.css';
 ```
 
-`zdp-auth-ui`의 root Svelte compiler/type condition, JavaScript import, CSS entry는 모두 `dist/` 산출물을 가리킨다. 순수 TypeScript subpath인 `./i18n`, `./contract`도 `dist/*.d.ts`와 `dist/*.js`를 사용한다. `bun run build`는 Vite library bundle을 만든 뒤 `dist/styles.css`, `dist/index.d.ts`, `dist/i18n.d.ts`, `dist/contract.d.ts`를 생성한다. 소비 앱은 `src/` deep import를 쓰지 않고, npm clean consumer도 package source를 다시 컴파일하지 않는다. `examples/clean-consumer/AuthUiCleanConsumer.svelte`는 package root import, message-keyed provider labels, password label/help/error override, submit/provider/mode callbacks만 쓰는 최소 소비 fixture다.
+`zdp-auth-ui`의 root Svelte compiler/type condition, JavaScript import, CSS entry는 모두 `dist/` 산출물을 가리킨다. 순수 TypeScript subpath인 `./i18n`, `./contract`도 `dist/*.d.ts`와 `dist/*.js`를 사용한다. `bun run build`는 Vite library bundle을 만든 뒤 `dist/styles.css`, `dist/index.d.ts`, `dist/i18n.d.ts`, `dist/contract.d.ts`를 생성한다. 소비 앱은 `src/` deep import를 쓰지 않고, npm clean consumer도 package source를 다시 컴파일하지 않는다. `examples/clean-consumer/AuthUiCleanConsumer.svelte`는 package root import, message-keyed provider labels, password label/help/error override, submit/provider/mode callbacks, disabled-by-default product-link 소비를 확인하는 최소 fixture다.
 
 ## 경계
 
@@ -82,6 +83,10 @@ import 'zdp-auth-ui/styles.css';
 소비 앱은 이 패키지에서 발생한 submit/provider/passkey 선택을 받아 자기 API 클라이언트나 SDK에 연결한다. 이 패키지는 `fetch`, cookie, localStorage, sessionStorage, DB, provider secret을 직접 다루지 않는다.
 
 `AuthShell`은 submit callback이 있거나 명시적인 `action`이 없으면 브라우저 기본 form 제출을 막는다. 명시적인 native form fallback도 password가 URL과 로그에 남지 않도록 POST만 허용하고, `required` 같은 브라우저 constraint validation을 그대로 유지한다. 회원가입 화면에 `referralCode`를 넘기면 submit detail과 POST hidden field에만 포함하고, 이 패키지는 추천 코드 검증·보상·저장을 하지 않는다.
+
+`ProductLinkApproval`은 데스크톱 제품 계정 연결의 검토 화면만 제공한다. 요청 제품, scope와 capability, 계정·워크스페이스, 동의 영향, 만료를 보여주고 명시적인 승인·거부 callback을 낸다. 기본값은 비활성화이며, 소비 앱이 자기 소유의 신뢰된 navigation/bootstrap context에서 준 expected challenge·verification URI와 allowlist HTTPS route가 정확히 맞을 때만 버튼이 열린다. expected 값을 검증 대상 request에서 그대로 복사하면 trust boundary가 사라지므로 금지한다. redirect·callback query, 오래되거나 만료된 요청, 거절·소비 완료 상태는 fail closed다. challenge reference와 verification URI는 DOM에 렌더링하지 않고, verifier·브라우저 credential·product callback URL은 prop이나 event 계약에 포함하지 않는다.
+
+이 컴포넌트는 core API를 직접 호출하지 않는다. consuming app이 기존 인증 session과 API client로 complete 요청을 소유하며, core product-link runtime 승격 전에는 feature flag를 켜지 않는다.
 
 ## rodi-site-template-svelte에서 반영한 후보
 

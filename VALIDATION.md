@@ -8,6 +8,7 @@
 | --- | --- |
 | auth UI source, locale messages, service boundary, source boundary | `zdp_auth_ui_check` |
 | native browser form validation and focus behavior | `zdp_auth_ui_browser_accessibility_check` |
+| desktop product-link trust, fail-closed states, fake API decisions, keyboard behavior, and DOM redaction | `zdp_auth_ui_check`, `zdp_auth_ui_browser_accessibility_check` |
 | package build output or `dist/**` surface | `zdp_auth_ui_build` |
 | npm package contents or release readiness | `zdp_auth_ui_npm_pack_dry_run` |
 | clean consumer behavior after pack evidence | `zdp_auth_ui_clean_consumer_local_smoke` or `zdp_auth_ui_clean_consumer_smoke` |
@@ -50,6 +51,7 @@
 - `package.json` exports, build output, and checker expectations must agree on root, styles, i18n, and contract entrypoints.
 - Locale docs and checker rules must agree that only `ko` and `en` are active now.
 - Passkey docs and source must agree that server challenge and credential storage stay outside this package.
+- Product-link docs, source, declarations, unit checks, and browser fixture must agree that the component is disabled by default, never calls a live route, validates the trusted HTTPS verification context, and fails closed without rendering challenge references.
 - CI/runbook evidence must distinguish environment gates from package validation failures.
 
 ## Version Impact

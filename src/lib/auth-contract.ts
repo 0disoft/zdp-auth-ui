@@ -32,3 +32,18 @@ export interface ZdpAuthProviderSelectDetail {
 export interface ZdpAuthModeChangeDetail {
   readonly mode: ZdpAuthMode;
 }
+
+export {
+  zdpProductLinkDecisions,
+  zdpProductLinkItemKinds,
+  zdpProductLinkStates,
+  type ZdpProductLinkDecision,
+  type ZdpProductLinkDecisionDetail,
+  type ZdpProductLinkDisposition,
+  type ZdpProductLinkItemKind,
+  type ZdpProductLinkRequest,
+  type ZdpProductLinkRequestedItem,
+  type ZdpProductLinkState,
+  type ZdpProductLinkTrustPolicy,
+  type ZdpProductLinkValidation
+} from './product-link';

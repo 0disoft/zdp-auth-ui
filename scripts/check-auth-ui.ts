@@ -27,6 +27,7 @@ const plannedLocales = ['zh', 'es', 'fr', 'hi', 'ja', 'vi', 'ru', 'id', 'ms', 't
 const componentPaths = [
   'src/lib/components/AuthShell.svelte',
   'src/lib/components/PasswordField.svelte',
+  'src/lib/components/ProductLinkApproval.svelte',
   'src/lib/components/ProviderButton.svelte'
 ] as const;
 const exampleComponentPaths = [
@@ -44,7 +45,8 @@ const componentDesignSystemImports: Record<string, readonly string[]> = {
     'Input',
     'Label'
   ],
-  'src/lib/components/AuthShell.svelte': ['Button', 'Divider', 'Inline', 'Link', 'Stack', 'Surface']
+  'src/lib/components/AuthShell.svelte': ['Button', 'Divider', 'Inline', 'Link', 'Stack', 'Surface'],
+  'src/lib/components/ProductLinkApproval.svelte': ['Button', 'Inline', 'Stack', 'Surface']
 } as const;
 const rawColorPattern = /#(?:[0-9a-fA-F]{3,8})\b|rgb[a]?\(|hsl[a]?\(|oklch\(/;
 const requiredFiles = [
@@ -63,6 +65,7 @@ const requiredFiles = [
   'src/lib/i18n.ts',
   'src/lib/index.ts',
   'src/lib/passkey.ts',
+  'src/lib/product-link.ts',
   'src/styles/index.css'
 ] as const;
 
@@ -192,10 +195,10 @@ function checkPackageJson(
 
   if (
     packageJson.scripts?.check
-    !== 'bun scripts/check-bun-registry-lock.ts && bun scripts/check-auth-ui.ts && bun run release:check'
+    !== 'bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-ui.ts && bun run release:check'
   ) {
     failures.push(
-      'package.json scripts.check must run the lock fixture, auth UI contract checker, and release workflow checker.'
+      'package.json scripts.check must run the lock fixture, product-link contract checker, auth UI contract checker, and release workflow checker.'
     );
   }
 
@@ -377,12 +380,15 @@ function checkPublicEntry(publicEntry: string): void {
   for (const requiredText of [
     'export { default as AuthShell }',
     'export { default as PasswordField }',
+    'export { default as ProductLinkApproval }',
     'export { default as ProviderButton }',
     'zdpAuthTargetLocales',
     'zdpAuthActiveLocales',
     'zdpAuthPlannedLocales',
     'startPasskeyAuthentication',
-    'startPasskeyRegistration'
+    'startPasskeyRegistration',
+    'validateProductLinkRequest',
+    'zdpProductLinkStates'
   ]) {
     if (!publicEntry.includes(requiredText)) {
       failures.push(`src/lib/index.ts is missing public export ${requiredText}.`);
@@ -465,10 +471,13 @@ function checkCleanConsumerExamples(exampleFiles: readonly SourceFile[]): void {
     "from 'zdp-auth-ui'",
     'AuthShell',
     'PasswordField',
+    'ProductLinkApproval',
     'getAuthMessages',
     'type ZdpAuthMode',
     'type ZdpAuthProvider',
     'type ZdpAuthSubmitDetail',
+    'type ZdpProductLinkRequest',
+    'type ZdpProductLinkTrustPolicy',
     'onsubmit={handleSubmit}',
     'onmodechange=',
     'onproviderselect=',

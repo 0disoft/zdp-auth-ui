@@ -58,6 +58,46 @@ export interface ZdpAuthProviderSelectDetail {
 export interface ZdpAuthModeChangeDetail {
   readonly mode: ZdpAuthMode;
 }
+export declare const zdpProductLinkStates: readonly ["pending", "approved", "denied", "expired", "consumed"];
+export declare const zdpProductLinkItemKinds: readonly ["scope", "capability"];
+export declare const zdpProductLinkDecisions: readonly ["approve", "deny"];
+export type ZdpProductLinkState = (typeof zdpProductLinkStates)[number];
+export type ZdpProductLinkItemKind = (typeof zdpProductLinkItemKinds)[number];
+export type ZdpProductLinkDecision = (typeof zdpProductLinkDecisions)[number];
+export interface ZdpProductLinkRequestedItem {
+  readonly ref: string;
+  readonly kind: ZdpProductLinkItemKind;
+  readonly label: string;
+  readonly description: string;
+}
+export interface ZdpProductLinkRequest {
+  readonly challengeRef: string;
+  readonly verificationUri: string;
+  readonly state: ZdpProductLinkState;
+  readonly productLabel: string;
+  readonly requestedItems: readonly ZdpProductLinkRequestedItem[];
+  readonly accountLabel: string;
+  readonly workspaceLabel: string | null;
+  readonly consentImplications: readonly string[];
+  readonly issuedAt: string;
+  readonly expiresAt: string;
+}
+export interface ZdpProductLinkTrustPolicy {
+  readonly expectedChallengeRef: string;
+  readonly expectedVerificationUri: string;
+  readonly allowedVerificationOrigins: readonly string[];
+  readonly verificationPath: string;
+  readonly maxRequestAgeMs: number;
+}
+export type ZdpProductLinkDisposition = "ready" | "approved" | "denied" | "expired" | "consumed" | "stale" | "invalid";
+export interface ZdpProductLinkValidation {
+  readonly disposition: ZdpProductLinkDisposition;
+  readonly actionable: boolean;
+}
+export interface ZdpProductLinkDecisionDetail {
+  readonly challengeRef: string;
+  readonly decision: ZdpProductLinkDecision;
+}
 `;
 
 const i18nDeclaration = `export declare const zdpAuthTargetLocales: readonly ["en", "zh", "es", "fr", "hi", "ko", "ja", "vi", "ru", "id", "ms", "th"];
@@ -112,6 +152,39 @@ export interface ZdpAuthMessages {
     readonly waiting: string;
     readonly error: string;
   };
+  readonly productLink: {
+    readonly title: string;
+    readonly summary: string;
+    readonly fields: {
+      readonly product: string;
+      readonly account: string;
+      readonly workspace: string;
+      readonly expires: string;
+    };
+    readonly requestedTitle: string;
+    readonly itemKinds: {
+      readonly scope: string;
+      readonly capability: string;
+    };
+    readonly consentTitle: string;
+    readonly consentBoundary: string;
+    readonly noWorkspace: string;
+    readonly actions: {
+      readonly approve: string;
+      readonly deny: string;
+    };
+    readonly status: {
+      readonly ready: string;
+      readonly submitting: string;
+      readonly approved: string;
+      readonly denied: string;
+      readonly expired: string;
+      readonly consumed: string;
+      readonly stale: string;
+      readonly invalid: string;
+      readonly disabled: string;
+    };
+  };
 }
 export declare const zdpAuthMessages: Record<ZdpAuthActiveLocale, ZdpAuthMessages>;
 export declare function isActiveAuthLocale(locale: string): locale is ZdpAuthActiveLocale;
@@ -145,14 +218,30 @@ export {
   type ZdpAuthProvider,
   type ZdpAuthProviderKind,
   type ZdpAuthProviderSelectDetail,
-  type ZdpAuthSubmitDetail
+  type ZdpAuthSubmitDetail,
+  zdpProductLinkDecisions,
+  zdpProductLinkItemKinds,
+  zdpProductLinkStates,
+  type ZdpProductLinkDecision,
+  type ZdpProductLinkDecisionDetail,
+  type ZdpProductLinkDisposition,
+  type ZdpProductLinkItemKind,
+  type ZdpProductLinkRequest,
+  type ZdpProductLinkRequestedItem,
+  type ZdpProductLinkState,
+  type ZdpProductLinkTrustPolicy,
+  type ZdpProductLinkValidation
 } from './contract';
 import type {
   ZdpAuthMode,
   ZdpAuthModeChangeDetail,
   ZdpAuthProvider,
   ZdpAuthProviderSelectDetail,
-  ZdpAuthSubmitDetail
+  ZdpAuthSubmitDetail,
+  ZdpProductLinkDecisionDetail,
+  ZdpProductLinkRequest,
+  ZdpProductLinkTrustPolicy,
+  ZdpProductLinkValidation
 } from './contract';
 import type { ZdpAuthLocale } from './i18n';
 export interface AuthShellProps {
@@ -190,9 +279,25 @@ export interface ProviderButtonProps {
   readonly disabled?: boolean;
   readonly onclick?: ((provider: ZdpAuthProvider, event: MouseEvent) => void) | null;
 }
+export interface ProductLinkApprovalProps {
+  readonly id: string;
+  readonly locale?: ZdpAuthLocale | string;
+  readonly enabled?: boolean;
+  readonly request: ZdpProductLinkRequest;
+  readonly trust: ZdpProductLinkTrustPolicy;
+  readonly now?: Date | null;
+  readonly busy?: boolean;
+  readonly ondecision?: ((detail: ZdpProductLinkDecisionDetail, event: MouseEvent) => void) | null;
+}
 export declare const AuthShell: Component<AuthShellProps>;
 export declare const PasswordField: Component<PasswordFieldProps>;
+export declare const ProductLinkApproval: Component<ProductLinkApprovalProps>;
 export declare const ProviderButton: Component<ProviderButtonProps>;
+export declare function validateProductLinkRequest(
+  request: ZdpProductLinkRequest,
+  trust: ZdpProductLinkTrustPolicy,
+  now?: Date
+): ZdpProductLinkValidation;
 export declare function startPasskeyRegistration(
   options: PublicKeyCredentialCreationOptionsJSON
 ): Promise<RegistrationResponseJSON>;

@@ -32,6 +32,15 @@
 - Provider selection UI must not embed provider secrets, callback payloads, or authorization headers.
 - Native form fallback must use POST when password fields are present.
 
+## Desktop Product Link
+
+- Keep `ProductLinkApproval` disabled until the consuming app explicitly enables the contract-only surface.
+- Match the opaque challenge against trusted browser context and accept only the allowlisted HTTPS verification origin and exact route.
+- Show product, requested scopes and capabilities, account, workspace, consent implications, and expiry before decisions.
+- Keep approve and deny explicit; stale, expired, denied, consumed, malformed, mismatched, and redirect-bearing requests fail closed.
+- Do not render the challenge reference or verification URI, accept a verifier or browser credential, or navigate to a product callback.
+- The consuming app owns the authenticated completion call; this package does not enable a live backend route.
+
 ## Design System
 
 - Use `zdp-design-system` public exports and shared CSS.

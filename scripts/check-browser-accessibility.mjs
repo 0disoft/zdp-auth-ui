@@ -45,8 +45,9 @@ try {
     waitUntil: 'domcontentloaded'
   });
 
-  const password = page.getByLabel('Password', { exact: true });
-  const submit = page.locator('form button[type="submit"]');
+  const loginFixture = page.getByTestId('login-fixture');
+  const password = loginFixture.getByLabel('Password', { exact: true });
+  const submit = loginFixture.locator('form button[type="submit"]');
   assert.equal(await password.count(), 1, 'The required password field must have one durable label.');
   assert.equal(await submit.count(), 1, 'The auth form must expose one native submit button.');
 
@@ -74,7 +75,102 @@ try {
     'A valid required field must allow the auth submit callback exactly once.'
   );
 
-  console.log('Auth UI browser accessibility check passed.');
+  const approveFixture = page.getByTestId('product-link-approve');
+  const fixtureUrl = page.url();
+  assert.equal(
+    await approveFixture.getByRole('heading', { name: 'Connect desktop product', level: 1 }).count(),
+    1,
+    'The product-link screen must expose one named heading.'
+  );
+  for (const visibleText of [
+    'Talos Desktop',
+    'Workspace identity',
+    'Remote account features',
+    'Signed-in ZDP account',
+    'Personal workspace',
+    'Request expires',
+    'The product receives opaque account and consent references.',
+    'This approval does not sync product data.'
+  ]) {
+    assert.equal(
+      await approveFixture.getByText(visibleText, { exact: true }).count(),
+      1,
+      `The approval screen must show its review context: ${visibleText}`
+    );
+  }
+
+  const approveButton = approveFixture.getByRole('button', { name: 'Approve connection', exact: true });
+  const denyButton = approveFixture.getByRole('button', { name: 'Deny', exact: true });
+  assert.equal(await approveButton.count(), 1, 'A trusted pending request must expose an explicit approve button.');
+  assert.equal(await denyButton.count(), 1, 'A trusted pending request must expose an explicit deny button.');
+  assert.equal(await approveFixture.locator('a').count(), 0, 'The product-link approval surface must not expose callback navigation.');
+  await approveButton.focus();
+  await page.keyboard.press('Enter');
+  const approvedStatus = approveFixture.getByText('Connection approved.', { exact: true });
+  await approvedStatus.waitFor();
+  assert.equal(await approvedStatus.evaluate((element) => document.activeElement === element), true, 'Approval completion must move focus to its status.');
+  assert.equal(
+    await approveFixture.getByRole('button').count(),
+    0,
+    'An approved request must remove both decision controls.'
+  );
+
+  const denyFixture = page.getByTestId('product-link-deny');
+  const denyDecision = denyFixture.getByRole('button', { name: 'Deny', exact: true });
+  await denyDecision.focus();
+  await page.keyboard.press(' ');
+  const deniedStatus = denyFixture.getByText('Connection denied.', { exact: true });
+  await deniedStatus.waitFor();
+  assert.equal(await deniedStatus.evaluate((element) => document.activeElement === element), true, 'Denial completion must move focus to its status.');
+  assert.equal(
+    await denyFixture.getByRole('button').count(),
+    0,
+    'A denied request must remove both decision controls.'
+  );
+  assert.equal(
+    await page.getByTestId('completion-count').textContent(),
+    '2',
+    'The fake API must receive exactly one approve and one deny decision.'
+  );
+  assert.equal(page.url(), fixtureUrl, 'Approve and deny decisions must not navigate to a product callback.');
+
+  for (const [testId, role, status] of [
+    ['product-link-unsafe', 'alert', 'This connection request is not trusted. Start again from the desktop product.'],
+    ['product-link-stale', 'alert', 'This request is out of date. Start again from the desktop product.'],
+    ['product-link-expired', 'alert', 'This request expired. Start again from the desktop product.'],
+    ['product-link-consumed', 'status', 'This request was already used. Check the desktop product for its status.'],
+    ['product-link-disabled', 'alert', 'Desktop product connection is not available yet.']
+  ]) {
+    const fixture = page.getByTestId(testId);
+    assert.equal(await fixture.getByRole('button').count(), 0, `${testId} must fail closed without decision controls.`);
+    assert.equal(await fixture.getByRole(role).getByText(status, { exact: true }).count(), 1, `${testId} must explain the closed state.`);
+  }
+
+  const renderedHtml = await page.locator('body').innerHTML();
+  for (const challengeRef of [
+    'plc_approve_fixture_0123456789',
+    'plc_deny_fixture_012345678901',
+    'plc_unsafe_fixture_012345678',
+    'plc_stale_fixture_0123456789',
+    'plc_expired_fixture_01234567',
+    'plc_consumed_fixture_0123456',
+    'plc_disabled_fixture_0123456'
+  ]) {
+    assert.equal(
+      renderedHtml.includes(challengeRef),
+      false,
+      'Opaque challenge references must not be rendered into the DOM.'
+    );
+  }
+  for (const privateText of ['accounts.zdp.example', '/auth/product-link', 'proof_verifier', 'session_cookie']) {
+    assert.equal(
+      renderedHtml.includes(privateText),
+      false,
+      `Verification and credential material must not be rendered into the DOM: ${privateText}`
+    );
+  }
+
+  console.log('Auth UI browser accessibility and product-link flow check passed.');
 } finally {
   await browser?.close();
   await server.close();

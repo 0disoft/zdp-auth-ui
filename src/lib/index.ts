@@ -1,5 +1,6 @@
 export { default as AuthShell } from './components/AuthShell.svelte';
 export { default as PasswordField } from './components/PasswordField.svelte';
+export { default as ProductLinkApproval } from './components/ProductLinkApproval.svelte';
 export { default as ProviderButton } from './components/ProviderButton.svelte';
 export {
   getAuthMessages,
@@ -27,4 +28,18 @@ export {
   startPasskeyAuthentication,
   startPasskeyRegistration
 } from './passkey';
-
+export {
+  validateProductLinkRequest,
+  zdpProductLinkDecisions,
+  zdpProductLinkItemKinds,
+  zdpProductLinkStates,
+  type ZdpProductLinkDecision,
+  type ZdpProductLinkDecisionDetail,
+  type ZdpProductLinkDisposition,
+  type ZdpProductLinkItemKind,
+  type ZdpProductLinkRequest,
+  type ZdpProductLinkRequestedItem,
+  type ZdpProductLinkState,
+  type ZdpProductLinkTrustPolicy,
+  type ZdpProductLinkValidation
+} from './product-link';

@@ -2,10 +2,13 @@
   import {
     AuthShell,
     PasswordField,
+    ProductLinkApproval,
     getAuthMessages,
     type ZdpAuthMode,
     type ZdpAuthProvider,
-    type ZdpAuthSubmitDetail
+    type ZdpAuthSubmitDetail,
+    type ZdpProductLinkRequest,
+    type ZdpProductLinkTrustPolicy
   } from 'zdp-auth-ui';
 
   let mode: ZdpAuthMode = 'login';
@@ -13,6 +16,35 @@
   let password = '';
   let status = '';
   let invalid = false;
+
+  const productLinkChallengeRef = 'plc_clean_consumer_0123456789';
+  const trustedProductLinkVerificationUri = `https://accounts.zdp.example/auth/product-link?challenge=${productLinkChallengeRef}`;
+  const productLinkRequest: ZdpProductLinkRequest = {
+    challengeRef: productLinkChallengeRef,
+    verificationUri: trustedProductLinkVerificationUri,
+    state: 'pending',
+    productLabel: 'Talos Desktop',
+    requestedItems: [
+      {
+        ref: 'workspace_read_012345',
+        kind: 'scope',
+        label: 'Workspace identity',
+        description: 'Use the selected workspace reference for this connection.'
+      }
+    ],
+    accountLabel: 'Signed-in ZDP account',
+    workspaceLabel: 'Personal workspace',
+    consentImplications: ['The product receives opaque account and consent references.'],
+    issuedAt: '2026-07-15T04:04:00.000Z',
+    expiresAt: '2026-07-15T04:14:00.000Z'
+  };
+  const productLinkTrust: ZdpProductLinkTrustPolicy = {
+    expectedChallengeRef: productLinkChallengeRef,
+    expectedVerificationUri: trustedProductLinkVerificationUri,
+    allowedVerificationOrigins: ['https://accounts.zdp.example'],
+    verificationPath: '/auth/product-link',
+    maxRequestAgeMs: 120_000
+  };
 
   $: messages = getAuthMessages(locale);
   $: providers = buildProviders(messages.providers);
@@ -73,6 +105,13 @@
       required
     />
   </AuthShell>
+
+  <ProductLinkApproval
+    id="clean-consumer-product-link"
+    {locale}
+    request={productLinkRequest}
+    trust={productLinkTrust}
+  />
 </section>
 
 <style>

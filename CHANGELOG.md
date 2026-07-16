@@ -4,6 +4,12 @@
 
 - No unreleased changes.
 
+## 0.2.0
+
+- Added a feature-gated desktop product-link approval screen that shows the requesting product, requested scopes and capabilities, account and workspace context, consent implications, and expiry.
+- Added fail-closed challenge and HTTPS verification-route validation for stale, expired, denied, consumed, mismatched, and redirect-bearing requests.
+- Added unit contract coverage and a fake-API browser flow covering explicit keyboard-operable approval and denial without rendering opaque challenge references.
+
 ## 0.1.12
 
 - Applied the immutable Action and non-persistent checkout policy to main package CI while preserving its explicit read-only token permission.
