@@ -2,6 +2,10 @@
   import AuthShell from '../../../src/lib/components/AuthShell.svelte';
   import PasswordField from '../../../src/lib/components/PasswordField.svelte';
   import ProductLinkApproval from '../../../src/lib/components/ProductLinkApproval.svelte';
+  import {
+    buildZdpAuthHandoffUrl,
+    type ZdpAuthHandoffResult
+  } from '../../../src/lib/auth-handoff';
   import type {
     ZdpProductLinkDecisionDetail,
     ZdpProductLinkRequest,
@@ -18,6 +22,24 @@
   let completionCount = 0;
 
   const fixtureNow = new Date('2026-07-15T04:05:00.000Z');
+  const loginHandoff: ZdpAuthHandoffResult = buildZdpAuthHandoffUrl({
+    mode: 'login',
+    productId: 'melamed',
+    trustedAuthOrigin: 'https://accounts.zdp.example',
+    returnPath: '/apply'
+  });
+  const signupHandoff: ZdpAuthHandoffResult = buildZdpAuthHandoffUrl({
+    mode: 'signup',
+    productId: 'melamed',
+    trustedAuthOrigin: 'https://accounts.zdp.example',
+    returnPath: '/apply'
+  });
+  const rejectedHandoff: ZdpAuthHandoffResult = buildZdpAuthHandoffUrl({
+    mode: 'login',
+    productId: 'melamed',
+    trustedAuthOrigin: 'https://accounts.zdp.example',
+    returnPath: '//untrusted.example/apply'
+  });
 
   function createProductLinkRequest(challengeRef: string): ZdpProductLinkRequest {
     return {
@@ -103,6 +125,18 @@
     </AuthShell>
   </section>
   <output data-testid="submit-count">{submitCount}</output>
+
+  <nav data-testid="auth-handoff-fixture" aria-label="Melamed account access">
+    {#if loginHandoff.outcome === 'created'}
+      <a data-testid="melamed-login-handoff" href={loginHandoff.url}>Log in for Melamed</a>
+    {/if}
+    {#if signupHandoff.outcome === 'created'}
+      <a data-testid="melamed-signup-handoff" href={signupHandoff.url}>Sign up for Melamed</a>
+    {/if}
+    {#if rejectedHandoff.outcome === 'created'}
+      <a data-testid="rejected-auth-handoff" href={rejectedHandoff.url}>Unsafe handoff</a>
+    {/if}
+  </nav>
 
   <section data-testid="product-link-approve">
     <ProductLinkApproval

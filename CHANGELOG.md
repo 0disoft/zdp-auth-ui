@@ -8,7 +8,7 @@
 
 - Added a pure typed login/signup handoff URL helper for static products with a closed `melamed` return-path registry.
 - Added canonical credential-free HTTPS auth-origin validation and fail-closed rejection of absolute, protocol-relative, backslash, fragment, control, traversal, encoded, malformed, delimiter-bearing, and unregistered return paths.
-- Added generated declarations, package checker coverage, adversarial contract tests, and clean-consumer links without adding authentication-state, storage, network, or navigation ownership.
+- Added generated declarations, package checker coverage, adversarial contract tests, browser-rendered canonical link and rejected-path regression coverage, and clean-consumer links without adding authentication-state, storage, network, or navigation ownership.
 
 ## 0.2.0
 

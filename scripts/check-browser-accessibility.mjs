@@ -75,6 +75,29 @@ try {
     'A valid required field must allow the auth submit callback exactly once.'
   );
 
+  const loginHandoff = page.getByTestId('melamed-login-handoff');
+  const signupHandoff = page.getByTestId('melamed-signup-handoff');
+  assert.equal(
+    await loginHandoff.getAttribute('href'),
+    'https://accounts.zdp.example/login?product_id=melamed&return_path=%2Fapply',
+    'The rendered Melamed login link must preserve the canonical closed-registry handoff URL.'
+  );
+  assert.equal(
+    await signupHandoff.getAttribute('href'),
+    'https://accounts.zdp.example/signup?product_id=melamed&return_path=%2Fapply',
+    'The rendered Melamed signup link must preserve the canonical closed-registry handoff URL.'
+  );
+  assert.equal(
+    await page.getByTestId('rejected-auth-handoff').count(),
+    0,
+    'A rejected return path must not become a browser navigation surface.'
+  );
+  assert.equal(
+    (await page.getByTestId('auth-handoff-fixture').innerHTML()).includes('untrusted.example'),
+    false,
+    'Rejected handoff input must not be serialized into the browser DOM.'
+  );
+
   const approveFixture = page.getByTestId('product-link-approve');
   const fixtureUrl = page.url();
   assert.equal(
@@ -146,7 +169,9 @@ try {
     assert.equal(await fixture.getByRole(role).getByText(status, { exact: true }).count(), 1, `${testId} must explain the closed state.`);
   }
 
-  const renderedHtml = await page.locator('body').innerHTML();
+  const renderedProductLinkHtml = await page
+    .locator('[data-testid^="product-link-"]')
+    .evaluateAll((elements) => elements.map((element) => element.innerHTML).join('\n'));
   for (const challengeRef of [
     'plc_approve_fixture_0123456789',
     'plc_deny_fixture_012345678901',
@@ -157,20 +182,20 @@ try {
     'plc_disabled_fixture_0123456'
   ]) {
     assert.equal(
-      renderedHtml.includes(challengeRef),
+      renderedProductLinkHtml.includes(challengeRef),
       false,
       'Opaque challenge references must not be rendered into the DOM.'
     );
   }
   for (const privateText of ['accounts.zdp.example', '/auth/product-link', 'proof_verifier', 'session_cookie']) {
     assert.equal(
-      renderedHtml.includes(privateText),
+      renderedProductLinkHtml.includes(privateText),
       false,
       `Verification and credential material must not be rendered into the DOM: ${privateText}`
     );
   }
 
-  console.log('Auth UI browser accessibility and product-link flow check passed.');
+  console.log('Auth UI browser accessibility, login/signup handoff, and product-link flow check passed.');
 } finally {
   await browser?.close();
   await server.close();

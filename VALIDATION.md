@@ -8,6 +8,7 @@
 | --- | --- |
 | auth UI source, locale messages, service boundary, source boundary | `zdp_auth_ui_check` |
 | native browser form validation and focus behavior | `zdp_auth_ui_browser_accessibility_check` |
+| rendered Melamed login/signup handoff links and rejected-path non-rendering | `zdp_auth_ui_browser_accessibility_check` |
 | desktop product-link trust, fail-closed states, fake API decisions, keyboard behavior, and DOM redaction | `zdp_auth_ui_check`, `zdp_auth_ui_browser_accessibility_check` |
 | package build output or `dist/**` surface | `zdp_auth_ui_build` |
 | npm package contents or release readiness | `zdp_auth_ui_npm_pack_dry_run` |
@@ -52,7 +53,7 @@
 - Locale docs and checker rules must agree that only `ko` and `en` are active now.
 - Passkey docs and source must agree that server challenge and credential storage stay outside this package.
 - Product-link docs, source, declarations, unit checks, and browser fixture must agree that the component is disabled by default, never calls a live route, validates the trusted HTTPS verification context, and fails closed without rendering challenge references.
-- Auth handoff docs, source, declarations, adversarial checks, and clean consumer must agree on the closed product/return-path registry, canonical HTTPS origin, fixed login/signup routes and bounded query, typed rejection, and caller-owned navigation.
+- Auth handoff docs, source, declarations, adversarial checks, browser fixture, and clean consumer must agree on the closed product/return-path registry, canonical HTTPS origin, fixed login/signup routes and bounded query, typed rejection, rejected-path non-rendering, and caller-owned navigation.
 - CI/runbook evidence must distinguish environment gates from package validation failures.
 
 ## Version Impact
