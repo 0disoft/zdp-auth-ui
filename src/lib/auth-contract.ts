@@ -34,6 +34,18 @@ export interface ZdpAuthModeChangeDetail {
 }
 
 export {
+  buildZdpAuthHandoffUrl,
+  zdpAuthHandoffModes,
+  zdpAuthHandoffProductIds,
+  zdpAuthHandoffReturnPathRegistry,
+  type ZdpAuthHandoffMode,
+  type ZdpAuthHandoffProductId,
+  type ZdpAuthHandoffRejectionReason,
+  type ZdpAuthHandoffRequest,
+  type ZdpAuthHandoffResult
+} from './auth-handoff';
+
+export {
   zdpProductLinkDecisions,
   zdpProductLinkItemKinds,
   zdpProductLinkStates,

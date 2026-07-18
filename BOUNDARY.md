@@ -9,6 +9,7 @@
 - Planned 10-locale contract
 - Design-system consumption
 - Browser-only passkey start helper boundary
+- Closed-registry login/signup handoff URL composition for static products
 
 ## Does Not Own
 
@@ -21,6 +22,7 @@
 - Permission, entitlement, consent, payment, or audit decisions
 - Direct datastore access
 - Product callback navigation or desktop credential handoff
+- Authentication-state lookup, return navigation, or auth-origin trust configuration
 
 ## Required Handoff
 
@@ -32,5 +34,7 @@ Auth UI event
 ```
 
 No auth UI component may bypass that route by calling core datastores or storing token material.
+
+`buildZdpAuthHandoffUrl` is a pure composition boundary. It accepts a caller-trusted, pathless, credential-free canonical HTTPS auth origin and only registered product/return-path pairs. It returns a typed created or rejected result and never fetches, reads authentication state, stores data, or navigates. The consuming product owns the trusted origin configuration, renders or follows the resulting URL, and verifies the current session through its own BFF or API after return.
 
 `ProductLinkApproval` accepts already-loaded display context and emits only an approve or deny decision with the expected opaque challenge reference. The consumer must supply expected challenge and verification URI values from its own trusted navigation or bootstrap context, not copy them from the request under validation. The component does not call a live route, navigate to a product callback, exchange a verifier, or issue a session. Consumers must keep it feature-gated until the core product-link runtime is promoted.

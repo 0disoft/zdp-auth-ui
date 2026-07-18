@@ -38,6 +38,28 @@ async function readOptionalFile(path: string): Promise<string> {
 
 const contractDeclaration = `export declare const zdpAuthModes: readonly ["login", "signup", "recovery"];
 export type ZdpAuthMode = (typeof zdpAuthModes)[number];
+export declare const zdpAuthHandoffModes: readonly ["login", "signup"];
+export declare const zdpAuthHandoffProductIds: readonly ["melamed"];
+export type ZdpAuthHandoffMode = (typeof zdpAuthHandoffModes)[number];
+export type ZdpAuthHandoffProductId = (typeof zdpAuthHandoffProductIds)[number];
+export declare const zdpAuthHandoffReturnPathRegistry: Readonly<{
+  readonly melamed: readonly ["/apply"];
+}>;
+export interface ZdpAuthHandoffRequest {
+  readonly mode: ZdpAuthHandoffMode;
+  readonly productId: ZdpAuthHandoffProductId;
+  readonly trustedAuthOrigin: string;
+  readonly returnPath: string;
+}
+export type ZdpAuthHandoffRejectionReason = "invalid-request" | "unsupported-mode" | "invalid-auth-origin" | "untrusted-product" | "invalid-return-path" | "malformed-return-path-encoding" | "noncanonical-return-path" | "unsafe-return-path" | "unregistered-return-path" | "query-too-long";
+export type ZdpAuthHandoffResult = {
+  readonly outcome: "created";
+  readonly url: string;
+} | {
+  readonly outcome: "rejected";
+  readonly reason: ZdpAuthHandoffRejectionReason;
+};
+export declare function buildZdpAuthHandoffUrl(request: ZdpAuthHandoffRequest): ZdpAuthHandoffResult;
 export declare const zdpAuthProviderKinds: readonly ["passkey", "oauth", "email"];
 export type ZdpAuthProviderKind = (typeof zdpAuthProviderKinds)[number];
 export interface ZdpAuthProvider {
@@ -211,10 +233,19 @@ export {
   type ZdpAuthPlannedLocale
 } from './i18n';
 export {
+  buildZdpAuthHandoffUrl,
   zdpAuthModes,
+  zdpAuthHandoffModes,
+  zdpAuthHandoffProductIds,
+  zdpAuthHandoffReturnPathRegistry,
   zdpAuthProviderKinds,
   type ZdpAuthMode,
   type ZdpAuthModeChangeDetail,
+  type ZdpAuthHandoffMode,
+  type ZdpAuthHandoffProductId,
+  type ZdpAuthHandoffRejectionReason,
+  type ZdpAuthHandoffRequest,
+  type ZdpAuthHandoffResult,
   type ZdpAuthProvider,
   type ZdpAuthProviderKind,
   type ZdpAuthProviderSelectDetail,
@@ -235,6 +266,8 @@ export {
 import type {
   ZdpAuthMode,
   ZdpAuthModeChangeDetail,
+  ZdpAuthHandoffRequest,
+  ZdpAuthHandoffResult,
   ZdpAuthProvider,
   ZdpAuthProviderSelectDetail,
   ZdpAuthSubmitDetail,
@@ -293,6 +326,7 @@ export declare const AuthShell: Component<AuthShellProps>;
 export declare const PasswordField: Component<PasswordFieldProps>;
 export declare const ProductLinkApproval: Component<ProductLinkApprovalProps>;
 export declare const ProviderButton: Component<ProviderButtonProps>;
+export declare function buildZdpAuthHandoffUrl(request: ZdpAuthHandoffRequest): ZdpAuthHandoffResult;
 export declare function validateProductLinkRequest(
   request: ZdpProductLinkRequest,
   trust: ZdpProductLinkTrustPolicy,

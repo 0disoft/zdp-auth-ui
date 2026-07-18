@@ -21,9 +21,9 @@
 ## Source Of Truth Checks
 
 - Service boundary: `service.yaml`
-- Package surface: `package.json`, `src/lib/index.ts`, `src/lib/i18n.ts`, `src/lib/contract.ts`
+- Package surface: `package.json`, `src/lib/index.ts`, `src/lib/auth-contract.ts`, `src/lib/auth-handoff.ts`, `src/lib/i18n.ts`
 - Dist builder: `scripts/build-package-surface.ts`
-- Package checker: `scripts/check-auth-ui.ts`
+- Package checker: `scripts/check-auth-handoff-contract.ts`, `scripts/check-auth-ui.ts`
 - Release workflow: `.github/workflows/publish-npm.yml`, `scripts/check-release-workflow.ts`
 - Consumer fixture: `examples/clean-consumer/AuthUiCleanConsumer.svelte`
 - Boundary docs: `BOUNDARY.md`, `SECURITY.md`
@@ -52,6 +52,7 @@
 - Locale docs and checker rules must agree that only `ko` and `en` are active now.
 - Passkey docs and source must agree that server challenge and credential storage stay outside this package.
 - Product-link docs, source, declarations, unit checks, and browser fixture must agree that the component is disabled by default, never calls a live route, validates the trusted HTTPS verification context, and fails closed without rendering challenge references.
+- Auth handoff docs, source, declarations, adversarial checks, and clean consumer must agree on the closed product/return-path registry, canonical HTTPS origin, fixed login/signup routes and bounded query, typed rejection, and caller-owned navigation.
 - CI/runbook evidence must distinguish environment gates from package validation failures.
 
 ## Version Impact

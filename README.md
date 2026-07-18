@@ -12,6 +12,7 @@ ZDP의 공통 인증 UI 패키지다.
 - `zdp-design-system` 기반 form, button, focus, surface 소비
 - passkey browser ceremony helper boundary
 - feature-gated desktop product-link approval and denial UI
+- static product용 login/signup handoff URL helper
 - dist 기반 public package export와 소비 계약 검사
 
 ## 현재 제외
@@ -74,6 +75,25 @@ en, zh, es, fr, hi, ko, ja, vi, ru, id, ms, th
 import 'zdp-auth-ui/styles.css';
 ```
 
+정적 제품은 package root의 순수 TypeScript helper로 auth 화면 URL을 만들 수 있다.
+
+```ts
+import { buildZdpAuthHandoffUrl } from 'zdp-auth-ui';
+
+const handoff = buildZdpAuthHandoffUrl({
+  mode: 'login',
+  productId: 'melamed',
+  trustedAuthOrigin: 'https://accounts.zdp.example',
+  returnPath: '/apply'
+});
+
+if (handoff.outcome === 'created') {
+  // 소비 앱이 handoff.url을 링크에 넣거나 자기 navigation 계층으로 전달한다.
+}
+```
+
+`trustedAuthOrigin`은 소비 앱이 배포 설정에서 신뢰한 auth origin이어야 한다. helper는 이 값이 path, credential, query, fragment가 없는 canonical HTTPS origin인지 확인할 뿐, 임의의 도메인을 신뢰 목록에 올려주지 않는다. 제품 ID와 return path는 package의 닫힌 registry를 통과해야 하며 현재 공개 계약은 `melamed`의 `/apply`만 허용한다. login/signup route와 query key 순서는 helper가 고정하고, 실패는 예외나 fallback URL 대신 typed `rejected` 결과로 반환한다.
+
 `zdp-auth-ui`의 root Svelte compiler/type condition, JavaScript import, CSS entry는 모두 `dist/` 산출물을 가리킨다. 순수 TypeScript subpath인 `./i18n`, `./contract`도 `dist/*.d.ts`와 `dist/*.js`를 사용한다. `bun run build`는 Vite library bundle을 만든 뒤 `dist/styles.css`, `dist/index.d.ts`, `dist/i18n.d.ts`, `dist/contract.d.ts`를 생성한다. 소비 앱은 `src/` deep import를 쓰지 않고, npm clean consumer도 package source를 다시 컴파일하지 않는다. `examples/clean-consumer/AuthUiCleanConsumer.svelte`는 package root import, message-keyed provider labels, password label/help/error override, submit/provider/mode callbacks, disabled-by-default product-link 소비를 확인하는 최소 fixture다.
 
 ## 경계
@@ -81,6 +101,8 @@ import 'zdp-auth-ui/styles.css';
 `zdp-auth-ui`는 화면 구조와 사용자가 누르는 표면만 제공한다. 실제 인증, 세션, 패스키 challenge, OAuth callback, 이메일 인증, 계정 생성, 추천 코드 적용은 `zdp-core-platform`과 API 계약이 소유한다.
 
 소비 앱은 이 패키지에서 발생한 submit/provider/passkey 선택을 받아 자기 API 클라이언트나 SDK에 연결한다. 이 패키지는 `fetch`, cookie, localStorage, sessionStorage, DB, provider secret을 직접 다루지 않는다.
+
+`buildZdpAuthHandoffUrl`은 인증 상태를 읽거나 쓰지 않고 URL 문자열만 만든다. session, token, user, cookie, storage, network call, navigation은 모두 소비 앱과 auth runtime의 책임이다. absolute URL, protocol-relative path, backslash, fragment, control character, traversal, encoded path, query delimiter, malformed encoding, registry 밖 경로는 fail closed다.
 
 `AuthShell`은 submit callback이 있거나 명시적인 `action`이 없으면 브라우저 기본 form 제출을 막는다. 명시적인 native form fallback도 password가 URL과 로그에 남지 않도록 POST만 허용하고, `required` 같은 브라우저 constraint validation을 그대로 유지한다. 회원가입 화면에 `referralCode`를 넘기면 submit detail과 POST hidden field에만 포함하고, 이 패키지는 추천 코드 검증·보상·저장을 하지 않는다.
 

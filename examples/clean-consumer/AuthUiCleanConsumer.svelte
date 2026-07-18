@@ -3,8 +3,10 @@
     AuthShell,
     PasswordField,
     ProductLinkApproval,
+    buildZdpAuthHandoffUrl,
     getAuthMessages,
     type ZdpAuthMode,
+    type ZdpAuthHandoffResult,
     type ZdpAuthProvider,
     type ZdpAuthSubmitDetail,
     type ZdpProductLinkRequest,
@@ -16,6 +18,19 @@
   let password = '';
   let status = '';
   let invalid = false;
+
+  const loginHandoff: ZdpAuthHandoffResult = buildZdpAuthHandoffUrl({
+    mode: 'login',
+    productId: 'melamed',
+    trustedAuthOrigin: 'https://accounts.zdp.example',
+    returnPath: '/apply'
+  });
+  const signupHandoff: ZdpAuthHandoffResult = buildZdpAuthHandoffUrl({
+    mode: 'signup',
+    productId: 'melamed',
+    trustedAuthOrigin: 'https://accounts.zdp.example',
+    returnPath: '/apply'
+  });
 
   const productLinkChallengeRef = 'plc_clean_consumer_0123456789';
   const trustedProductLinkVerificationUri = `https://accounts.zdp.example/auth/product-link?challenge=${productLinkChallengeRef}`;
@@ -106,6 +121,15 @@
     />
   </AuthShell>
 
+  <nav class="auth-handoff-links" aria-label={messages.navigation.accountHelp}>
+    {#if loginHandoff.outcome === 'created'}
+      <a href={loginHandoff.url}>{messages.links.login}</a>
+    {/if}
+    {#if signupHandoff.outcome === 'created'}
+      <a href={signupHandoff.url}>{messages.links.signup}</a>
+    {/if}
+  </nav>
+
   <ProductLinkApproval
     id="clean-consumer-product-link"
     {locale}
@@ -127,5 +151,11 @@
     font-size: var(--zdp-font-size-lg);
     line-height: var(--zdp-font-line-height-tight);
     margin: 0;
+  }
+
+  .auth-handoff-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--zdp-space-3);
   }
 </style>

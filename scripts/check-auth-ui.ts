@@ -62,6 +62,7 @@ const requiredFiles = [
   '.github/workflows/ci.yml',
   'vite.config.ts',
   'src/lib/auth-contract.ts',
+  'src/lib/auth-handoff.ts',
   'src/lib/i18n.ts',
   'src/lib/index.ts',
   'src/lib/passkey.ts',
@@ -195,10 +196,10 @@ function checkPackageJson(
 
   if (
     packageJson.scripts?.check
-    !== 'bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-ui.ts && bun run release:check'
+    !== 'bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-auth-ui.ts && bun run release:check'
   ) {
     failures.push(
-      'package.json scripts.check must run the lock fixture, product-link contract checker, auth UI contract checker, and release workflow checker.'
+      'package.json scripts.check must run the lock fixture, product-link contract checker, auth handoff contract checker, auth UI contract checker, and release workflow checker.'
     );
   }
 
@@ -387,6 +388,8 @@ function checkPublicEntry(publicEntry: string): void {
     'zdpAuthPlannedLocales',
     'startPasskeyAuthentication',
     'startPasskeyRegistration',
+    'buildZdpAuthHandoffUrl',
+    'zdpAuthHandoffReturnPathRegistry',
     'validateProductLinkRequest',
     'zdpProductLinkStates'
   ]) {
@@ -472,8 +475,10 @@ function checkCleanConsumerExamples(exampleFiles: readonly SourceFile[]): void {
     'AuthShell',
     'PasswordField',
     'ProductLinkApproval',
+    'buildZdpAuthHandoffUrl',
     'getAuthMessages',
     'type ZdpAuthMode',
+    'type ZdpAuthHandoffResult',
     'type ZdpAuthProvider',
     'type ZdpAuthSubmitDetail',
     'type ZdpProductLinkRequest',

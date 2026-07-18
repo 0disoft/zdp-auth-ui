@@ -19,6 +19,12 @@ Never store or log:
 
 The browser helper may call WebAuthn browser APIs from a consumer-triggered interaction. Server challenge creation, attestation/assertion verification, credential storage, and session issue stay in `zdp-core-platform`.
 
+## Login And Signup Handoff
+
+`buildZdpAuthHandoffUrl` accepts only the package's closed product and return-path registry. The auth route and query key order are fixed. Absolute and protocol-relative return values, backslashes, fragments, controls, traversal, encoded paths, malformed percent encoding, query delimiters, and unregistered paths fail closed with a typed rejection.
+
+The caller must provide `trustedAuthOrigin` from trusted deployment configuration. The helper requires the exact canonical HTTPS origin form with no path, credential, query, or fragment, but structural validation does not make an attacker-selected domain trustworthy. The helper never reads or writes session, token, user, cookie, local or session storage, never performs a network request, and never navigates. Consumers own link rendering or navigation and must verify current session state through their own API boundary after return.
+
 ## Desktop Product Link
 
 The approval component is disabled by default. It becomes actionable only when the challenge reference exactly matches trusted browser context and the verification URI uses an allowlisted HTTPS origin, the expected path, and a matching challenge query value when present. `expectedChallengeRef` and `expectedVerificationUri` must come from caller-owned trusted navigation or bootstrap context; copying either expected value from the request being validated defeats the trust boundary. Extra redirect or callback parameters fail closed.
@@ -27,4 +33,4 @@ Expired, stale, denied, consumed, malformed, and mismatched requests never expos
 
 ## Reporting
 
-If an auth UI change can affect phishing risk, redirect behavior, provider selection, passkey ceremony, or account recovery wording, require human review before adoption.
+If an auth UI change can affect phishing risk, redirect behavior, handoff registry entries, provider selection, passkey ceremony, or account recovery wording, require human review before adoption.

@@ -15,10 +15,19 @@ export {
   type ZdpAuthPlannedLocale
 } from './i18n';
 export {
+  buildZdpAuthHandoffUrl,
   zdpAuthModes,
+  zdpAuthHandoffModes,
+  zdpAuthHandoffProductIds,
+  zdpAuthHandoffReturnPathRegistry,
   zdpAuthProviderKinds,
   type ZdpAuthMode,
   type ZdpAuthModeChangeDetail,
+  type ZdpAuthHandoffMode,
+  type ZdpAuthHandoffProductId,
+  type ZdpAuthHandoffRejectionReason,
+  type ZdpAuthHandoffRequest,
+  type ZdpAuthHandoffResult,
   type ZdpAuthProvider,
   type ZdpAuthProviderKind,
   type ZdpAuthProviderSelectDetail,
