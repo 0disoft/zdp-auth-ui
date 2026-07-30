@@ -6,7 +6,7 @@ import {
 } from './bun-registry-lock';
 
 const integrity = `sha512-${Buffer.alloc(64, 13).toString('base64')}`;
-const validEntry = `    "zdp-design-system": ["zdp-design-system@0.46.4", "", { "peerDependencies": { "svelte": "^5.56.0" } }, "${integrity}"],`;
+const validEntry = `    "zdp-design-system": ["zdp-design-system@0.50.6", "", { "peerDependencies": { "svelte": "^5.56.0" } }, "${integrity}"],`;
 const validLock = `{
   "lockfileVersion": 1,
   "packages": {
@@ -16,14 +16,14 @@ ${validEntry}
 
 assert.deepEqual(readBunRegistryLockEntry(validLock, 'zdp-design-system'), {
   packageName: 'zdp-design-system',
-  version: '0.46.4',
+  version: '0.50.6',
   integrity
 });
 assert.doesNotThrow(() =>
-  assertVersionSatisfiesCaretRange('0.46.8', '^0.46.4', 'zdp-design-system')
+  assertVersionSatisfiesCaretRange('0.50.8', '^0.50.6', 'zdp-design-system')
 );
 assert.throws(
-  () => assertVersionSatisfiesCaretRange('0.47.0', '^0.46.4', 'zdp-design-system'),
+  () => assertVersionSatisfiesCaretRange('0.51.0', '^0.50.6', 'zdp-design-system'),
   /does not satisfy declared range/
 );
 assert.throws(

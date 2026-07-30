@@ -58,7 +58,7 @@
   },
   "dependencies": {
     "@simplewebauthn/browser": "^13.3.0",
-    "zdp-design-system": "^0.46.4"
+    "zdp-design-system": "^0.50.6"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^6.2.4",

@@ -6,6 +6,7 @@
 
 ## 0.3.0
 
+- Updated the published design-system dependency to `zdp-design-system ^0.50.6` so auth UI consumers share the current theme, Select, typography, and package asset contracts without a nested legacy design-system copy.
 - Added a pure typed login/signup handoff URL helper for static products with a closed `melamed` return-path registry.
 - Added canonical credential-free HTTPS auth-origin validation and fail-closed rejection of absolute, protocol-relative, backslash, fragment, control, traversal, encoded, malformed, delimiter-bearing, and unregistered return paths.
 - Added generated declarations, package checker coverage, adversarial contract tests, browser-rendered canonical link and rejected-path regression coverage, and clean-consumer links without adding authentication-state, storage, network, or navigation ownership.
