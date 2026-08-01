@@ -7,6 +7,7 @@
 | Change scope | Check |
 | --- | --- |
 | auth UI source, locale messages, service boundary, source boundary | `zdp_auth_ui_check` |
+| password-signup field names, native required validation, terms reference, and consumer-owned password clearing | `zdp_auth_ui_check`, `zdp_auth_ui_browser_accessibility_check` |
 | native browser form validation and focus behavior | `zdp_auth_ui_browser_accessibility_check` |
 | rendered Melamed login/signup handoff links and rejected-path non-rendering | `zdp_auth_ui_browser_accessibility_check` |
 | desktop product-link trust, fail-closed states, fake API decisions, keyboard behavior, and DOM redaction | `zdp_auth_ui_check`, `zdp_auth_ui_browser_accessibility_check` |
@@ -22,7 +23,7 @@
 ## Source Of Truth Checks
 
 - Service boundary: `service.yaml`
-- Package surface: `package.json`, `src/lib/index.ts`, `src/lib/auth-contract.ts`, `src/lib/auth-handoff.ts`, `src/lib/i18n.ts`
+- Package surface: `package.json`, `src/lib/index.ts`, `src/lib/auth-contract.ts`, `src/lib/auth-handoff.ts`, `src/lib/password-signup.ts`, `src/lib/i18n.ts`
 - Dist builder: `scripts/build-package-surface.ts`
 - Package checker: `scripts/check-auth-handoff-contract.ts`, `scripts/check-auth-ui.ts`
 - Release workflow: `.github/workflows/publish-npm.yml`, `scripts/check-release-workflow.ts`
@@ -54,6 +55,7 @@
 - Passkey docs and source must agree that server challenge and credential storage stay outside this package.
 - Product-link docs, source, declarations, unit checks, and browser fixture must agree that the component is disabled by default, never calls a live route, validates the trusted HTTPS verification context, and fails closed without rendering challenge references.
 - Auth handoff docs, source, declarations, adversarial checks, browser fixture, and clean consumer must agree on the closed product/return-path registry, canonical HTTPS origin, fixed login/signup routes and bounded query, typed rejection, rejected-path non-rendering, and caller-owned navigation.
+- Password-signup docs, source, declarations, clean consumer, and browser fixture must agree on `login_id`, `password`, required terms acceptance, terms consent reference, locale, no package-owned network call, and immediate consumer-owned password clearing.
 - CI/runbook evidence must distinguish environment gates from package validation failures.
 
 ## Version Impact

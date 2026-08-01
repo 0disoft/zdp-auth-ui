@@ -26,9 +26,11 @@ export interface ZdpAuthMessages {
     readonly recovery: string;
   };
   readonly fields: {
+    readonly loginId: string;
     readonly email: string;
     readonly password: string;
     readonly name: string;
+    readonly termsAcceptance: string;
   };
   readonly actions: {
     readonly login: string;
@@ -108,9 +110,11 @@ export const zdpAuthMessages: Record<ZdpAuthActiveLocale, ZdpAuthMessages> = {
       recovery: '가입한 이메일로 복구 안내를 보냅니다.'
     },
     fields: {
+      loginId: '아이디',
       email: '이메일',
       password: '비밀번호',
-      name: '이름'
+      name: '이름',
+      termsAcceptance: '필수 이용약관에 동의합니다.'
     },
     actions: {
       login: '로그인',
@@ -188,9 +192,11 @@ export const zdpAuthMessages: Record<ZdpAuthActiveLocale, ZdpAuthMessages> = {
       recovery: 'We will send recovery instructions to your email.'
     },
     fields: {
+      loginId: 'Login ID',
       email: 'Email',
       password: 'Password',
-      name: 'Name'
+      name: 'Name',
+      termsAcceptance: 'I agree to the required terms.'
     },
     actions: {
       login: 'Sign in',

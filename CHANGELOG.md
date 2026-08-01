@@ -4,6 +4,13 @@
 
 - No unreleased changes.
 
+## 0.4.0
+
+- Added a portable password-signup field contract for `login_id`, `password`, required terms acceptance, an immutable terms consent reference, and locale.
+- Added shared login-ID and password-signup field components with native required-field validation and Korean/English message keys.
+- Added clean-consumer and Chromium regression coverage for required-field focus order, Core-aligned field names, terms evidence, and immediate consumer-owned password clearing.
+- Kept network calls, trusted-edge proof generation, account creation, credential persistence, and session issuance outside the UI package.
+
 ## 0.3.0
 
 - Updated the published design-system dependency to `zdp-design-system ^0.50.6` so auth UI consumers share the current theme, Select, typography, and package asset contracts without a nested legacy design-system copy.

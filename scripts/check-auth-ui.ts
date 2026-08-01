@@ -26,7 +26,9 @@ const activeLocales = ['ko', 'en'] as const;
 const plannedLocales = ['zh', 'es', 'fr', 'hi', 'ja', 'vi', 'ru', 'id', 'ms', 'th'] as const;
 const componentPaths = [
   'src/lib/components/AuthShell.svelte',
+  'src/lib/components/LoginIdField.svelte',
   'src/lib/components/PasswordField.svelte',
+  'src/lib/components/PasswordSignupFields.svelte',
   'src/lib/components/ProductLinkApproval.svelte',
   'src/lib/components/ProviderButton.svelte'
 ] as const;
@@ -45,6 +47,8 @@ const componentDesignSystemImports: Record<string, readonly string[]> = {
     'Input',
     'Label'
   ],
+  'src/lib/components/LoginIdField.svelte': ['ErrorText', 'Field', 'HelpText', 'Input', 'Label'],
+  'src/lib/components/PasswordSignupFields.svelte': ['Checkbox', 'Stack'],
   'src/lib/components/AuthShell.svelte': ['Button', 'Divider', 'Inline', 'Link', 'Stack', 'Surface'],
   'src/lib/components/ProductLinkApproval.svelte': ['Button', 'Inline', 'Stack', 'Surface']
 } as const;
@@ -67,6 +71,7 @@ const requiredFiles = [
   'src/lib/index.ts',
   'src/lib/passkey.ts',
   'src/lib/product-link.ts',
+  'src/lib/password-signup.ts',
   'src/styles/index.css'
 ] as const;
 
@@ -295,6 +300,8 @@ function checkMessageCatalog(i18nSource: string): void {
     'readonly groupLabel: string;',
     'readonly navigation: {',
     'readonly accountHelp: string;',
+    'readonly loginId: string;',
+    'readonly termsAcceptance: string;',
     "brand: '8ailors'",
     "groupLabel: '인증 수단 선택'",
     "groupLabel: 'Choose sign-in method'",
@@ -380,7 +387,9 @@ function checkRunbook(runbook: string): void {
 function checkPublicEntry(publicEntry: string): void {
   for (const requiredText of [
     'export { default as AuthShell }',
+    'export { default as LoginIdField }',
     'export { default as PasswordField }',
+    'export { default as PasswordSignupFields }',
     'export { default as ProductLinkApproval }',
     'export { default as ProviderButton }',
     'zdpAuthTargetLocales',
@@ -391,7 +400,9 @@ function checkPublicEntry(publicEntry: string): void {
     'buildZdpAuthHandoffUrl',
     'zdpAuthHandoffReturnPathRegistry',
     'validateProductLinkRequest',
-    'zdpProductLinkStates'
+    'zdpProductLinkStates',
+    'createZdpPasswordSignupContract',
+    'zdpPasswordSignupFieldNames'
   ]) {
     if (!publicEntry.includes(requiredText)) {
       failures.push(`src/lib/index.ts is missing public export ${requiredText}.`);
@@ -473,6 +484,7 @@ function checkCleanConsumerExamples(exampleFiles: readonly SourceFile[]): void {
   for (const requiredText of [
     "from 'zdp-auth-ui'",
     'AuthShell',
+    'PasswordSignupFields',
     'PasswordField',
     'ProductLinkApproval',
     'buildZdpAuthHandoffUrl',
@@ -481,6 +493,7 @@ function checkCleanConsumerExamples(exampleFiles: readonly SourceFile[]): void {
     'type ZdpAuthHandoffResult',
     'type ZdpAuthProvider',
     'type ZdpAuthSubmitDetail',
+    'createZdpPasswordSignupContract',
     'type ZdpProductLinkRequest',
     'type ZdpProductLinkTrustPolicy',
     'onsubmit={handleSubmit}',
@@ -513,6 +526,26 @@ function checkCleanConsumerExamples(exampleFiles: readonly SourceFile[]): void {
 
   if (!/<PasswordField[\s\S]*?\brequired\b[\s\S]*?\/>/.test(cleanConsumer.source)) {
     failures.push('Clean consumer example must keep a required PasswordField as native validation evidence.');
+  }
+  const signupContract = sourceFiles.find(
+    (sourceFile) => sourceFile.relativePath === 'src/lib/password-signup.ts'
+  );
+  if (!signupContract) {
+    failures.push('src/lib/password-signup.ts must be included in source boundary checks.');
+  } else {
+    for (const requiredText of [
+      "loginId: 'login_id'",
+      "password: 'password'",
+      "termsAccepted: 'terms_accepted'",
+      "termsConsentRef: 'terms_consent_ref'",
+      "locale: 'locale'",
+      "'invalid-terms-consent-ref'",
+      "'unsupported-locale'"
+    ]) {
+      if (!signupContract.source.includes(requiredText)) {
+        failures.push(`Password signup contract is missing fail-closed field text: ${requiredText}.`);
+      }
+    }
   }
 }
 

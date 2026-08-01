@@ -25,6 +25,12 @@ The browser helper may call WebAuthn browser APIs from a consumer-triggered inte
 
 The caller must provide `trustedAuthOrigin` from trusted deployment configuration. The helper requires the exact canonical HTTPS origin form with no path, credential, query, or fragment, but structural validation does not make an attacker-selected domain trustworthy. The helper never reads or writes session, token, user, cookie, local or session storage, never performs a network request, and never navigates. Consumers own link rendering or navigation and must verify current session state through their own API boundary after return.
 
+## Password Signup Form
+
+`PasswordSignupFields` emits ordinary form fields only. It does not hash, persist, log, sign, or transmit a password. Consumers must send the value through their own trusted BFF or typed SDK, clear the in-memory password immediately after handoff, and never place it in a URL, analytics event, log, durable browser storage, fixture, or error report.
+
+The consumer must source `termsConsentRef` from trusted application configuration for the currently published required terms. The UI package validates only a bounded reference shape; it does not prove that the referenced policy exists or is current. Trusted-edge HMAC keys and proofs stay exclusively in the server-side BFF or edge boundary and must never be provided to this package or browser code.
+
 ## Desktop Product Link
 
 The approval component is disabled by default. It becomes actionable only when the challenge reference exactly matches trusted browser context and the verification URI uses an allowlisted HTTPS origin, the expected path, and a matching challenge query value when present. `expectedChallengeRef` and `expectedVerificationUri` must come from caller-owned trusted navigation or bootstrap context; copying either expected value from the request being validated defeats the trust boundary. Extra redirect or callback parameters fail closed.

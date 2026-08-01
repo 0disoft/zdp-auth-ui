@@ -45,4 +45,6 @@ These manual fallback intents are separate from the tag workflow. Their publish 
 - If dist package validation fails, rerun `zdp_auth_ui_build` before checking package contents.
 - If locale validation fails, keep `ko` and `en` active and leave the other 10 locales as planned until translation work starts.
 - If a component starts owning token, session, provider secret, or DB access, stop and move that behavior to `zdp-core-platform` or the consuming app boundary.
+- If password signup needs a live request, connect the submit event in the selected staging consumer's BFF or typed SDK. Do not add `fetch`, trusted-edge HMAC material, or a Core route URL to this package.
+- If Core rejects a registration field, map the typed response in the consuming app and clear the password before rendering the error. Do not persist or replay the password from UI state.
 - If CI fails during dependency installation, verify that `zdp-design-system` is published at the package range declared in `package.json` before changing package dependencies.

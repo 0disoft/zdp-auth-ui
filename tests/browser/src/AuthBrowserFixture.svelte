@@ -1,6 +1,7 @@
 <script lang="ts">
   import AuthShell from '../../../src/lib/components/AuthShell.svelte';
   import PasswordField from '../../../src/lib/components/PasswordField.svelte';
+  import PasswordSignupFields from '../../../src/lib/components/PasswordSignupFields.svelte';
   import ProductLinkApproval from '../../../src/lib/components/ProductLinkApproval.svelte';
   import {
     buildZdpAuthHandoffUrl,
@@ -12,9 +13,15 @@
     ZdpProductLinkState,
     ZdpProductLinkTrustPolicy
   } from '../../../src/lib/product-link';
+  import { createZdpPasswordSignupContract } from '../../../src/lib/password-signup';
 
   let password = '';
   let submitCount = 0;
+  let signupSubmitCount = 0;
+  let signupLoginId = '';
+  let signupPassword = '';
+  let signupTermsAccepted = false;
+  let signupSubmittedFields = '';
   let approveRequest = createProductLinkRequest('plc_approve_fixture_0123456789');
   let denyRequest = createProductLinkRequest('plc_deny_fixture_012345678901');
   let approveBusy = false;
@@ -40,6 +47,14 @@
     trustedAuthOrigin: 'https://accounts.zdp.example',
     returnPath: '//untrusted.example/apply'
   });
+  const signupContractResult = createZdpPasswordSignupContract({
+    termsConsentRef: 'policy://terms/2026-08-01',
+    locale: 'en'
+  });
+  if (signupContractResult.outcome !== 'created') {
+    throw new Error('Browser signup fixture contract must be valid.');
+  }
+  const signupContract = signupContractResult.contract;
 
   function createProductLinkRequest(challengeRef: string): ZdpProductLinkRequest {
     return {
@@ -125,6 +140,37 @@
     </AuthShell>
   </section>
   <output data-testid="submit-count">{submitCount}</output>
+
+  <section data-testid="signup-fixture">
+    <AuthShell
+      locale="en"
+      mode="signup"
+      termsHref="/terms"
+      privacyHref="/privacy"
+      onsubmit={({ form }) => {
+        signupSubmitCount += 1;
+        const data = new FormData(form);
+        signupSubmittedFields = [
+          data.get('login_id'),
+          data.has('password') ? 'password-present' : 'password-missing',
+          data.get('terms_accepted'),
+          data.get('terms_consent_ref'),
+          data.get('locale')
+        ].join('|');
+        signupPassword = '';
+      }}
+    >
+      <PasswordSignupFields
+        idPrefix="browser-signup"
+        contract={signupContract}
+        bind:loginId={signupLoginId}
+        bind:password={signupPassword}
+        bind:termsAccepted={signupTermsAccepted}
+      />
+    </AuthShell>
+  </section>
+  <output data-testid="signup-submit-count">{signupSubmitCount}</output>
+  <output data-testid="signup-submitted-fields">{signupSubmittedFields}</output>
 
   <nav data-testid="auth-handoff-fixture" aria-label="Melamed account access">
     {#if loginHandoff.outcome === 'created'}

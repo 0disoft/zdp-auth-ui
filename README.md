@@ -13,6 +13,7 @@ ZDP의 공통 인증 UI 패키지다.
 - passkey browser ceremony helper boundary
 - feature-gated desktop product-link approval and denial UI
 - static product용 login/signup handoff URL helper
+- `login_id + password + 필수 약관 동의`를 위한 portable signup field contract
 - dist 기반 public package export와 소비 계약 검사
 
 ## 현재 제외
@@ -52,11 +53,17 @@ en, zh, es, fr, hi, ko, ja, vi, ru, id, ms, th
   import {
     AuthShell,
     PasswordField,
+    PasswordSignupFields,
     ProviderButton,
+    createZdpPasswordSignupContract,
     getAuthMessages
   } from 'zdp-auth-ui';
 
   const messages = getAuthMessages('ko');
+  const signupResult = createZdpPasswordSignupContract({
+    termsConsentRef: 'policy://terms/2026-08-01',
+    locale: 'ko'
+  });
 </script>
 
 <AuthShell locale="ko" mode="login" providers={[{ id: 'passkey', label: messages.providers.passkey }]}>
@@ -67,6 +74,15 @@ en, zh, es, fr, hi, ko, ja, vi, ru, id, ms, th
     autocomplete="current-password"
   />
 </AuthShell>
+
+{#if signupResult.outcome === 'created'}
+  <AuthShell locale="ko" mode="signup">
+    <PasswordSignupFields
+      idPrefix="account-signup"
+      contract={signupResult.contract}
+    />
+  </AuthShell>
+{/if}
 ```
 
 공통 CSS는 앱의 전역 CSS entry에서 불러온다.
@@ -101,6 +117,8 @@ if (handoff.outcome === 'created') {
 `zdp-auth-ui`는 화면 구조와 사용자가 누르는 표면만 제공한다. 실제 인증, 세션, 패스키 challenge, OAuth callback, 이메일 인증, 계정 생성, 추천 코드 적용은 `zdp-core-platform`과 API 계약이 소유한다.
 
 소비 앱은 이 패키지에서 발생한 submit/provider/passkey 선택을 받아 자기 API 클라이언트나 SDK에 연결한다. 이 패키지는 `fetch`, cookie, localStorage, sessionStorage, DB, provider secret을 직접 다루지 않는다.
+
+`PasswordSignupFields`는 Core의 password registration 입력 이름에 맞춘 form field만 렌더링한다. 소비 앱은 submit event에서 값을 즉시 자기 BFF 또는 typed SDK로 넘기고 password 변수를 지운다. 이 패키지는 trusted-edge HMAC proof를 만들거나 staging registration route를 직접 호출하지 않으며, 계정 생성 성공·실패와 session 발급도 판단하지 않는다. `termsConsentRef`는 소비 앱이 현재 게시된 필수 약관 버전에서 만든 신뢰된 참조를 전달해야 하고, 임의 사용자 입력을 그대로 넣으면 안 된다.
 
 `buildZdpAuthHandoffUrl`은 인증 상태를 읽거나 쓰지 않고 URL 문자열만 만든다. session, token, user, cookie, storage, network call, navigation은 모두 소비 앱과 auth runtime의 책임이다. absolute URL, protocol-relative path, backslash, fragment, control character, traversal, encoded path, query delimiter, malformed encoding, registry 밖 경로는 fail closed다.
 

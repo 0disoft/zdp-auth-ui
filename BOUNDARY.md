@@ -10,6 +10,7 @@
 - Design-system consumption
 - Browser-only passkey start helper boundary
 - Closed-registry login/signup handoff URL composition for static products
+- Portable password-signup field composition aligned to the Core registration input names
 
 ## Does Not Own
 
@@ -34,6 +35,8 @@ Auth UI event
 ```
 
 No auth UI component may bypass that route by calling core datastores or storing token material.
+
+`PasswordSignupFields` owns only native form controls and stable field names for login ID, password, required terms acceptance, terms consent reference, and locale. The consumer owns trusted terms-version selection, submission, trusted-edge proof generation, error mapping, password clearing, and the BFF or typed-SDK call into Core. This package must not call the staging registration route or treat a rendered form as evidence that account creation is available.
 
 `buildZdpAuthHandoffUrl` is a pure composition boundary. It accepts a caller-trusted, pathless, credential-free canonical HTTPS auth origin and only registered product/return-path pairs. It returns a typed created or rejected result and never fetches, reads authentication state, stores data, or navigates. The consuming product owns the trusted origin configuration, renders or follows the resulting URL, and verifies the current session through its own BFF or API after return.
 

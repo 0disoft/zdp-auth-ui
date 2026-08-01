@@ -59,3 +59,11 @@ export {
   type ZdpProductLinkTrustPolicy,
   type ZdpProductLinkValidation
 } from './product-link';
+
+export {
+  createZdpPasswordSignupContract,
+  zdpPasswordSignupFieldNames,
+  type ZdpPasswordSignupContract,
+  type ZdpPasswordSignupContractRequest,
+  type ZdpPasswordSignupContractResult
+} from './password-signup';

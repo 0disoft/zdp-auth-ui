@@ -67,6 +67,49 @@ try {
     'Native validation must block the auth submit callback while the required field is empty.'
   );
 
+  const signupFixture = page.getByTestId('signup-fixture');
+  const signupLoginId = signupFixture.getByLabel('Login ID', { exact: true });
+  const signupPassword = signupFixture.getByLabel('Password', { exact: true });
+  const signupTerms = signupFixture.getByLabel('I agree to the required terms.', { exact: true });
+  const signupSubmit = signupFixture.locator('form button[type="submit"]');
+  await signupSubmit.click();
+  assert.equal(
+    await signupLoginId.evaluate((element) => document.activeElement === element),
+    true,
+    'Signup must focus the required login ID before any credential handoff.'
+  );
+  await signupLoginId.fill('browser_user');
+  await signupSubmit.click();
+  assert.equal(
+    await signupPassword.evaluate((element) => document.activeElement === element),
+    true,
+    'Signup must focus the required password after login ID is present.'
+  );
+  await signupPassword.fill('valid-browser-signup-password');
+  await signupSubmit.click();
+  assert.equal(
+    await signupTerms.evaluate((element) => document.activeElement === element),
+    true,
+    'Signup must focus required terms acceptance before submission.'
+  );
+  await signupTerms.check();
+  await signupSubmit.click();
+  assert.equal(
+    await page.getByTestId('signup-submit-count').textContent(),
+    '1',
+    'A complete signup form must emit exactly one consumer-owned submit event.'
+  );
+  assert.equal(
+    await page.getByTestId('signup-submitted-fields').textContent(),
+    'browser_user|password-present|true|policy://terms/2026-08-01|en',
+    'Signup must expose the Core-aligned login, password, terms, and locale field names to the consumer.'
+  );
+  assert.equal(
+    await signupPassword.inputValue(),
+    '',
+    'The consuming fixture must be able to clear the password immediately after handoff.'
+  );
+
   await password.fill('valid-browser-fixture-password');
   await submit.click();
   assert.equal(

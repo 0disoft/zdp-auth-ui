@@ -2,8 +2,10 @@
   import {
     AuthShell,
     PasswordField,
+    PasswordSignupFields,
     ProductLinkApproval,
     buildZdpAuthHandoffUrl,
+    createZdpPasswordSignupContract,
     getAuthMessages,
     type ZdpAuthMode,
     type ZdpAuthHandoffResult,
@@ -16,6 +18,8 @@
   let mode: ZdpAuthMode = 'login';
   let locale = 'en';
   let password = '';
+  let loginId = '';
+  let termsAccepted = false;
   let status = '';
   let invalid = false;
 
@@ -31,6 +35,14 @@
     trustedAuthOrigin: 'https://accounts.zdp.example',
     returnPath: '/apply'
   });
+  const signupContractResult = createZdpPasswordSignupContract({
+    termsConsentRef: 'policy://terms/2026-08-01',
+    locale: 'en'
+  });
+  if (signupContractResult.outcome !== 'created') {
+    throw new Error('Clean consumer signup contract must be valid.');
+  }
+  const signupContract = signupContractResult.contract;
 
   const productLinkChallengeRef = 'plc_clean_consumer_0123456789';
   const trustedProductLinkVerificationUri = `https://accounts.zdp.example/auth/product-link?challenge=${productLinkChallengeRef}`;
@@ -109,16 +121,28 @@
       status = messages.status.waiting;
     }}
   >
-    <PasswordField
-      id="clean-consumer-password"
-      name="password"
-      bind:value={password}
-      {locale}
-      autocomplete={mode === 'signup' ? 'new-password' : 'current-password'}
-      helpText={mode === 'signup' ? 'Use a password you do not use anywhere else.' : null}
-      errorText={invalid ? messages.status.error : null}
-      required
-    />
+    {#if mode === 'signup'}
+      <PasswordSignupFields
+        idPrefix="clean-consumer-signup"
+        contract={signupContract}
+        bind:loginId
+        bind:password
+        bind:termsAccepted
+        loginIdError={invalid ? messages.status.error : null}
+        passwordError={invalid ? messages.status.error : null}
+      />
+    {:else}
+      <PasswordField
+        id="clean-consumer-password"
+        name="password"
+        bind:value={password}
+        {locale}
+        autocomplete="current-password"
+        helpText="Use a password you do not use anywhere else."
+        errorText={invalid ? messages.status.error : null}
+        required
+      />
+    {/if}
   </AuthShell>
 
   <nav class="auth-handoff-links" aria-label={messages.navigation.accountHelp}>

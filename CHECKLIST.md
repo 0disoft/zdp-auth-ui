@@ -32,6 +32,13 @@
 - Provider selection UI must not embed provider secrets, callback payloads, or authorization headers.
 - Native form fallback must use POST when password fields are present.
 
+## Password Signup
+
+- Keep `login_id`, `password`, required terms acceptance, terms consent reference, and locale aligned with the Core registration contract.
+- Source the terms consent reference from trusted consumer configuration, not user-controlled input.
+- Keep trusted-edge HMAC proof generation and Core network calls in the consumer BFF or typed SDK.
+- Clear consumer-owned password state immediately after handoff and never persist or log it.
+
 ## Desktop Product Link
 
 - Keep `ProductLinkApproval` disabled until the consuming app explicitly enables the contract-only surface.

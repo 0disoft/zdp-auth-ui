@@ -80,6 +80,30 @@ export interface ZdpAuthProviderSelectDetail {
 export interface ZdpAuthModeChangeDetail {
   readonly mode: ZdpAuthMode;
 }
+export declare const zdpPasswordSignupFieldNames: Readonly<{
+  readonly loginId: "login_id";
+  readonly password: "password";
+  readonly termsAccepted: "terms_accepted";
+  readonly termsConsentRef: "terms_consent_ref";
+  readonly locale: "locale";
+}>;
+export interface ZdpPasswordSignupContractRequest {
+  readonly termsConsentRef: string;
+  readonly locale: import('./i18n').ZdpAuthLocale | string;
+}
+export interface ZdpPasswordSignupContract {
+  readonly termsConsentRef: string;
+  readonly locale: import('./i18n').ZdpAuthLocale;
+  readonly fieldNames: typeof zdpPasswordSignupFieldNames;
+}
+export type ZdpPasswordSignupContractResult = {
+  readonly outcome: "created";
+  readonly contract: ZdpPasswordSignupContract;
+} | {
+  readonly outcome: "rejected";
+  readonly reason: "invalid-terms-consent-ref" | "unsupported-locale";
+};
+export declare function createZdpPasswordSignupContract(request: ZdpPasswordSignupContractRequest): ZdpPasswordSignupContractResult;
 export declare const zdpProductLinkStates: readonly ["pending", "approved", "denied", "expired", "consumed"];
 export declare const zdpProductLinkItemKinds: readonly ["scope", "capability"];
 export declare const zdpProductLinkDecisions: readonly ["approve", "deny"];
@@ -141,9 +165,11 @@ export interface ZdpAuthMessages {
     readonly recovery: string;
   };
   readonly fields: {
+    readonly loginId: string;
     readonly email: string;
     readonly password: string;
     readonly name: string;
+    readonly termsAcceptance: string;
   };
   readonly actions: {
     readonly login: string;
@@ -250,6 +276,11 @@ export {
   type ZdpAuthProviderKind,
   type ZdpAuthProviderSelectDetail,
   type ZdpAuthSubmitDetail,
+  createZdpPasswordSignupContract,
+  zdpPasswordSignupFieldNames,
+  type ZdpPasswordSignupContract,
+  type ZdpPasswordSignupContractRequest,
+  type ZdpPasswordSignupContractResult,
   zdpProductLinkDecisions,
   zdpProductLinkItemKinds,
   zdpProductLinkStates,
@@ -271,6 +302,7 @@ import type {
   ZdpAuthProvider,
   ZdpAuthProviderSelectDetail,
   ZdpAuthSubmitDetail,
+  ZdpPasswordSignupContract,
   ZdpProductLinkDecisionDetail,
   ZdpProductLinkRequest,
   ZdpProductLinkTrustPolicy,
@@ -307,6 +339,28 @@ export interface PasswordFieldProps {
   readonly required?: boolean;
   readonly disabled?: boolean;
 }
+export interface LoginIdFieldProps {
+  readonly id: string;
+  readonly name?: string;
+  readonly label?: string | null;
+  readonly value?: string;
+  readonly locale?: ZdpAuthLocale | string;
+  readonly describedBy?: string | readonly string[] | null;
+  readonly helpText?: string | null;
+  readonly errorText?: string | null;
+  readonly required?: boolean;
+  readonly disabled?: boolean;
+}
+export interface PasswordSignupFieldsProps {
+  readonly idPrefix: string;
+  readonly contract: ZdpPasswordSignupContract;
+  readonly loginId?: string;
+  readonly password?: string;
+  readonly termsAccepted?: boolean;
+  readonly disabled?: boolean;
+  readonly loginIdError?: string | null;
+  readonly passwordError?: string | null;
+}
 export interface ProviderButtonProps {
   readonly provider: ZdpAuthProvider;
   readonly disabled?: boolean;
@@ -323,7 +377,9 @@ export interface ProductLinkApprovalProps {
   readonly ondecision?: ((detail: ZdpProductLinkDecisionDetail, event: MouseEvent) => void) | null;
 }
 export declare const AuthShell: Component<AuthShellProps>;
+export declare const LoginIdField: Component<LoginIdFieldProps>;
 export declare const PasswordField: Component<PasswordFieldProps>;
+export declare const PasswordSignupFields: Component<PasswordSignupFieldsProps>;
 export declare const ProductLinkApproval: Component<ProductLinkApprovalProps>;
 export declare const ProviderButton: Component<ProviderButtonProps>;
 export declare function buildZdpAuthHandoffUrl(request: ZdpAuthHandoffRequest): ZdpAuthHandoffResult;
