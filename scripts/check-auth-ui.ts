@@ -302,11 +302,15 @@ function checkMessageCatalog(i18nSource: string): void {
     'readonly accountHelp: string;',
     'readonly loginId: string;',
     'readonly termsAcceptance: string;',
+    'readonly availability: {',
+    'readonly preparing: string;',
     "brand: '8ailors'",
     "groupLabel: '인증 수단 선택'",
     "groupLabel: 'Choose sign-in method'",
     "accountHelp: '계정 도움말'",
-    "accountHelp: 'Account help'"
+    "accountHelp: 'Account help'",
+    "preparing: '계정 서비스는 아직 준비 중입니다.'",
+    "preparing: 'Account access is not available yet.'"
   ]) {
     if (!i18nSource.includes(requiredText)) {
       failures.push(`src/lib/i18n.ts must keep auth shell message key: ${requiredText}.`);
@@ -402,7 +406,9 @@ function checkPublicEntry(publicEntry: string): void {
     'validateProductLinkRequest',
     'zdpProductLinkStates',
     'createZdpPasswordSignupContract',
-    'zdpPasswordSignupFieldNames'
+    'zdpPasswordSignupFieldNames',
+    'zdpAuthAvailabilityStates',
+    'type ZdpAuthAvailability'
   ]) {
     if (!publicEntry.includes(requiredText)) {
       failures.push(`src/lib/index.ts is missing public export ${requiredText}.`);
@@ -442,7 +448,11 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
   for (const requiredText of [
     'event.preventDefault();',
     "export let method: 'post' = 'post';",
+    "export let availability: ZdpAuthAvailability = 'available';",
     'method={formMethod}',
+    'data-availability={availability}',
+    'disabled={preparing}',
+    'messages.availability.preparing',
     'aria-label={messages.providers.groupLabel}',
     'aria-label={messages.navigation.accountHelp}',
     '{messages.brand}'
@@ -501,6 +511,10 @@ function checkCleanConsumerExamples(exampleFiles: readonly SourceFile[]): void {
     'onproviderselect=',
     'termsHref="/terms"',
     'privacyHref="/privacy"',
+    'type ZdpAuthAvailability',
+    'zdpAuthAvailabilityStates',
+    'availability={availability}',
+    'preparing',
     'helpText=',
     'errorText='
   ]) {

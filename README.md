@@ -14,6 +14,7 @@ ZDP의 공통 인증 UI 패키지다.
 - feature-gated desktop product-link approval and denial UI
 - static product용 login/signup handoff URL helper
 - `login_id + password + 필수 약관 동의`를 위한 portable signup field contract
+- AuthShell availability gate (`available`/`preparing`) — 계정 서비스가 준비 중일 때 제출, provider, 모드 변경을 막고 준비 중 카피를 노출
 - dist 기반 public package export와 소비 계약 검사
 
 ## 현재 제외
@@ -111,6 +112,12 @@ if (handoff.outcome === 'created') {
 `trustedAuthOrigin`은 소비 앱이 배포 설정에서 신뢰한 auth origin이어야 한다. helper는 이 값이 path, credential, query, fragment가 없는 canonical HTTPS origin인지 확인할 뿐, 임의의 도메인을 신뢰 목록에 올려주지 않는다. 제품 ID와 return path는 package의 닫힌 registry를 통과해야 하며 현재 공개 계약은 `melamed`의 `/apply`만 허용한다. login/signup route와 query key 순서는 helper가 고정하고, 실패는 예외나 fallback URL 대신 typed `rejected` 결과로 반환한다.
 
 `zdp-auth-ui`의 root Svelte compiler/type condition, JavaScript import, CSS entry는 모두 `dist/` 산출물을 가리킨다. 순수 TypeScript subpath인 `./i18n`, `./contract`도 `dist/*.d.ts`와 `dist/*.js`를 사용한다. `bun run build`는 Vite library bundle을 만든 뒤 `dist/styles.css`, `dist/index.d.ts`, `dist/i18n.d.ts`, `dist/contract.d.ts`를 생성한다. 소비 앱은 `src/` deep import를 쓰지 않고, npm clean consumer도 package source를 다시 컴파일하지 않는다. `examples/clean-consumer/AuthUiCleanConsumer.svelte`는 package root import, message-keyed provider labels, password label/help/error override, submit/provider/mode callbacks, disabled-by-default product-link 소비를 확인하는 최소 fixture다.
+
+## 계정 준비 상태
+
+`AuthShell`은 `availability` prop으로 `available`(기본값) 또는 `preparing` 상태를 받는다. `preparing` 상태에서는 제출, provider, 모드 변경 컨트롤이 모두 비활성화되고, 텍스트 필드에서 Enter로 인한 암묵적 제출도 차단된다. 대신 `계정 서비스는 아직 준비 중입니다.` / `Account access is not available yet.` 안내가 status 영역으로 노출되고, 복구 링크는 숨겨진다.
+
+이 게이트는 렌더링 계약일 뿐이다. 실제 로그인/회원가입 route와 account hostname이 활성화되기 전에는 소비 앱이 계정 버튼을 live link로 바꾸지 말고 이 상태를 사용해야 한다. `preparing` 화면을 렌더링한다고 해서 계정 생성이나 로그인이 가능하다는 뜻이 아니며, package는 이 상태에서 어떤 endpoint나 navigation도 만들지 않는다.
 
 ## 경계
 

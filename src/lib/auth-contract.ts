@@ -1,6 +1,9 @@
 export const zdpAuthModes = ['login', 'signup', 'recovery'] as const;
 export type ZdpAuthMode = (typeof zdpAuthModes)[number];
 
+export const zdpAuthAvailabilityStates = ['available', 'preparing'] as const;
+export type ZdpAuthAvailability = (typeof zdpAuthAvailabilityStates)[number];
+
 /*
  * mf:anchor zdp.auth-ui.public-auth-contract
  * purpose: Locate the reusable auth UI event and provider contract shared by Astro, SvelteKit, and Tauri consumers.

@@ -17,6 +17,8 @@
 
   let password = '';
   let submitCount = 0;
+  let preparingSubmitCount = 0;
+  let preparingPassword = '';
   let signupSubmitCount = 0;
   let signupLoginId = '';
   let signupPassword = '';
@@ -140,6 +142,27 @@
     </AuthShell>
   </section>
   <output data-testid="submit-count">{submitCount}</output>
+
+  <section data-testid="auth-preparing-fixture">
+    <AuthShell
+      locale="en"
+      mode="login"
+      availability="preparing"
+      onsubmit={() => {
+        preparingSubmitCount += 1;
+      }}
+    >
+      <PasswordField
+        id="browser-preparing-password"
+        name="password"
+        bind:value={preparingPassword}
+        locale="en"
+        autocomplete="current-password"
+        required
+      />
+    </AuthShell>
+  </section>
+  <output data-testid="preparing-submit-count">{preparingSubmitCount}</output>
 
   <section data-testid="signup-fixture">
     <AuthShell

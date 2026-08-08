@@ -8,6 +8,7 @@
     Surface
   } from 'zdp-design-system';
   import type {
+    ZdpAuthAvailability,
     ZdpAuthMode,
     ZdpAuthModeChangeDetail,
     ZdpAuthProvider,
@@ -19,6 +20,7 @@
 
   export let locale: ZdpAuthLocale | string = 'en';
   export let mode: ZdpAuthMode = 'login';
+  export let availability: ZdpAuthAvailability = 'available';
   export let providers: readonly ZdpAuthProvider[] = [];
   export let action: string | null = null;
   export let method: 'post' = 'post';
@@ -36,6 +38,7 @@
   $: title = messages.title[mode];
   $: summary = messages.summary[mode];
   $: primaryAction = messages.actions[mode];
+  $: preparing = availability === 'preparing';
   $: nextMode = getNextMode(mode);
   $: nextModeLabel = mode === 'login' ? messages.links.signup : messages.links.login;
   $: formMethod = getFormMethod(method);
@@ -44,8 +47,11 @@
 
   function handleSubmit(event: SubmitEvent): void {
     const form = event.currentTarget as HTMLFormElement;
-    if (onsubmit || !action) {
+    if (preparing || onsubmit || !action) {
       event.preventDefault();
+    }
+    if (preparing) {
+      return;
     }
     onsubmit?.({ mode, form, referralCode: normalizedReferralCode }, event);
   }
@@ -78,6 +84,7 @@
     action={action ?? undefined}
     method={formMethod}
     data-mode={mode}
+    data-availability={availability}
     onsubmit={handleSubmit}
   >
     <Stack gap="md">
@@ -90,7 +97,7 @@
       {#if providers.length > 0}
         <div class="zdp-auth-shell__providers" role="group" aria-label={messages.providers.groupLabel}>
           {#each providers as provider (provider.id)}
-            <ProviderButton {provider} onclick={handleProviderSelect} />
+            <ProviderButton {provider} disabled={preparing} onclick={handleProviderSelect} />
           {/each}
         </div>
         <Divider />
@@ -111,15 +118,19 @@
         <p class="zdp-auth-shell__status" role={invalid ? 'alert' : 'status'} aria-live={invalid ? 'assertive' : 'polite'}>{status}</p>
       {/if}
 
+      {#if preparing}
+        <p class="zdp-auth-shell__notice" role="status">{messages.availability.preparing}</p>
+      {/if}
+
       <Inline gap="sm" align="stretch" justify="between">
-        <Button type="submit">{primaryAction}</Button>
-        {#if mode !== 'recovery'}
+        <Button type="submit" disabled={preparing}>{primaryAction}</Button>
+        {#if mode !== 'recovery' && !preparing}
           <Button type="button" variant="secondary" onclick={handleModeChange}>{nextModeLabel}</Button>
         {/if}
       </Inline>
 
       <nav class="zdp-auth-shell__links" aria-label={messages.navigation.accountHelp}>
-        {#if mode !== 'recovery'}
+        {#if mode !== 'recovery' && !preparing}
           <Link href="?mode=recovery">{messages.links.recovery}</Link>
         {/if}
         {#if termsHref}
@@ -176,6 +187,15 @@
 
   .zdp-auth-shell__status {
     color: var(--zdp-color-accent-danger);
+    font-size: var(--zdp-type-body-small-size);
+    line-height: var(--zdp-type-body-small-line-height);
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: var(--zdp-i18n-overflow-wrap);
+  }
+
+  .zdp-auth-shell__notice {
+    color: var(--zdp-color-ink-muted);
     font-size: var(--zdp-type-body-small-size);
     line-height: var(--zdp-type-body-small-line-height);
     margin: 0;

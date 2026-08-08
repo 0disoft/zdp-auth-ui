@@ -18,11 +18,13 @@ export {
 } from './i18n';
 export {
   buildZdpAuthHandoffUrl,
+  zdpAuthAvailabilityStates,
   zdpAuthModes,
   zdpAuthHandoffModes,
   zdpAuthHandoffProductIds,
   zdpAuthHandoffReturnPathRegistry,
   zdpAuthProviderKinds,
+  type ZdpAuthAvailability,
   type ZdpAuthMode,
   type ZdpAuthModeChangeDetail,
   type ZdpAuthHandoffMode,

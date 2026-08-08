@@ -4,6 +4,12 @@
 
 - No unreleased changes.
 
+## 0.5.0
+
+- Added a typed `available`/`preparing` availability gate to `AuthShell` with Korean/English message keys so account surfaces can render a disabled, non-submittable preparing state while the auth runtime route and account hostname stay inactive.
+- Blocked submit, provider, mode-change, recovery, and implicit Enter submission while preparing, with fail-closed source and Chromium regression coverage.
+- Added clean-consumer coverage for the availability gate without adding live endpoints, account navigation, storage, or network ownership.
+
 ## 0.4.0
 
 - Added a portable password-signup field contract for `login_id`, `password`, required terms acceptance, an immutable terms consent reference, and locale.

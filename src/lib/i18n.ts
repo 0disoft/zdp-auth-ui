@@ -61,6 +61,9 @@ export interface ZdpAuthMessages {
     readonly waiting: string;
     readonly error: string;
   };
+  readonly availability: {
+    readonly preparing: string;
+  };
   readonly productLink: {
     readonly title: string;
     readonly summary: string;
@@ -145,6 +148,9 @@ export const zdpAuthMessages: Record<ZdpAuthActiveLocale, ZdpAuthMessages> = {
       waiting: '확인 중입니다.',
       error: '입력 내용을 다시 확인하세요.'
     },
+    availability: {
+      preparing: '계정 서비스는 아직 준비 중입니다.'
+    },
     productLink: {
       title: '데스크톱 제품 연결',
       summary: '연결할 제품과 허용할 내용을 확인하세요.',
@@ -226,6 +232,9 @@ export const zdpAuthMessages: Record<ZdpAuthActiveLocale, ZdpAuthMessages> = {
     status: {
       waiting: 'Checking now.',
       error: 'Check the details and try again.'
+    },
+    availability: {
+      preparing: 'Account access is not available yet.'
     },
     productLink: {
       title: 'Connect desktop product',

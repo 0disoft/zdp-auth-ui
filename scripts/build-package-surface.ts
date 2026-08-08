@@ -38,6 +38,8 @@ async function readOptionalFile(path: string): Promise<string> {
 
 const contractDeclaration = `export declare const zdpAuthModes: readonly ["login", "signup", "recovery"];
 export type ZdpAuthMode = (typeof zdpAuthModes)[number];
+export declare const zdpAuthAvailabilityStates: readonly ["available", "preparing"];
+export type ZdpAuthAvailability = (typeof zdpAuthAvailabilityStates)[number];
 export declare const zdpAuthHandoffModes: readonly ["login", "signup"];
 export declare const zdpAuthHandoffProductIds: readonly ["melamed"];
 export type ZdpAuthHandoffMode = (typeof zdpAuthHandoffModes)[number];
@@ -200,6 +202,9 @@ export interface ZdpAuthMessages {
     readonly waiting: string;
     readonly error: string;
   };
+  readonly availability: {
+    readonly preparing: string;
+  };
   readonly productLink: {
     readonly title: string;
     readonly summary: string;
@@ -260,11 +265,13 @@ export {
 } from './i18n';
 export {
   buildZdpAuthHandoffUrl,
+  zdpAuthAvailabilityStates,
   zdpAuthModes,
   zdpAuthHandoffModes,
   zdpAuthHandoffProductIds,
   zdpAuthHandoffReturnPathRegistry,
   zdpAuthProviderKinds,
+  type ZdpAuthAvailability,
   type ZdpAuthMode,
   type ZdpAuthModeChangeDetail,
   type ZdpAuthHandoffMode,
@@ -295,6 +302,7 @@ export {
   type ZdpProductLinkValidation
 } from './contract';
 import type {
+  ZdpAuthAvailability,
   ZdpAuthMode,
   ZdpAuthModeChangeDetail,
   ZdpAuthHandoffRequest,
@@ -312,6 +320,7 @@ import type { ZdpAuthLocale } from './i18n';
 export interface AuthShellProps {
   readonly locale?: ZdpAuthLocale | string;
   readonly mode?: ZdpAuthMode;
+  readonly availability?: ZdpAuthAvailability;
   readonly providers?: readonly ZdpAuthProvider[];
   readonly action?: string | null;
   readonly method?: 'post';

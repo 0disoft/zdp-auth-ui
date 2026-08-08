@@ -118,6 +118,40 @@ try {
     'A valid required field must allow the auth submit callback exactly once.'
   );
 
+  const preparingFixture = page.getByTestId('auth-preparing-fixture');
+  assert.equal(
+    await preparingFixture.locator('form').getAttribute('data-availability'),
+    'preparing',
+    'The preparing auth surface must expose its availability state.'
+  );
+  assert.equal(
+    await preparingFixture.locator('form button[type="submit"]').isDisabled(),
+    true,
+    'A preparing auth surface must not expose an enabled submit control.'
+  );
+  assert.equal(
+    await preparingFixture.getByRole('status').getByText('Account access is not available yet.', { exact: true }).count(),
+    1,
+    'A preparing auth surface must explain the unavailable state with a status notice.'
+  );
+  assert.equal(
+    await preparingFixture.getByRole('button', { name: 'Create a new account', exact: true }).count(),
+    0,
+    'A preparing auth surface must not expose a mode-change action.'
+  );
+  assert.equal(
+    await preparingFixture.getByRole('link').count(),
+    0,
+    'A preparing auth surface must not expose recovery or handoff navigation links.'
+  );
+  await preparingFixture.getByLabel('Password', { exact: true }).fill('not-live-yet');
+  await preparingFixture.getByLabel('Password', { exact: true }).press('Enter');
+  assert.equal(
+    await page.getByTestId('preparing-submit-count').textContent(),
+    '0',
+    'Implicit Enter submission must not fire a submit callback while the auth surface is preparing.'
+  );
+
   const loginHandoff = page.getByTestId('melamed-login-handoff');
   const signupHandoff = page.getByTestId('melamed-signup-handoff');
   assert.equal(

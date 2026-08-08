@@ -7,6 +7,8 @@
     buildZdpAuthHandoffUrl,
     createZdpPasswordSignupContract,
     getAuthMessages,
+    zdpAuthAvailabilityStates,
+    type ZdpAuthAvailability,
     type ZdpAuthMode,
     type ZdpAuthHandoffResult,
     type ZdpAuthProvider,
@@ -16,6 +18,7 @@
   } from 'zdp-auth-ui';
 
   let mode: ZdpAuthMode = 'login';
+  let availability: ZdpAuthAvailability = 'available';
   let locale = 'en';
   let password = '';
   let loginId = '';
@@ -104,9 +107,18 @@
 
 <section class="clean-consumer" aria-labelledby="clean-consumer-title">
   <h2 id="clean-consumer-title">Clean consumer fixture</h2>
+  <label class="clean-consumer-availability">
+    Availability
+    <select bind:value={availability}>
+      {#each zdpAuthAvailabilityStates as state (state)}
+        <option value={state}>{state}</option>
+      {/each}
+    </select>
+  </label>
   <AuthShell
     {locale}
     {mode}
+    availability={availability}
     {providers}
     {status}
     {invalid}
@@ -145,6 +157,10 @@
     {/if}
   </AuthShell>
 
+  {#if availability === 'preparing'}
+    <p class="clean-consumer-gate-note" role="status">{messages.availability.preparing}</p>
+  {/if}
+
   <nav class="auth-handoff-links" aria-label={messages.navigation.accountHelp}>
     {#if loginHandoff.outcome === 'created'}
       <a href={loginHandoff.url}>{messages.links.login}</a>
@@ -174,6 +190,20 @@
     color: var(--zdp-color-ink-strong);
     font-size: var(--zdp-font-size-lg);
     line-height: var(--zdp-font-line-height-tight);
+    margin: 0;
+  }
+
+  .clean-consumer-availability {
+    align-items: center;
+    display: flex;
+    font-size: var(--zdp-type-body-small-size);
+    gap: var(--zdp-space-2);
+    min-width: 0;
+  }
+
+  .clean-consumer-gate-note {
+    color: var(--zdp-color-ink-muted);
+    font-size: var(--zdp-type-body-small-size);
     margin: 0;
   }
 
