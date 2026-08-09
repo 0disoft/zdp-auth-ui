@@ -111,7 +111,7 @@ if (handoff.outcome === 'created') {
 
 `trustedAuthOrigin`은 소비 앱이 배포 설정에서 신뢰한 auth origin이어야 한다. helper는 이 값이 path, credential, query, fragment가 없는 canonical HTTPS origin인지 확인할 뿐, 임의의 도메인을 신뢰 목록에 올려주지 않는다. 제품 ID와 return path는 package의 닫힌 registry를 통과해야 하며 현재 공개 계약은 `melamed`의 `/apply`만 허용한다. login/signup route와 query key 순서는 helper가 고정하고, 실패는 예외나 fallback URL 대신 typed `rejected` 결과로 반환한다.
 
-`zdp-auth-ui`의 root Svelte compiler/type condition, JavaScript import, CSS entry는 모두 `dist/` 산출물을 가리킨다. 순수 TypeScript subpath인 `./i18n`, `./contract`도 `dist/*.d.ts`와 `dist/*.js`를 사용한다. `bun run build`는 Vite library bundle을 만든 뒤 `dist/styles.css`, `dist/index.d.ts`, `dist/i18n.d.ts`, `dist/contract.d.ts`를 생성한다. 소비 앱은 `src/` deep import를 쓰지 않고, npm clean consumer도 package source를 다시 컴파일하지 않는다. `examples/clean-consumer/AuthUiCleanConsumer.svelte`는 package root import, message-keyed provider labels, password label/help/error override, submit/provider/mode callbacks, disabled-by-default product-link 소비를 확인하는 최소 fixture다.
+`zdp-auth-ui`의 root type condition, JavaScript import, CSS entry는 모두 `dist/` 산출물을 가리킨다. root `svelte` condition은 브라우저에서 `dist/index.js`, Node SSR에서 `dist/index.server.js`를 선택한다. 순수 TypeScript subpath인 `./i18n`, `./contract`도 `dist/*.d.ts`와 `dist/*.js`를 사용한다. `bun run build`는 브라우저와 Node SSR Vite bundle을 만든 뒤 선언·스타일 파일을 생성하고 SSR preparing 상태를 실제로 render한다. 소비 앱은 `src/` deep import를 쓰지 않고, npm clean consumer도 package source를 다시 컴파일하지 않는다. `examples/clean-consumer/AuthUiCleanConsumer.svelte`는 package root import, message-keyed provider labels, password label/help/error override, submit/provider/mode callbacks, disabled-by-default product-link 소비를 확인하는 최소 fixture다.
 
 ## 계정 준비 상태
 

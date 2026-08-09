@@ -11,7 +11,7 @@
 | native browser form validation and focus behavior | `zdp_auth_ui_browser_accessibility_check` |
 | rendered Melamed login/signup handoff links and rejected-path non-rendering | `zdp_auth_ui_browser_accessibility_check` |
 | desktop product-link trust, fail-closed states, fake API decisions, keyboard behavior, and DOM redaction | `zdp_auth_ui_check`, `zdp_auth_ui_browser_accessibility_check` |
-| package build output or `dist/**` surface | `zdp_auth_ui_build` |
+| browser/Node SSR package build output or `dist/**` surface | `zdp_auth_ui_build` |
 | npm package contents or release readiness | `zdp_auth_ui_npm_pack_dry_run` |
 | clean consumer behavior after pack evidence | `zdp_auth_ui_clean_consumer_local_smoke` or `zdp_auth_ui_clean_consumer_smoke` |
 | repository architecture contract | `zdp_architecture_validate_auth_ui_repository` |
@@ -24,7 +24,7 @@
 
 - Service boundary: `service.yaml`
 - Package surface: `package.json`, `src/lib/index.ts`, `src/lib/auth-contract.ts`, `src/lib/auth-handoff.ts`, `src/lib/password-signup.ts`, `src/lib/i18n.ts`
-- Dist builder: `scripts/build-package-surface.ts`
+- Dist builders and SSR regression: `vite.config.ts`, `vite.server.config.ts`, `scripts/build-package-surface.ts`, `scripts/check-ssr-package-surface.ts`
 - Package checker: `scripts/check-auth-handoff-contract.ts`, `scripts/check-auth-ui.ts`
 - Release workflow: `.github/workflows/publish-npm.yml`, `scripts/check-release-workflow.ts`
 - Consumer fixture: `examples/clean-consumer/AuthUiCleanConsumer.svelte`
@@ -49,7 +49,7 @@
 
 ## Contract Drift Checks
 
-- `vite.config.ts` must externalize dependency package roots and subpaths so the distributed library never embeds a second Svelte runtime.
+- `vite.config.ts` must externalize dependency package roots and subpaths so the browser library never embeds a second Svelte runtime; `vite.server.config.ts` must keep Svelte external while compiling design-system components into a Node SSR entrypoint.
 - `service.yaml`, `BOUNDARY.md`, `SECURITY.md`, and agent docs must agree that this package is UI-only.
 - `package.json` exports, build output, and checker expectations must agree on root, styles, i18n, and contract entrypoints.
 - Locale docs and checker rules must agree that only `ko` and `en` are active now.

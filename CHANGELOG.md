@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.5.1
+
+- Added separate browser and Node SSR package entrypoints so SvelteKit consumers no longer prerender the client-compiled Svelte bundle.
+- Added a server-render regression that compiles the design-system dependency for SSR and proves the preparing state remains fail closed.
+
 ## 0.5.0
 
 - Keep Svelte, design-system, and WebAuthn package subpaths external in the library build so consuming Svelte applications do not load a second embedded runtime.

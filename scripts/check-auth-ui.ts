@@ -65,6 +65,8 @@ const requiredFiles = [
   'examples/clean-consumer/AuthUiCleanConsumer.svelte',
   '.github/workflows/ci.yml',
   'vite.config.ts',
+  'vite.server.config.ts',
+  'scripts/check-ssr-package-surface.ts',
   'src/lib/auth-contract.ts',
   'src/lib/auth-handoff.ts',
   'src/lib/i18n.ts',
@@ -86,6 +88,7 @@ const [
   publicEntry,
   passkeySource,
   viteConfigSource,
+  viteServerConfigSource,
   bunLockSource,
   installedDesignSystemSource
 ] = await Promise.all([
@@ -99,6 +102,7 @@ const [
   readFile(join(root, 'src', 'lib', 'index.ts'), 'utf8'),
   readFile(join(root, 'src', 'lib', 'passkey.ts'), 'utf8'),
   readFile(join(root, 'vite.config.ts'), 'utf8'),
+  readFile(join(root, 'vite.server.config.ts'), 'utf8'),
   readFile(join(root, 'bun.lock'), 'utf8'),
   readFile(join(root, 'node_modules', 'zdp-design-system', 'package.json'), 'utf8')
 ]);
@@ -121,7 +125,7 @@ checkCiWorkflow(ciWorkflow);
 checkRunbook(runbook);
 checkPublicEntry(publicEntry);
 checkPasskeyBoundary(passkeySource);
-checkBuildBoundary(viteConfigSource);
+checkBuildBoundary(viteConfigSource, viteServerConfigSource);
 checkSourceBoundary(sourceFiles);
 checkCleanConsumerExamples(exampleFiles);
 await checkSvelteCompilation();
@@ -139,7 +143,7 @@ function checkRequiredFiles(): void {
   }
 }
 
-function checkBuildBoundary(viteConfigSource: string): void {
+function checkBuildBoundary(viteConfigSource: string, viteServerConfigSource: string): void {
   for (const packageRoot of [
     "'@simplewebauthn/browser'",
     "'svelte'",
@@ -159,6 +163,23 @@ function checkBuildBoundary(viteConfigSource: string): void {
     failures.push(
       'vite.config.ts must externalize package roots and their subpath imports so consumers use one Svelte runtime.'
     );
+  }
+
+  for (const requiredText of [
+    "ssr: 'src/lib/index.ts'",
+    "noExternal: ['zdp-design-system']",
+    "entryFileNames: 'index.server.js'",
+    "'@simplewebauthn/browser'",
+    "'svelte'",
+    'external: isExternalPackage'
+  ]) {
+    if (!viteServerConfigSource.includes(requiredText)) {
+      failures.push(`vite.server.config.ts is missing SSR package boundary text: ${requiredText}.`);
+    }
+  }
+
+  if (viteServerConfigSource.includes("'zdp-design-system'\n]);")) {
+    failures.push('vite.server.config.ts must compile zdp-design-system for Node SSR instead of exposing raw Svelte source.');
   }
 }
 
@@ -235,8 +256,8 @@ function checkPackageJson(
     );
   }
 
-  if (packageJson.scripts?.build !== 'vite build && bun scripts/build-package-surface.ts') {
-    failures.push('package.json scripts.build must run vite build and scripts/build-package-surface.ts.');
+  if (packageJson.scripts?.build !== 'vite build && vite build --config vite.server.config.ts && bun scripts/build-package-surface.ts && bun scripts/check-ssr-package-surface.ts') {
+    failures.push('package.json scripts.build must create and verify both browser and server package surfaces.');
   }
 
   checkPackageExports(packageJson);
@@ -248,7 +269,12 @@ function checkPackageExports(packageJson: PackageJson): void {
       '.',
       {
         types: './dist/index.d.ts',
-        svelte: './dist/index.js',
+        svelte: {
+          browser: './dist/index.js',
+          default: './dist/index.server.js'
+        },
+        browser: './dist/index.js',
+        node: './dist/index.server.js',
         import: './dist/index.js',
         default: './dist/index.js'
       }
