@@ -16,6 +16,11 @@ const server = await createServer({
     noDiscovery: true
   },
   plugins: [svelte()],
+  resolve: {
+    alias: [
+      { find: 'zdp-auth-ui', replacement: join(root, 'dist', 'index.js') }
+    ]
+  },
   root: join(root, 'tests/browser'),
   server: {
     hmr: false,
@@ -150,6 +155,28 @@ try {
     await page.getByTestId('preparing-submit-count').textContent(),
     '0',
     'Implicit Enter submission must not fire a submit callback while the auth surface is preparing.'
+  );
+
+  const distFixture = page.getByTestId('dist-auth-shell-fixture');
+  assert.equal(
+    await distFixture.getByRole('heading', { name: 'Sign in', level: 1 }).count(),
+    1,
+    'The published dist AuthShell must render its heading with the app Svelte runtime.'
+  );
+  assert.equal(
+    await distFixture.getByLabel('Password', { exact: true }).count(),
+    1,
+    'The published dist AuthShell must render the consumer slot with the app Svelte runtime.'
+  );
+  assert.equal(
+    await distFixture.locator('form').getAttribute('data-availability'),
+    'available',
+    'The published dist AuthShell must expose the availability gate contract.'
+  );
+  assert.equal(
+    await distFixture.locator('form button[type="submit"]').count(),
+    1,
+    'The published dist AuthShell must keep one native submit control.'
   );
 
   const loginHandoff = page.getByTestId('melamed-login-handoff');

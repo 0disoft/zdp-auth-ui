@@ -49,6 +49,7 @@
 
 ## Contract Drift Checks
 
+- `vite.config.ts` must externalize dependency package roots and subpaths so the distributed library never embeds a second Svelte runtime.
 - `service.yaml`, `BOUNDARY.md`, `SECURITY.md`, and agent docs must agree that this package is UI-only.
 - `package.json` exports, build output, and checker expectations must agree on root, styles, i18n, and contract entrypoints.
 - Locale docs and checker rules must agree that only `ko` and `en` are active now.

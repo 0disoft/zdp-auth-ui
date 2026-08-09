@@ -3,6 +3,7 @@
   import PasswordField from '../../../src/lib/components/PasswordField.svelte';
   import PasswordSignupFields from '../../../src/lib/components/PasswordSignupFields.svelte';
   import ProductLinkApproval from '../../../src/lib/components/ProductLinkApproval.svelte';
+  import DistAuthShellFixture from './DistAuthShellFixture.svelte';
   import {
     buildZdpAuthHandoffUrl,
     type ZdpAuthHandoffResult
@@ -142,6 +143,8 @@
     </AuthShell>
   </section>
   <output data-testid="submit-count">{submitCount}</output>
+
+  <DistAuthShellFixture />
 
   <section data-testid="auth-preparing-fixture">
     <AuthShell

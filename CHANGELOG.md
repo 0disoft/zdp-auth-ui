@@ -6,6 +6,9 @@
 
 ## 0.5.0
 
+- Keep Svelte, design-system, and WebAuthn package subpaths external in the library build so consuming Svelte applications do not load a second embedded runtime.
+- Added dist artifact and Chromium regression coverage proving the published bundle keeps `svelte/internal/*` external and renders `AuthShell` with the consuming application's single Svelte runtime.
+
 - Added a typed `available`/`preparing` availability gate to `AuthShell` with Korean/English message keys so account surfaces can render a disabled, non-submittable preparing state while the auth runtime route and account hostname stay inactive.
 - Blocked submit, provider, mode-change, recovery, and implicit Enter submission while preparing, with fail-closed source and Chromium regression coverage.
 - Added clean-consumer coverage for the availability gate without adding live endpoints, account navigation, storage, or network ownership.

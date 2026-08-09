@@ -15,6 +15,7 @@
 - Export entries must point at `dist/**`, not `src/**`.
 - Clean consumer fixtures must use package imports and message-keyed labels.
 - CSS is a package side effect only through `./dist/styles.css`.
+- Externalize dependency package roots and subpaths, especially `svelte/internal/*`, so consumers do not load a second Svelte runtime.
 - Package publish evidence must include build, check, and npm pack dry-run intents before release work.
 
 ## Locale Messages

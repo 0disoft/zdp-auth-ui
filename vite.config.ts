@@ -1,6 +1,20 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { defineConfig } from 'vite';
 
+const externalPackageRoots = new Set([
+  '@simplewebauthn/browser',
+  'svelte',
+  'zdp-design-system'
+]);
+
+function isExternalPackage(id: string): boolean {
+  const packageRoot = id.startsWith('@')
+    ? id.split('/').slice(0, 2).join('/')
+    : id.split('/')[0];
+
+  return externalPackageRoots.has(packageRoot);
+}
+
 export default defineConfig({
   plugins: [svelte()],
   build: {
@@ -14,7 +28,7 @@ export default defineConfig({
       fileName: (_format, entryName) => `${entryName}.js`
     },
     rollupOptions: {
-      external: ['@simplewebauthn/browser', 'svelte', 'zdp-design-system']
+      external: isExternalPackage
     }
   }
 });

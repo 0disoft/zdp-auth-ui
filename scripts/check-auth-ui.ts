@@ -85,6 +85,7 @@ const [
   i18nSource,
   publicEntry,
   passkeySource,
+  viteConfigSource,
   bunLockSource,
   installedDesignSystemSource
 ] = await Promise.all([
@@ -97,6 +98,7 @@ const [
   readFile(join(root, 'src', 'lib', 'i18n.ts'), 'utf8'),
   readFile(join(root, 'src', 'lib', 'index.ts'), 'utf8'),
   readFile(join(root, 'src', 'lib', 'passkey.ts'), 'utf8'),
+  readFile(join(root, 'vite.config.ts'), 'utf8'),
   readFile(join(root, 'bun.lock'), 'utf8'),
   readFile(join(root, 'node_modules', 'zdp-design-system', 'package.json'), 'utf8')
 ]);
@@ -119,9 +121,11 @@ checkCiWorkflow(ciWorkflow);
 checkRunbook(runbook);
 checkPublicEntry(publicEntry);
 checkPasskeyBoundary(passkeySource);
+checkBuildBoundary(viteConfigSource);
 checkSourceBoundary(sourceFiles);
 checkCleanConsumerExamples(exampleFiles);
 await checkSvelteCompilation();
+await checkDistBundleExternalization();
 
 if (failures.length > 0) {
   throw new Error(`zdp-auth-ui check failed:\n- ${failures.join('\n- ')}`);
@@ -132,6 +136,29 @@ function checkRequiredFiles(): void {
     if (!existsSync(join(root, relativePath))) {
       failures.push(`Missing required file ${relativePath}.`);
     }
+  }
+}
+
+function checkBuildBoundary(viteConfigSource: string): void {
+  for (const packageRoot of [
+    "'@simplewebauthn/browser'",
+    "'svelte'",
+    "'zdp-design-system'"
+  ]) {
+    if (!viteConfigSource.includes(packageRoot)) {
+      failures.push(`vite.config.ts must externalize ${packageRoot}.`);
+    }
+  }
+
+  if (
+    !viteConfigSource.includes("id.startsWith('@')") ||
+    !viteConfigSource.includes("id.split('/').slice(0, 2).join('/')") ||
+    !viteConfigSource.includes("id.split('/')[0]") ||
+    !viteConfigSource.includes('external: isExternalPackage')
+  ) {
+    failures.push(
+      'vite.config.ts must externalize package roots and their subpath imports so consumers use one Svelte runtime.'
+    );
   }
 }
 
@@ -635,6 +662,24 @@ async function checkSvelteCompilation(): Promise<void> {
     if (warnings.length > 0) {
       failures.push(`${relativePath} has Svelte warnings: ${warnings.map((warning) => warning.message).join('; ')}`);
     }
+  }
+}
+
+async function checkDistBundleExternalization(): Promise<void> {
+  const distIndex = join(root, 'dist', 'index.js');
+  if (!existsSync(distIndex)) {
+    failures.push('dist/index.js must exist after build for bundle externalization checks.');
+    return;
+  }
+
+  const bundle = await readFile(distIndex, 'utf8');
+  if (!bundle.includes('from "svelte/internal/')) {
+    failures.push(
+      'dist/index.js must keep svelte internal imports external so consumers do not load a second Svelte runtime.'
+    );
+  }
+  if (bundle.includes('StaleReactionError')) {
+    failures.push('dist/index.js must not embed the Svelte internal client runtime.');
   }
 }
 
