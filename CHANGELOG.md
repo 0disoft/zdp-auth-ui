@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.2
+
+- Updated the design-system, Svelte, Vite, Node type, and browser-test dependency graph while retaining the TypeScript 6 compiler API contract used by package verification.
+
 ## 0.5.1
 
 - Added separate browser and Node SSR package entrypoints so SvelteKit consumers no longer prerender the client-compiled Svelte bundle.
