@@ -523,6 +523,20 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
     failures.push('src/lib/components/AuthShell.svelte must keep native constraint validation enabled for POST fallback forms.');
   }
 
+  for (const requiredText of [
+    "export let recoveryHref: string | null = null;",
+    "mode === 'login' && normalizedRecoveryHref && !preparing",
+    '<Link href={normalizedRecoveryHref}>{messages.links.recovery}</Link>'
+  ]) {
+    if (!authShell.source.includes(requiredText)) {
+      failures.push(`AuthShell recovery navigation must stay consumer-configured and login-only: ${requiredText}.`);
+    }
+  }
+
+  if (authShell.source.includes('href="?mode=recovery"')) {
+    failures.push('AuthShell must not invent a recovery route when the consumer has not activated one.');
+  }
+
   checkDesignSystemConsumption(sourceFiles);
   checkRawColorUsage(sourceFiles);
 }

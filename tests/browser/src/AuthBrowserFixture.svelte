@@ -144,6 +144,18 @@
   </section>
   <output data-testid="submit-count">{submitCount}</output>
 
+  <section data-testid="recovery-link-fixture">
+    <AuthShell locale="en" mode="login" recoveryHref="/recovery">
+      <PasswordField
+        id="browser-recovery-link-password"
+        name="password"
+        bind:value={password}
+        locale="en"
+        autocomplete="current-password"
+      />
+    </AuthShell>
+  </section>
+
   <DistAuthShellFixture />
 
   <section data-testid="auth-preparing-fixture">

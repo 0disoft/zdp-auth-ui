@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.4
+
+- Made account recovery navigation consumer-configured and login-only so signup and inactive recovery flows no longer advertise a route that does not exist.
+
 ## 0.5.3
 
 - Preserved server component identity in the production SSR bundle so SvelteKit

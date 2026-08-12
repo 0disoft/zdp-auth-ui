@@ -28,6 +28,7 @@
   export let invalid = false;
   export let referralCode: string | null = null;
   export let referralCodeFieldName = 'referral_code';
+  export let recoveryHref: string | null = null;
   export let termsHref: string | null = null;
   export let privacyHref: string | null = null;
   export let onsubmit: ((detail: ZdpAuthSubmitDetail, event: SubmitEvent) => void) | null = null;
@@ -44,6 +45,7 @@
   $: formMethod = getFormMethod(method);
   $: normalizedReferralCode = normalizeOptionalFormValue(referralCode);
   $: normalizedReferralCodeFieldName = normalizeOptionalFormValue(referralCodeFieldName) ?? 'referral_code';
+  $: normalizedRecoveryHref = normalizeOptionalFormValue(recoveryHref);
 
   function handleSubmit(event: SubmitEvent): void {
     const form = event.currentTarget as HTMLFormElement;
@@ -130,8 +132,8 @@
       </Inline>
 
       <nav class="zdp-auth-shell__links" aria-label={messages.navigation.accountHelp}>
-        {#if mode !== 'recovery' && !preparing}
-          <Link href="?mode=recovery">{messages.links.recovery}</Link>
+        {#if mode === 'login' && normalizedRecoveryHref && !preparing}
+          <Link href={normalizedRecoveryHref}>{messages.links.recovery}</Link>
         {/if}
         {#if termsHref}
           <Link href={termsHref}>{messages.links.terms}</Link>

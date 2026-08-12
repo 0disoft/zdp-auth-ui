@@ -328,6 +328,7 @@ export interface AuthShellProps {
   readonly invalid?: boolean;
   readonly referralCode?: string | null;
   readonly referralCodeFieldName?: string;
+  readonly recoveryHref?: string | null;
   readonly termsHref?: string | null;
   readonly privacyHref?: string | null;
   readonly onsubmit?: ((detail: ZdpAuthSubmitDetail, event: SubmitEvent) => void) | null;

@@ -72,7 +72,23 @@ try {
     'Native validation must block the auth submit callback while the required field is empty.'
   );
 
+  assert.equal(
+    await loginFixture.getByRole('link', { name: 'I forgot my password', exact: true }).count(),
+    0,
+    'Recovery navigation must remain hidden unless the consumer provides an active route.'
+  );
+  assert.equal(
+    await page.getByTestId('recovery-link-fixture').getByRole('link', { name: 'I forgot my password', exact: true }).getAttribute('href'),
+    '/recovery',
+    'An explicitly configured login recovery route must render unchanged.'
+  );
+
   const signupFixture = page.getByTestId('signup-fixture');
+  assert.equal(
+    await signupFixture.getByRole('link', { name: 'I forgot my password', exact: true }).count(),
+    0,
+    'Signup must not offer password recovery navigation.'
+  );
   const signupLoginId = signupFixture.getByLabel('Login ID', { exact: true });
   const signupPassword = signupFixture.getByLabel('Password', { exact: true });
   const signupTerms = signupFixture.getByLabel('I agree to the required terms.', { exact: true });

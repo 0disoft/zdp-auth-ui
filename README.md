@@ -129,7 +129,7 @@ if (handoff.outcome === 'created') {
 
 `buildZdpAuthHandoffUrl`은 인증 상태를 읽거나 쓰지 않고 URL 문자열만 만든다. session, token, user, cookie, storage, network call, navigation은 모두 소비 앱과 auth runtime의 책임이다. absolute URL, protocol-relative path, backslash, fragment, control character, traversal, encoded path, query delimiter, malformed encoding, registry 밖 경로는 fail closed다.
 
-`AuthShell`은 submit callback이 있거나 명시적인 `action`이 없으면 브라우저 기본 form 제출을 막는다. 명시적인 native form fallback도 password가 URL과 로그에 남지 않도록 POST만 허용하고, `required` 같은 브라우저 constraint validation을 그대로 유지한다. 회원가입 화면에 `referralCode`를 넘기면 submit detail과 POST hidden field에만 포함하고, 이 패키지는 추천 코드 검증·보상·저장을 하지 않는다.
+`AuthShell`은 submit callback이 있거나 명시적인 `action`이 없으면 브라우저 기본 form 제출을 막는다. 명시적인 native form fallback도 password가 URL과 로그에 남지 않도록 POST만 허용하고, `required` 같은 브라우저 constraint validation을 그대로 유지한다. 계정 복구 링크는 로그인 화면에서 소비 앱이 활성 `recoveryHref`를 명시한 경우에만 렌더링하며, 회원가입 화면이나 기본 상태에서는 존재하지 않는 복구 경로를 만들지 않는다. 회원가입 화면에 `referralCode`를 넘기면 submit detail과 POST hidden field에만 포함하고, 이 패키지는 추천 코드 검증·보상·저장을 하지 않는다.
 
 `ProductLinkApproval`은 데스크톱 제품 계정 연결의 검토 화면만 제공한다. 요청 제품, scope와 capability, 계정·워크스페이스, 동의 영향, 만료를 보여주고 명시적인 승인·거부 callback을 낸다. 기본값은 비활성화이며, 소비 앱이 자기 소유의 신뢰된 navigation/bootstrap context에서 준 expected challenge·verification URI와 allowlist HTTPS route가 정확히 맞을 때만 버튼이 열린다. expected 값을 검증 대상 request에서 그대로 복사하면 trust boundary가 사라지므로 금지한다. redirect·callback query, 오래되거나 만료된 요청, 거절·소비 완료 상태는 fail closed다. challenge reference와 verification URI는 DOM에 렌더링하지 않고, verifier·브라우저 credential·product callback URL은 prop이나 event 계약에 포함하지 않는다.
 
