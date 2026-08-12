@@ -97,7 +97,10 @@ async function buildArtifact(gitHead: string, artifactDirectory: string): Promis
     );
     assert.equal(packed.status, 0, packed.stderr || 'npm pack failed.');
 
-    const results = JSON.parse(packed.stdout) as PackResult[];
+    // npm 10/11 emit an array of pack results; npm 12 emits an object keyed by
+    // package name. Accept both so the release gate is version-agnostic.
+    const parsed = JSON.parse(packed.stdout) as PackResult[] | Record<string, PackResult>;
+    const results = Array.isArray(parsed) ? parsed : Object.values(parsed);
     assert.equal(results.length, 1, 'npm pack must create exactly one tarball.');
     const filename = results[0]?.filename;
     assert.ok(typeof filename === 'string', 'npm pack did not return a tarball filename.');
@@ -107,7 +110,7 @@ async function buildArtifact(gitHead: string, artifactDirectory: string): Promis
     assert.equal(relative(resolve(artifactDirectory), tarball), filename);
     const archive = await readFile(tarball);
     const integrity = `sha512-${createHash('sha512').update(archive).digest('base64')}`;
-    assert.equal(results[0].integrity, integrity, 'npm pack integrity does not match the tarball bytes.');
+    assert.equal(results[0]?.integrity, integrity, 'npm pack integrity does not match the tarball bytes.');
 
     const packedManifest = JSON.parse(readTarEntry(archive, 'package/package.json').toString('utf8')) as PackageManifest;
     assert.equal(packedManifest.gitHead, gitHead, 'Packed package.json does not contain the release gitHead.');
