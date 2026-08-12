@@ -4,6 +4,14 @@
 
 - No unreleased changes.
 
+## 0.5.3
+
+- Preserved server component identity in the production SSR bundle so SvelteKit
+  development SSR can render consumer slot markup without crashing on an empty
+  component context.
+- Added a build-time rewrite that keeps `renderer.component(fn, Component)` two-argument
+  boundaries in `dist/index.server.js`, plus a dev-mode consumer regression check.
+
 ## 0.5.2
 
 - Updated the design-system, Svelte, Vite, Node type, and browser-test dependency graph while retaining the TypeScript 6 compiler API contract used by package verification.

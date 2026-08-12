@@ -249,15 +249,15 @@ function checkPackageJson(
 
   if (
     packageJson.scripts?.check
-    !== 'bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-auth-ui.ts && bun run release:check'
+    !== 'bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-auth-ui.ts && bun run --conditions development scripts/check-dev-ssr-consumer.mjs && bun run release:check'
   ) {
     failures.push(
-      'package.json scripts.check must run the lock fixture, product-link contract checker, auth handoff contract checker, auth UI contract checker, and release workflow checker.'
+      'package.json scripts.check must run the lock fixture, product-link contract checker, auth handoff contract checker, auth UI contract checker, dev SSR consumer check, and release workflow checker.'
     );
   }
 
-  if (packageJson.scripts?.build !== 'vite build && vite build --config vite.server.config.ts && bun scripts/build-package-surface.ts && bun scripts/check-ssr-package-surface.ts') {
-    failures.push('package.json scripts.build must create and verify both browser and server package surfaces.');
+  if (packageJson.scripts?.build !== 'vite build && vite build --config vite.server.config.ts && bun scripts/preserve-server-component-identity.ts && bun scripts/build-package-surface.ts && bun scripts/check-ssr-package-surface.ts') {
+    failures.push('package.json scripts.build must create both package surfaces, preserve server component identity, and verify them.');
   }
 
   checkPackageExports(packageJson);

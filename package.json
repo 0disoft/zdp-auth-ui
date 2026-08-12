@@ -1,6 +1,6 @@
 {
   "name": "zdp-auth-ui",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "private": false,
   "license": "MIT",
   "type": "module",
@@ -53,10 +53,10 @@
     "./dist/styles.css"
   ],
   "scripts": {
-    "build": "vite build && vite build --config vite.server.config.ts && bun scripts/build-package-surface.ts && bun scripts/check-ssr-package-surface.ts",
+    "build": "vite build && vite build --config vite.server.config.ts && bun scripts/preserve-server-component-identity.ts && bun scripts/build-package-surface.ts && bun scripts/check-ssr-package-surface.ts",
     "build:bundle": "vite build && vite build --config vite.server.config.ts",
     "browser:check": "node scripts/check-browser-accessibility.mjs",
-    "check": "bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-auth-ui.ts && bun run release:check",
+    "check": "bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-auth-ui.ts && bun run --conditions development scripts/check-dev-ssr-consumer.mjs && bun run release:check",
     "release:artifact:check": "bun scripts/build-release-artifact.ts --check",
     "release:check": "bun scripts/check-release-workflow.ts && bun run release:artifact:check",
     "package:check": "bun run check"
