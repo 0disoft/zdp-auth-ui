@@ -517,6 +517,18 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
   }
 
   for (const requiredText of [
+    '--zdp-type-body-small-size: var(--zdp-font-size-md)',
+    '--zdp-type-control-size: var(--zdp-font-size-md)',
+    '--zdp-type-label-size: var(--zdp-font-size-sm)',
+    'font-size: var(--zdp-type-page-title-compact-size)',
+    'font-size: var(--zdp-type-body-size)'
+  ]) {
+    if (!authShell.source.includes(requiredText)) {
+      failures.push(`AuthShell must keep the larger account-route typography scale: ${requiredText}.`);
+    }
+  }
+
+  for (const requiredText of [
     'event.preventDefault();',
     "export let method: 'post' = 'post';",
     "export let availability: ZdpAuthAvailability = 'available';",

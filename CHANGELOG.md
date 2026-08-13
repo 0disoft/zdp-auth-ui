@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.12
+
+- Increased authentication headings, summaries, labels, controls, and supporting copy by one shared typography step.
+
 ## 0.5.11
 
 - Moved the consumer-configured terms link beside the required signup consent checkbox instead of the form footer.

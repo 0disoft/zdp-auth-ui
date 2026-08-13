@@ -1,5 +1,6 @@
 <script lang="ts">
   import AuthShell from '../../../src/lib/components/AuthShell.svelte';
+  import LoginIdField from '../../../src/lib/components/LoginIdField.svelte';
   import PasswordField from '../../../src/lib/components/PasswordField.svelte';
   import PasswordSignupFields from '../../../src/lib/components/PasswordSignupFields.svelte';
   import ProductLinkApproval from '../../../src/lib/components/ProductLinkApproval.svelte';
@@ -153,6 +154,13 @@
         locale="en"
         autocomplete="current-password"
       />
+    </AuthShell>
+  </section>
+
+  <section data-testid="japanese-login-fixture">
+    <AuthShell locale="ja" mode="login">
+      <LoginIdField id="browser-ja-login-id" locale="ja" />
+      <PasswordField id="browser-ja-password" name="password" locale="ja" />
     </AuthShell>
   </section>
 

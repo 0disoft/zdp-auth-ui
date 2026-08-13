@@ -150,6 +150,10 @@
 
 <style>
   .zdp-auth-shell {
+    --zdp-type-body-small-size: var(--zdp-font-size-md);
+    --zdp-type-control-size: var(--zdp-font-size-md);
+    --zdp-type-label-size: var(--zdp-font-size-sm);
+
     color: var(--zdp-color-ink-normal);
     min-width: 0;
     text-wrap: var(--zdp-i18n-text-wrap);
@@ -173,8 +177,13 @@
 
   .zdp-auth-shell__header h1 {
     color: var(--zdp-color-ink-strong);
-    font-size: var(--zdp-font-size-xl);
+    font-size: var(--zdp-type-page-title-compact-size);
     line-height: var(--zdp-font-line-height-tight);
+  }
+
+  .zdp-auth-shell__summary {
+    font-size: var(--zdp-type-body-size);
+    line-height: var(--zdp-type-body-line-height);
   }
 
   .zdp-auth-shell__providers {

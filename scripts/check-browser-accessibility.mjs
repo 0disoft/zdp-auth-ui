@@ -43,17 +43,28 @@ try {
     timeout: 30_000
   });
   const page = await browser.newPage();
+  const browserErrors = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') browserErrors.push(message.text());
+  });
+  page.on('pageerror', (error) => browserErrors.push(error.message));
   page.setDefaultTimeout(10_000);
   page.setDefaultNavigationTimeout(30_000);
   await page.goto(`http://127.0.0.1:${address.port}`, {
     timeout: 30_000,
     waitUntil: 'domcontentloaded'
   });
+  assert.deepEqual(browserErrors, [], `Auth browser fixture must load without browser errors: ${browserErrors.join(' | ')}`);
 
   const loginFixture = page.getByTestId('login-fixture');
-  const password = loginFixture.getByLabel('Password', { exact: true });
+  const password = loginFixture.locator('#browser-password');
   const submit = loginFixture.locator('form button[type="submit"]');
-  assert.equal(await password.count(), 1, 'The required password field must have one durable label.');
+  assert.equal(await password.count(), 1, 'The required password field must render once.');
+  assert.equal(
+    await loginFixture.locator('label[for="browser-password"]', { hasText: 'Password' }).count(),
+    1,
+    'The required password field must have one durable label.'
+  );
   assert.equal(await submit.count(), 1, 'The auth form must expose one native submit button.');
 
   const passwordToggle = loginFixture.getByRole('button', { name: 'Show password', exact: true });
@@ -102,6 +113,35 @@ try {
     await page.getByTestId('recovery-link-fixture').getByRole('link', { name: 'I forgot my password', exact: true }).getAttribute('href'),
     '/recovery',
     'An explicitly configured login recovery route must render unchanged.'
+  );
+
+  const japaneseLoginFixture = page.getByTestId('japanese-login-fixture');
+  assert.equal(
+    await japaneseLoginFixture.getByRole('heading', { name: 'ログイン', level: 1 }).count(),
+    1,
+    'Japanese account routes must render the Japanese auth catalog instead of English fallback.'
+  );
+  assert.equal(
+    await japaneseLoginFixture.getByLabel('ログイン ID', { exact: true }).count(),
+    1,
+    'Japanese account routes must localize login fields.'
+  );
+  const typography = await japaneseLoginFixture.evaluate((fixture) => {
+    const heading = fixture.querySelector('h1');
+    const summary = fixture.querySelector('.zdp-auth-shell__summary');
+    const label = fixture.querySelector('.zdp-label');
+    const input = fixture.querySelector('.zdp-input');
+    if (![heading, summary, label, input].every((element) => element instanceof HTMLElement)) return null;
+    return {
+      heading: Number.parseFloat(getComputedStyle(heading).fontSize),
+      summary: Number.parseFloat(getComputedStyle(summary).fontSize),
+      label: Number.parseFloat(getComputedStyle(label).fontSize),
+      input: Number.parseFloat(getComputedStyle(input).fontSize)
+    };
+  });
+  assert.ok(
+    typography && typography.heading >= 32 && typography.summary >= 18 && typography.label >= 16 && typography.input >= 17,
+    `Account typography must use the larger shared scale: ${JSON.stringify(typography)}`
   );
 
   const signupFixture = page.getByTestId('signup-fixture');
