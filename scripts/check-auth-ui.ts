@@ -581,6 +581,8 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
     for (const requiredText of [
       'getContext<TermsLinkContext | undefined>',
       'zdp-auth-signup-terms',
+      '.zdp-auth-signup-terms :global(.zdp-choice__mark)',
+      'var(--zdp-type-body-small-size) * var(--zdp-type-body-small-line-height) - var(--zdp-control-choice-size)',
       '<Link href={termsHref} target="_blank" rel="noopener noreferrer">{messages.links.terms}</Link>'
     ]) {
       if (!signupFields.source.includes(requiredText)) {

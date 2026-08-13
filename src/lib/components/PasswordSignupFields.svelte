@@ -83,6 +83,12 @@
     white-space: nowrap;
   }
 
+  .zdp-auth-signup-terms :global(.zdp-choice__mark) {
+    margin-block-start: calc(
+      (var(--zdp-type-body-small-size) * var(--zdp-type-body-small-line-height) - var(--zdp-control-choice-size)) / 2
+    );
+  }
+
   @media (max-width: 24rem) {
     .zdp-auth-signup-terms {
       grid-template-columns: minmax(0, 1fr);

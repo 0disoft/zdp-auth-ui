@@ -164,13 +164,24 @@ try {
   );
   const signupTermsGeometry = await signupFixture.locator('.zdp-auth-signup-terms').evaluate((row) => {
     const checkbox = row.querySelector('label');
+    const checkboxMark = row.querySelector('.zdp-choice__mark');
+    const checkboxLabel = row.querySelector('.zdp-choice__label');
     const link = row.querySelector('a');
-    if (!(checkbox instanceof HTMLElement) || !(link instanceof HTMLElement)) return null;
+    if (
+      !(checkbox instanceof HTMLElement) ||
+      !(checkboxMark instanceof HTMLElement) ||
+      !(checkboxLabel instanceof HTMLElement) ||
+      !(link instanceof HTMLElement)
+    ) return null;
     const checkboxRect = checkbox.getBoundingClientRect();
+    const checkboxMarkRect = checkboxMark.getBoundingClientRect();
+    const checkboxLabelRect = checkboxLabel.getBoundingClientRect();
     const linkRect = link.getBoundingClientRect();
     return {
       checkboxRight: checkboxRect.right,
       checkboxTop: checkboxRect.top,
+      markCenter: checkboxMarkRect.top + checkboxMarkRect.height / 2,
+      labelCenter: checkboxLabelRect.top + checkboxLabelRect.height / 2,
       linkLeft: linkRect.left,
       linkTop: linkRect.top
     };
@@ -178,8 +189,9 @@ try {
   assert.ok(
     signupTermsGeometry &&
       signupTermsGeometry.linkLeft > signupTermsGeometry.checkboxRight &&
-      Math.abs(signupTermsGeometry.linkTop - signupTermsGeometry.checkboxTop) < 2,
-    `Signup terms link must sit to the right of the checkbox copy: ${JSON.stringify(signupTermsGeometry)}`
+      Math.abs(signupTermsGeometry.linkTop - signupTermsGeometry.checkboxTop) < 2 &&
+      Math.abs(signupTermsGeometry.markCenter - signupTermsGeometry.labelCenter) < 0.5,
+    `Signup terms mark and link must align with the checkbox copy: ${JSON.stringify(signupTermsGeometry)}`
   );
   const signupSubmit = signupFixture.locator('form button[type="submit"]');
   await signupSubmit.click();

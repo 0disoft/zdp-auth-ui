@@ -7,6 +7,7 @@
 ## 0.5.13
 
 - Opened consumer-configured terms links in an opener-isolated new tab so entered authentication form data remains in place.
+- Centered the required-terms checkbox mark on the first line of its enlarged consent copy.
 
 ## 0.5.12
 
