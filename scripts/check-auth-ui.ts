@@ -507,8 +507,7 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
     'disabled={preparing}',
     'messages.availability.preparing',
     'aria-label={messages.providers.groupLabel}',
-    'aria-label={messages.navigation.accountHelp}',
-    '{messages.brand}'
+    'aria-label={messages.navigation.accountHelp}'
   ]) {
     if (!authShell.source.includes(requiredText)) {
       failures.push(`src/lib/components/AuthShell.svelte must keep auth boundary guard: ${requiredText}.`);

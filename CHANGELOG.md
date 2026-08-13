@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.7
+
+- Removed the redundant brand eyebrow from `AuthShell` so product shells can own brand identity without repeating it above every authentication title.
+
 ## 0.5.6
 
 - Isolated npm trusted-publishing OIDC authority in a minimal publish job that accepts only the verified tarball, manifest, and release notes from the read-only preparation job.

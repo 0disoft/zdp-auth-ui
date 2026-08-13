@@ -91,7 +91,6 @@
   >
     <Stack gap="md">
       <header class="zdp-auth-shell__header">
-        <p class="zdp-auth-shell__eyebrow">{messages.brand}</p>
         <h1>{title}</h1>
         <p class="zdp-auth-shell__summary">{summary}</p>
       </header>
@@ -173,12 +172,6 @@
     color: var(--zdp-color-ink-strong);
     font-size: var(--zdp-font-size-xl);
     line-height: var(--zdp-font-line-height-tight);
-  }
-
-  .zdp-auth-shell__eyebrow {
-    color: var(--zdp-color-ink-muted);
-    font-size: var(--zdp-type-label-size);
-    line-height: var(--zdp-type-label-line-height);
   }
 
   .zdp-auth-shell__providers {
