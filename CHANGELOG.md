@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.10
+
+- Added localized login and signup copy for all 12 account-route languages while keeping unreviewed signup policy activation consumer-controlled.
+
 ## 0.5.9
 
 - Clarified the Korean signup summary as direct 8ailors account creation copy.

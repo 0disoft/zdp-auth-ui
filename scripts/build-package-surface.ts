@@ -205,6 +205,14 @@ export interface ZdpAuthMessages {
   readonly availability: {
     readonly preparing: string;
   };
+  readonly feedback: {
+    readonly registered: string;
+    readonly invalidInput: string;
+    readonly expiredPage: string;
+    readonly signupUnavailable: string;
+    readonly loginFailed: string;
+    readonly loginUnavailable: string;
+  };
   readonly productLink: {
     readonly title: string;
     readonly summary: string;

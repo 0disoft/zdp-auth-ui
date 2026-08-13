@@ -52,7 +52,7 @@
 - `vite.config.ts` must externalize dependency package roots and subpaths so the browser library never embeds a second Svelte runtime; `vite.server.config.ts` must keep Svelte external while compiling design-system components into a Node SSR entrypoint.
 - `service.yaml`, `BOUNDARY.md`, `SECURITY.md`, and agent docs must agree that this package is UI-only.
 - `package.json` exports, build output, and checker expectations must agree on root, styles, i18n, and contract entrypoints.
-- Locale docs and checker rules must agree that only `ko` and `en` are active now.
+- Locale docs and checker rules must agree that all 12 locales have login/signup copy while only reviewed feature and policy combinations are active.
 - Passkey docs and source must agree that server challenge and credential storage stay outside this package.
 - Product-link docs, source, declarations, unit checks, and browser fixture must agree that the component is disabled by default, never calls a live route, validates the trusted HTTPS verification context, and fails closed without rendering challenge references.
 - Auth handoff docs, source, declarations, adversarial checks, browser fixture, and clean consumer must agree on the closed product/return-path registry, canonical HTTPS origin, fixed login/signup routes and bounded query, typed rejection, rejected-path non-rendering, and caller-owned navigation.

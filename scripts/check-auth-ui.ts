@@ -6,6 +6,7 @@ import {
   assertVersionSatisfiesCaretRange,
   readBunRegistryLockEntry
 } from './bun-registry-lock';
+import { getAuthMessages } from '../src/lib/i18n';
 
 interface PackageJson {
   readonly name?: string;
@@ -22,8 +23,7 @@ interface PackageJson {
 const root = process.cwd();
 const failures: string[] = [];
 const expectedLocales = ['en', 'zh', 'es', 'fr', 'hi', 'ko', 'ja', 'vi', 'ru', 'id', 'ms', 'th'] as const;
-const activeLocales = ['ko', 'en'] as const;
-const plannedLocales = ['zh', 'es', 'fr', 'hi', 'ja', 'vi', 'ru', 'id', 'ms', 'th'] as const;
+const activeLocales = expectedLocales;
 const componentPaths = [
   'src/lib/components/AuthShell.svelte',
   'src/lib/components/LoginIdField.svelte',
@@ -119,6 +119,7 @@ const exampleFiles = await Promise.all(
 checkRequiredFiles();
 checkPackageJson(packageJson, changelog, bunLockSource, installedDesignSystem);
 checkLocaleContract(readme, i18nSource);
+checkLocalizedAuthMessages();
 checkMessageCatalog(i18nSource);
 checkServiceBoundary(service);
 checkCiWorkflow(ciWorkflow);
@@ -335,14 +336,28 @@ function checkLocaleContract(readme: string, i18nSource: string): void {
   }
 
   for (const locale of activeLocales) {
-    if (!i18nSource.includes(`${locale}: {`)) {
+    if (!new RegExp(`\\b${locale}: (?:\\{|localizedAuthMessages\\()`, 'u').test(i18nSource)) {
       failures.push(`Active locale ${locale} must have a message catalog.`);
     }
   }
 
-  for (const locale of plannedLocales) {
-    if (!i18nSource.includes(`zdpAuthPlannedLocales =`) || !i18nSource.includes(`'${locale}'`)) {
-      failures.push(`Planned locale ${locale} must stay visible in zdpAuthPlannedLocales.`);
+  if (!i18nSource.includes('isTargetAuthLocale(locale) ? zdpAuthMessages[locale] : zdpAuthMessages.en')) {
+    failures.push('Known target locales must use their own catalog instead of silently falling back to English.');
+  }
+}
+
+function checkLocalizedAuthMessages(): void {
+  const expectedLoginTitles: Record<(typeof expectedLocales)[number], string> = {
+    en: 'Sign in', zh: '登录', es: 'Iniciar sesión', fr: 'Se connecter', hi: 'साइन इन करें',
+    ko: '로그인', ja: 'ログイン', vi: 'Đăng nhập', ru: 'Войти', id: 'Masuk', ms: 'Log masuk', th: 'เข้าสู่ระบบ'
+  };
+  for (const locale of expectedLocales) {
+    const messages = getAuthMessages(locale);
+    if (messages.title.login !== expectedLoginTitles[locale]) {
+      failures.push(`Locale ${locale} must resolve its localized login catalog without English fallback.`);
+    }
+    if (!messages.fields.loginId || !messages.fields.password || !messages.actions.login) {
+      failures.push(`Locale ${locale} must provide complete login field and action copy.`);
     }
   }
 }
@@ -357,6 +372,8 @@ function checkMessageCatalog(i18nSource: string): void {
     'readonly termsAcceptance: string;',
     'readonly availability: {',
     'readonly preparing: string;',
+    'readonly feedback: {',
+    'readonly loginUnavailable: string;',
     "brand: '8ailors'",
     "groupLabel: '인증 수단 선택'",
     "groupLabel: 'Choose sign-in method'",

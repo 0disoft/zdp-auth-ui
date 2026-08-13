@@ -5,7 +5,7 @@
 ## Owns
 
 - Login, signup, recovery, passkey, provider-choice, and feature-gated desktop product-link approval layout
-- Message keys and active Korean/English labels
+- Message-keyed login and signup labels for all 12 account-route languages
 - Planned 10-locale contract
 - Design-system consumption
 - Browser-only passkey start helper boundary

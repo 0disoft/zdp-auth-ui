@@ -20,8 +20,8 @@
 
 ## Locale Messages
 
-- Active locales are `ko` and `en`.
-- Planned locales remain planned until translation work starts.
+- Login and signup copy is complete for all 12 target locales.
+- Planned locales remain planned for unreviewed auth features and policy activation.
 - User-facing auth text stays behind message keys.
 - UI labels must be product-facing, not implementation explanations.
 - Copy that changes phishing risk, account recovery meaning, redirect expectation, or provider trust requires human review.

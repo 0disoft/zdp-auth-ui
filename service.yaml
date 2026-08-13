@@ -327,7 +327,7 @@ human_review_required:
 exit:
   success_criteria:
     - Astro, SvelteKit, and Tauri Svelte surfaces can share auth UI without copying login forms
-    - active Korean and English copy stay behind message keys
+    - all 12 account-route login and signup catalogs stay behind message keys
     - 12-locale target contract is visible before translation expansion
     - auth UI does not own identity, credential, token, session, permission, consent, payment, or audit truth
   kill_criteria:
@@ -347,6 +347,6 @@ exit:
 notes:
   - This repository is a shared auth UI package, not an identity service.
   - It uses Svelte components so Astro can consume it as islands and SvelteKit/Tauri Svelte can consume it directly.
-  - Korean and English are active first; Chinese, Spanish, French, Hindi, Japanese, Vietnamese, Russian, Indonesian, Malay, and Thai are planned.
+  - Login and signup copy covers all 12 account-route languages; feature and legal-policy activation remains separately reviewed.
   - Consuming deployments must apply auth UI security headers including Content-Security-Policy, Strict-Transport-Security, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, and frame-ancestors or X-Frame-Options. CSP unsafe-inline and unsafe-eval require a nonce, hash, or reviewed exception.
   - CI checks out only zdp-auth-ui, resolves published zdp-design-system from npm, then runs bun run build and bun run check.

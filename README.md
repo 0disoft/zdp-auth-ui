@@ -7,7 +7,7 @@ ZDP의 공통 인증 UI 패키지다.
 ## 현재 범위
 
 - 로그인, 회원가입, 계정 복구, 패스키, provider 선택 UI 컴포넌트
-- Korean/English active message catalog
+- Login and signup message catalogs for all 12 account-route languages
 - 12개 target locale 계획 계약
 - `zdp-design-system` 기반 form, button, focus, surface 소비
 - passkey browser ceremony helper boundary
@@ -29,13 +29,13 @@ ZDP의 공통 인증 UI 패키지다.
 
 ## Locale 계획
 
-초기 active locale은 아래 2개다.
+전체 인증 기능이 active인 locale은 아래 2개다.
 
 ```txt
 ko, en
 ```
 
-완성 단계에서 추가할 planned locale은 아래 10개다.
+아래 10개 locale도 로그인·회원가입 문구는 제공한다. 다만 약관 검토와 기능별 승격 전까지 다른 인증 기능의 planned 상태는 유지한다.
 
 ```txt
 zh, es, fr, hi, ja, vi, ru, id, ms, th
