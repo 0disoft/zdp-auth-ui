@@ -22,8 +22,11 @@ assert.equal(packageJson.repository?.url, 'git+https://github.com/0disoft/zdp-au
 assert.match(workflow, /^name: Publish npm package$/m);
 assert.match(workflow, /^\s+tags:$/m);
 assert.ok(workflow.includes('- "v*"'));
-assert.ok(workflow.includes('contents: write'));
-assert.ok(workflow.includes('id-token: write'));
+assert.ok(workflow.includes('permissions:\n  contents: read'));
+assert.equal(workflow.match(/id-token: write/g)?.length, 1);
+assert.ok(workflow.includes('  prepare:\n'));
+assert.ok(workflow.includes('  publish:\n    needs: prepare'));
+assert.ok(workflow.includes('    permissions:\n      contents: write\n      id-token: write'));
 assert.ok(workflow.includes('group: npm-release-${{ github.repository }}-${{ github.ref }}'));
 assert.ok(workflow.includes('cancel-in-progress: false'));
 assert.ok(workflow.includes('timeout-minutes: 20'));
@@ -44,6 +47,8 @@ assert.ok(workflow.includes('Release tag must point to a commit contained in ori
 assert.ok(workflow.includes('uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6'));
 assert.ok(workflow.includes('registry-url: https://registry.npmjs.org'));
 assert.ok(workflow.includes('uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2'));
+assert.ok(workflow.includes('uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1'));
+assert.ok(workflow.includes('uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1'));
 assert.ok(actionReferences.length > 0, 'Release workflow must use at least one external action.');
 assert.ok(
   actionReferences.every((reference) => /@[0-9a-f]{40}$/.test(reference)),
@@ -68,11 +73,12 @@ assert.ok(workflow.includes('run: bun run check'));
 assert.ok(workflow.includes('run: bun run browser:check'));
 assert.ok(workflow.includes('id: package_artifact'));
 assert.ok(workflow.includes('bun scripts/build-release-artifact.ts --git-head "$GITHUB_SHA" --github-output "$GITHUB_OUTPUT"'));
-assert.ok(workflow.includes('steps.package_artifact.outputs.tarball'));
-assert.ok(workflow.includes('steps.package_artifact.outputs.integrity'));
-assert.ok(workflow.includes('steps.package_artifact.outputs.manifest'));
+assert.ok(workflow.includes('needs.prepare.outputs.tarball'));
+assert.ok(workflow.includes('needs.prepare.outputs.integrity'));
+assert.ok(workflow.includes('needs.prepare.outputs.manifest'));
+assert.ok(workflow.includes('name: Verify release artifact identity'));
 assert.ok(workflow.includes('already_published=true'));
-assert.ok(workflow.includes('npm publish "${{ steps.package_artifact.outputs.tarball }}" --access public'));
+assert.ok(workflow.includes('npm publish "${{ needs.prepare.outputs.tarball }}" --access public'));
 assert.ok(!workflow.includes('npm publish --access public --provenance'));
 assert.ok(!workflow.includes('NPM_TOKEN'));
 assert.ok(!workflow.includes('NODE_AUTH_TOKEN'));

@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.6
+
+- Isolated npm trusted-publishing OIDC authority in a minimal publish job that accepts only the verified tarball, manifest, and release notes from the read-only preparation job.
+
 ## 0.5.5
 
 - Rejected dotted, bracketed, and other separator-based redirect, callback, session, token, cookie, proof, and verifier query aliases before product-link approval controls become actionable.

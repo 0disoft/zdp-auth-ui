@@ -24,7 +24,7 @@ If GitHub Actions does not start because account billing or spending limits bloc
 
 ## Package Publish
 
-정식 release는 `package.json`과 같은 `v<version>` 태그를 push해서 시작한다. 태그 workflow는 build, package check, browser check, npm pack을 다시 실행하고 GitHub Actions OIDC 기반 npm trusted publishing과 exact-version registry 확인이 끝난 뒤 같은 태그의 GitHub Release를 만든다. source repository가 private인 동안 npm provenance attestation은 지원되지 않는다.
+정식 release는 `package.json`과 같은 `v<version>` 태그를 push해서 시작한다. 태그 workflow의 read-only prepare job이 build, package check, browser check, npm pack을 실행하고 검증된 artifact를 넘긴다. 별도 publish job만 `id-token: write`를 받아 artifact identity와 integrity를 다시 확인한 뒤 GitHub Actions OIDC 기반 npm trusted publishing, exact-version registry 확인, 같은 태그의 GitHub Release 생성을 수행한다. source repository가 private인 동안 npm provenance attestation은 지원되지 않는다.
 첫 release 전에 npm의 `zdp-auth-ui` package 설정에서 Trusted Publisher를 GitHub Actions, organization `0disoft`, repository `zdp-auth-ui`, workflow filename `publish-npm.yml`, allowed action `npm publish`로 등록해야 한다. workflow는 GitHub-hosted runner와 `id-token: write`를 사용하며 장기 publish token이나 `NPM_TOKEN` repository secret은 사용하지 않는다.
 Release workflow의 외부 Action은 upstream full commit SHA로 고정한다. 옆의 major-version comment는 갱신 힌트일 뿐 실행 ref가 아니며, pin을 바꾸기 전에 upstream commit 검증과 release check를 다시 수행한다.
 GitHub Release는 실제 npm tarball과 package identity, version, tag commit, tarball filename, SHA-512 integrity를 기록한 `release-artifact.json`을 함께 생성한다. 재실행은 두 immutable asset을 내려받아 다시 만든 artifact와 byte 단위로 비교하며 기존 asset을 덮어쓰지 않는다.
