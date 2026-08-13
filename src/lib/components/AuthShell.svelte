@@ -7,6 +7,7 @@
     Stack,
     Surface
   } from 'zdp-design-system';
+  import { setContext } from 'svelte';
   import type {
     ZdpAuthAvailability,
     ZdpAuthMode,
@@ -17,6 +18,7 @@
   } from '../auth-contract';
   import { getAuthMessages, type ZdpAuthLocale } from '../i18n';
   import ProviderButton from './ProviderButton.svelte';
+  import { termsLinkContextKey, type TermsLinkContext } from '../terms-link-context';
 
   export let locale: ZdpAuthLocale | string = 'en';
   export let mode: ZdpAuthMode = 'login';
@@ -46,6 +48,7 @@
   $: normalizedReferralCode = normalizeOptionalFormValue(referralCode);
   $: normalizedReferralCodeFieldName = normalizeOptionalFormValue(referralCodeFieldName) ?? 'referral_code';
   $: normalizedRecoveryHref = normalizeOptionalFormValue(recoveryHref);
+  setContext<TermsLinkContext>(termsLinkContextKey, () => termsHref?.trim() || null);
 
   function handleSubmit(event: SubmitEvent): void {
     const form = event.currentTarget as HTMLFormElement;
@@ -134,7 +137,7 @@
         {#if mode === 'login' && normalizedRecoveryHref && !preparing}
           <Link href={normalizedRecoveryHref}>{messages.links.recovery}</Link>
         {/if}
-        {#if termsHref}
+        {#if termsHref && mode !== 'signup'}
           <Link href={termsHref}>{messages.links.terms}</Link>
         {/if}
         {#if privacyHref}

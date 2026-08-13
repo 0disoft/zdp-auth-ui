@@ -113,6 +113,28 @@ try {
   const signupLoginId = signupFixture.getByLabel('Login ID', { exact: true });
   const signupPassword = signupFixture.getByLabel('Password', { exact: true });
   const signupTerms = signupFixture.getByLabel('I agree to the required terms.', { exact: true });
+  const signupTermsLink = signupFixture.getByRole('link', { name: 'Terms', exact: true });
+  assert.equal(await signupTermsLink.count(), 1, 'Signup must render one terms link beside the consent checkbox.');
+  assert.equal(await signupTermsLink.getAttribute('href'), '/terms', 'Signup terms link must remain consumer-configured.');
+  const signupTermsGeometry = await signupFixture.locator('.zdp-auth-signup-terms').evaluate((row) => {
+    const checkbox = row.querySelector('label');
+    const link = row.querySelector('a');
+    if (!(checkbox instanceof HTMLElement) || !(link instanceof HTMLElement)) return null;
+    const checkboxRect = checkbox.getBoundingClientRect();
+    const linkRect = link.getBoundingClientRect();
+    return {
+      checkboxRight: checkboxRect.right,
+      checkboxTop: checkboxRect.top,
+      linkLeft: linkRect.left,
+      linkTop: linkRect.top
+    };
+  });
+  assert.ok(
+    signupTermsGeometry &&
+      signupTermsGeometry.linkLeft > signupTermsGeometry.checkboxRight &&
+      Math.abs(signupTermsGeometry.linkTop - signupTermsGeometry.checkboxTop) < 2,
+    `Signup terms link must sit to the right of the checkbox copy: ${JSON.stringify(signupTermsGeometry)}`
+  );
   const signupSubmit = signupFixture.locator('form button[type="submit"]');
   await signupSubmit.click();
   assert.equal(

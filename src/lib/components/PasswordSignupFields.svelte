@@ -1,9 +1,11 @@
 <script lang="ts">
-  import { Checkbox, Stack } from 'zdp-design-system';
+  import { Checkbox, Link, Stack } from 'zdp-design-system';
+  import { getContext } from 'svelte';
   import { getAuthMessages } from '../i18n';
   import type { ZdpPasswordSignupContract } from '../password-signup';
   import LoginIdField from './LoginIdField.svelte';
   import PasswordField from './PasswordField.svelte';
+  import { termsLinkContextKey, type TermsLinkContext } from '../terms-link-context';
 
   export let idPrefix: string;
   export let contract: ZdpPasswordSignupContract;
@@ -15,6 +17,8 @@
   export let passwordError: string | null = null;
 
   $: messages = getAuthMessages(contract.locale);
+  const termsHrefContext = getContext<TermsLinkContext | undefined>(termsLinkContextKey);
+  $: termsHref = termsHrefContext?.() ?? null;
 </script>
 
 <Stack gap="md">
@@ -36,16 +40,21 @@
     required
     {disabled}
   />
-  <Checkbox
-    id={`${idPrefix}-terms-accepted`}
-    name={contract.fieldNames.termsAccepted}
-    value="true"
-    bind:checked={termsAccepted}
-    required
-    {disabled}
-  >
-    {messages.fields.termsAcceptance}
-  </Checkbox>
+  <div class="zdp-auth-signup-terms">
+    <Checkbox
+      id={`${idPrefix}-terms-accepted`}
+      name={contract.fieldNames.termsAccepted}
+      value="true"
+      bind:checked={termsAccepted}
+      required
+      {disabled}
+    >
+      {messages.fields.termsAcceptance}
+    </Checkbox>
+    {#if termsHref}
+      <Link href={termsHref}>{messages.links.terms}</Link>
+    {/if}
+  </div>
   <input
     type="hidden"
     name={contract.fieldNames.termsConsentRef}
@@ -59,3 +68,24 @@
     autocomplete="off"
   />
 </Stack>
+
+<style>
+  .zdp-auth-signup-terms {
+    align-items: start;
+    display: grid;
+    gap: var(--zdp-space-3);
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-width: 0;
+  }
+
+  .zdp-auth-signup-terms :global(.zdp-link) {
+    line-height: var(--zdp-type-body-small-line-height);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 24rem) {
+    .zdp-auth-signup-terms {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

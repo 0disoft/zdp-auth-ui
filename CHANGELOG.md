@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.11
+
+- Moved the consumer-configured terms link beside the required signup consent checkbox instead of the form footer.
+
 ## 0.5.10
 
 - Added localized login and signup copy for all 12 account-route languages while keeping unreviewed signup policy activation consumer-controlled.

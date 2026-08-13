@@ -550,6 +550,33 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
     }
   }
 
+  for (const requiredText of [
+    "mode !== 'signup'",
+    'setContext<TermsLinkContext>',
+    "import { termsLinkContextKey"
+  ]) {
+    if (!authShell.source.includes(requiredText)) {
+      failures.push(`AuthShell must route signup terms links to PasswordSignupFields: ${requiredText}.`);
+    }
+  }
+
+  const signupFields = sourceFiles.find(
+    (sourceFile) => sourceFile.relativePath === 'src/lib/components/PasswordSignupFields.svelte'
+  );
+  if (!signupFields) {
+    failures.push('PasswordSignupFields source must be included in boundary checks.');
+  } else {
+    for (const requiredText of [
+      'getContext<TermsLinkContext | undefined>',
+      'zdp-auth-signup-terms',
+      '<Link href={termsHref}>{messages.links.terms}</Link>'
+    ]) {
+      if (!signupFields.source.includes(requiredText)) {
+        failures.push(`PasswordSignupFields must render the terms link beside consent copy: ${requiredText}.`);
+      }
+    }
+  }
+
   if (authShell.source.includes('href="?mode=recovery"')) {
     failures.push('AuthShell must not invent a recovery route when the consumer has not activated one.');
   }
