@@ -56,6 +56,27 @@ try {
   assert.equal(await password.count(), 1, 'The required password field must have one durable label.');
   assert.equal(await submit.count(), 1, 'The auth form must expose one native submit button.');
 
+  const passwordToggle = loginFixture.getByRole('button', { name: 'Show password', exact: true });
+  const passwordGeometry = await password.evaluate((input) => {
+    const toggle = input.parentElement?.querySelector('button');
+    if (!(toggle instanceof HTMLElement)) return null;
+    const inputRect = input.getBoundingClientRect();
+    const toggleRect = toggle.getBoundingClientRect();
+    return {
+      inputHeight: inputRect.height,
+      inputCenter: inputRect.top + inputRect.height / 2,
+      toggleHeight: toggleRect.height,
+      toggleCenter: toggleRect.top + toggleRect.height / 2
+    };
+  });
+  assert.ok(passwordGeometry, 'The password field must render one adjacent visibility button.');
+  assert.ok(
+    Math.abs(passwordGeometry.inputHeight - passwordGeometry.toggleHeight) < 0.5 &&
+      Math.abs(passwordGeometry.inputCenter - passwordGeometry.toggleCenter) < 0.5,
+    `Password input and visibility button must share height and center: ${JSON.stringify(passwordGeometry)}`
+  );
+  assert.equal(await passwordToggle.count(), 1, 'The password visibility button must keep its accessible name.');
+
   await submit.click();
   const invalidState = await password.evaluate((element) => ({
     focused: document.activeElement === element,

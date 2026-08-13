@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.8
+
+- Matched the password visibility button to the input row height and kept it beside the input at narrow widths.
+
 ## 0.5.7
 
 - Removed the redundant brand eyebrow from `AuthShell` so product shells can own brand identity without repeating it above every authentication title.

@@ -48,7 +48,7 @@
     />
     <IconButton
       variant="ghost"
-      size="sm"
+      size="md"
       type="button"
       disabled={disabled}
       ariaPressed={visible}
@@ -129,10 +129,9 @@
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  @media (max-width: 40rem) {
-    .zdp-auth-password-field__control {
-      grid-template-columns: minmax(0, 1fr);
-    }
+  .zdp-auth-password-field__control :global(.zdp-icon-button) {
+    block-size: 100%;
+    min-block-size: var(--zdp-control-height-md);
   }
 
   .zdp-auth-password-field__toggle-icon {
