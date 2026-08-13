@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.13
+
+- Opened consumer-configured terms links in an opener-isolated new tab so entered authentication form data remains in place.
+
 ## 0.5.12
 
 - Increased authentication headings, summaries, labels, controls, and supporting copy by one shared typography step.

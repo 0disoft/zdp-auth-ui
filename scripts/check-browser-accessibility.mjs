@@ -156,6 +156,12 @@ try {
   const signupTermsLink = signupFixture.getByRole('link', { name: 'Terms', exact: true });
   assert.equal(await signupTermsLink.count(), 1, 'Signup must render one terms link beside the consent checkbox.');
   assert.equal(await signupTermsLink.getAttribute('href'), '/terms', 'Signup terms link must remain consumer-configured.');
+  assert.equal(await signupTermsLink.getAttribute('target'), '_blank', 'Signup terms must open without replacing entered form data.');
+  assert.equal(
+    await signupTermsLink.getAttribute('rel'),
+    'noopener noreferrer',
+    'A new-tab signup terms link must isolate the opener context.'
+  );
   const signupTermsGeometry = await signupFixture.locator('.zdp-auth-signup-terms').evaluate((row) => {
     const checkbox = row.querySelector('label');
     const link = row.querySelector('a');

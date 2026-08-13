@@ -52,7 +52,7 @@
       {messages.fields.termsAcceptance}
     </Checkbox>
     {#if termsHref}
-      <Link href={termsHref}>{messages.links.terms}</Link>
+      <Link href={termsHref} target="_blank" rel="noopener noreferrer">{messages.links.terms}</Link>
     {/if}
   </div>
   <input

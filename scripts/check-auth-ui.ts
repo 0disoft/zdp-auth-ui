@@ -581,7 +581,7 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
     for (const requiredText of [
       'getContext<TermsLinkContext | undefined>',
       'zdp-auth-signup-terms',
-      '<Link href={termsHref}>{messages.links.terms}</Link>'
+      '<Link href={termsHref} target="_blank" rel="noopener noreferrer">{messages.links.terms}</Link>'
     ]) {
       if (!signupFields.source.includes(requiredText)) {
         failures.push(`PasswordSignupFields must render the terms link beside consent copy: ${requiredText}.`);
