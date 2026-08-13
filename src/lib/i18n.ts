@@ -109,7 +109,7 @@ export const zdpAuthMessages: Record<ZdpAuthActiveLocale, ZdpAuthMessages> = {
     },
     summary: {
       login: '8ailors 계정으로 계속합니다.',
-      signup: '필요한 정보만 받고 바로 시작합니다.',
+      signup: '8ailors 계정을 생성합니다.',
       recovery: '가입한 이메일로 복구 안내를 보냅니다.'
     },
     fields: {

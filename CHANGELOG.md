@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.9
+
+- Clarified the Korean signup summary as direct 8ailors account creation copy.
+
 ## 0.5.8
 
 - Matched the password visibility button to the input row height and kept it beside the input at narrow widths.

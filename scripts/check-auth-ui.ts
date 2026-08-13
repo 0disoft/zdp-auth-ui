@@ -362,6 +362,7 @@ function checkMessageCatalog(i18nSource: string): void {
     "groupLabel: 'Choose sign-in method'",
     "accountHelp: '계정 도움말'",
     "accountHelp: 'Account help'",
+    "signup: '8ailors 계정을 생성합니다.'",
     "preparing: '계정 서비스는 아직 준비 중입니다.'",
     "preparing: 'Account access is not available yet.'"
   ]) {
