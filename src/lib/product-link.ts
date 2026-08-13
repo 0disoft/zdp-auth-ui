@@ -58,26 +58,19 @@ const detailTextMaxLength = 500;
 const maximumRequestedItems = 32;
 const maximumConsentImplications = 16;
 const maximumChallengeTtlMs = 600_000;
-const forbiddenVerificationQueryKeys = new Set([
-  'accesstoken',
+const forbiddenVerificationQueryConcepts = [
   'authorization',
   'callback',
-  'callbackurl',
   'continue',
   'cookie',
   'next',
-  'proofverifier',
-  'refreshtoken',
+  'proof',
   'redirect',
-  'redirecturi',
-  'redirecturl',
-  'returnto',
-  'returnurl',
+  'return',
   'session',
-  'sessioncookie',
   'token',
   'verifier'
-]);
+] as const;
 
 /*
  * mf:anchor zdp.auth-ui.product-link-trust-boundary
@@ -204,9 +197,13 @@ function isTrustedVerificationUri(
     return false;
   }
 
-  return [...url.searchParams.keys()].every(
-    (key) => !forbiddenVerificationQueryKeys.has(key.toLowerCase().replaceAll(/[-_]/g, ''))
-  ) && isChallengeQueryBound(url, trust.expectedChallengeRef);
+  return [...url.searchParams.keys()].every(isSafeVerificationQueryKey)
+    && isChallengeQueryBound(url, trust.expectedChallengeRef);
+}
+
+function isSafeVerificationQueryKey(key: string): boolean {
+  const normalizedKey = key.toLowerCase().replaceAll(/[^a-z0-9]/g, '');
+  return forbiddenVerificationQueryConcepts.every((concept) => !normalizedKey.includes(concept));
 }
 
 function isChallengeQueryBound(url: URL, challengeRef: string): boolean {

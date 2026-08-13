@@ -87,6 +87,31 @@ assertClosed(
   'invalid',
   'Extra redirect or callback parameters must fail closed.'
 );
+for (const forbiddenAlias of [
+  'redirect.uri',
+  'redirect_uri[]',
+  'callback.url',
+  'session.cookie',
+  'token[]'
+]) {
+  const aliasBearingVerificationUri = `${verificationOrigin}/auth/product-link?challenge=${challengeRef}&${encodeURIComponent(forbiddenAlias)}=present`;
+  assertClosed(
+    { ...request, verificationUri: aliasBearingVerificationUri },
+    { ...trust, expectedVerificationUri: aliasBearingVerificationUri },
+    'invalid',
+    `A verification URI carrying the ${forbiddenAlias} alias must fail closed.`
+  );
+}
+const benignMetadataVerificationUri = `${verificationOrigin}/auth/product-link?challenge=${challengeRef}&client_hint=desktop`;
+assert.deepEqual(
+  validateProductLinkRequest(
+    { ...request, verificationUri: benignMetadataVerificationUri },
+    { ...trust, expectedVerificationUri: benignMetadataVerificationUri },
+    now
+  ),
+  { disposition: 'ready', actionable: true },
+  'A non-sensitive metadata query must remain actionable when it exactly matches trusted context.'
+);
 assertClosed(
   { ...request, verificationUri: `${verificationOrigin}/auth/product-link?challenge=plc_other_fixture_0123456789` },
   { ...trust, expectedVerificationUri: `${verificationOrigin}/auth/product-link?challenge=plc_other_fixture_0123456789` },

@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.5
+
+- Rejected dotted, bracketed, and other separator-based redirect, callback, session, token, cookie, proof, and verifier query aliases before product-link approval controls become actionable.
+
 ## 0.5.4
 
 - Made account recovery navigation consumer-configured and login-only so signup and inactive recovery flows no longer advertise a route that does not exist.
