@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.5.14
+
+- Aligned the published design-system dependency with `zdp-design-system ^0.59.1` so current consumers keep one shared component runtime.
+- Required npm provenance explicitly when trusted publishing creates the verified release artifact.
+
 ## 0.5.13
 
 - Opened consumer-configured terms links in an opener-isolated new tab so entered authentication form data remains in place.
