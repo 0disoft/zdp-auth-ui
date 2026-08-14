@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.15
+
+- Restored trusted publishing for the private source repository after npm rejected explicit provenance; provenance remains unavailable until npm supports private GitHub sources or the repository becomes public.
+
 ## 0.5.14
 
 - Aligned the published design-system dependency with `zdp-design-system ^0.59.1` so current consumers keep one shared component runtime.
