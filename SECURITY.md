@@ -35,6 +35,8 @@ The consumer must source `termsConsentRef` from trusted application configuratio
 
 `AuthShell` never proves that login or signup is live. Until the auth runtime route and account hostname are activated, consumers must keep account actions behind the `preparing` availability state, which disables submit, provider, and mode-change controls, blocks implicit Enter submission, and renders only a preparing notice. The package never invents or navigates to a staging or production account endpoint.
 
+`accountBrand` is escaped display text, not an authority selector. Empty values, more than 64 Unicode code points, Unicode Other-category characters such as bidi controls, and line or paragraph separators fall back to the locale catalog default.
+
 ## Desktop Product Link
 
 The approval component is disabled by default. It becomes actionable only when the challenge reference exactly matches trusted browser context and the verification URI uses an allowlisted HTTPS origin, the expected path, and a matching challenge query value when present. `expectedChallengeRef` and `expectedVerificationUri` must come from caller-owned trusted navigation or bootstrap context; copying either expected value from the request being validated defeats the trust boundary. Extra redirect or callback parameters fail closed.

@@ -534,6 +534,7 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
     "export let availability: ZdpAuthAvailability = 'available';",
     "export let accountBrand: string | null = null;",
     'normalizeAccountBrand(accountBrand)',
+    '/[\\p{C}\\p{Zl}\\p{Zp}]/u',
     'method={formMethod}',
     'data-availability={availability}',
     'disabled={preparing}',

@@ -164,6 +164,10 @@
     </AuthShell>
   </section>
 
+  <section data-testid="unsafe-account-brand-fixture">
+    <AuthShell locale="en" mode="login" availability="preparing" accountBrand={'ZDP\u202e'} />
+  </section>
+
   <DistAuthShellFixture />
 
   <section data-testid="auth-preparing-fixture">

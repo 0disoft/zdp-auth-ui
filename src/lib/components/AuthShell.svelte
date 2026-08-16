@@ -86,7 +86,7 @@
 
   function normalizeAccountBrand(value: string | null): string | null {
     const trimmed = value?.trim();
-    return trimmed && trimmed.length <= 64 && !/[\u0000-\u001f\u007f]/u.test(trimmed)
+    return trimmed && [...trimmed].length <= 64 && !/[\p{C}\p{Zl}\p{Zp}]/u.test(trimmed)
       ? trimmed
       : null;
   }

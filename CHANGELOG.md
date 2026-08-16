@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.17
+
+- Rejected control, bidi-format, private-use, line-separator, and other unsafe Unicode code points in consumer account brands, with a tested fallback to the locale default.
+
 ## 0.5.16
 
 - Added an optional bounded `accountBrand` display prop so shared account screens do not leak the default 8ailors brand into other ZDP products.

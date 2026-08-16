@@ -149,6 +149,12 @@ try {
     `Account typography must use the larger shared scale: ${JSON.stringify(typography)}`
   );
 
+  assert.equal(
+    await page.getByTestId('unsafe-account-brand-fixture').locator('.zdp-auth-shell__summary').textContent(),
+    'Continue with your 8ailors account.',
+    'An account brand with bidi control characters must fall back to the locale catalog default.'
+  );
+
   const signupFixture = page.getByTestId('signup-fixture');
   assert.equal(
     await signupFixture.getByRole('link', { name: 'I forgot my password', exact: true }).count(),
