@@ -146,7 +146,7 @@
         {#if mode === 'login' && normalizedRecoveryHref && !preparing}
           <Link href={normalizedRecoveryHref}>{messages.links.recovery}</Link>
         {/if}
-        {#if termsHref && mode !== 'signup'}
+        {#if termsHref && (mode !== 'signup' || preparing)}
           <Link href={termsHref} target="_blank" rel="noopener noreferrer">{messages.links.terms}</Link>
         {/if}
         {#if privacyHref}

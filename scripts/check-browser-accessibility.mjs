@@ -285,6 +285,18 @@ try {
     'Implicit Enter submission must not fire a submit callback while the auth surface is preparing.'
   );
 
+  const preparingSignupPolicy = page.getByTestId('preparing-signup-policy-fixture');
+  assert.equal(
+    await preparingSignupPolicy.getByRole('link', { name: 'Terms', exact: true }).getAttribute('href'),
+    '/terms',
+    'Preparing signup must keep the consumer-configured terms link visible when no signup fields render.'
+  );
+  assert.equal(
+    await preparingSignupPolicy.getByRole('link', { name: 'Privacy', exact: true }).getAttribute('href'),
+    '/privacy',
+    'Preparing signup must keep the consumer-configured privacy link visible.'
+  );
+
   const distFixture = page.getByTestId('dist-auth-shell-fixture');
   assert.equal(
     await distFixture.getByRole('heading', { name: 'Sign in', level: 1 }).count(),

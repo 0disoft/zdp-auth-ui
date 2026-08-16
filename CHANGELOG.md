@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.18
+
+- Kept consumer-configured terms and privacy links visible on preparing signup screens while avoiding a duplicate terms link on active signup forms.
+
 ## 0.5.17
 
 - Rejected control, bidi-format, private-use, line-separator, and other unsafe Unicode code points in consumer account brands, with a tested fallback to the locale default.

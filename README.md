@@ -117,6 +117,8 @@ if (handoff.outcome === 'created') {
 
 `AuthShell`은 `availability` prop으로 `available`(기본값) 또는 `preparing` 상태를 받는다. `preparing` 상태에서는 제출, provider, 모드 변경 컨트롤이 모두 비활성화되고, 텍스트 필드에서 Enter로 인한 암묵적 제출도 차단된다. 대신 `계정 서비스는 아직 준비 중입니다.` / `Account access is not available yet.` 안내가 status 영역으로 노출되고, 복구 링크는 숨겨진다.
 
+회원가입이 `available`이면 필수 약관 링크는 `PasswordSignupFields`의 동의 항목 옆에만 렌더링한다. 가입 필드가 없는 `preparing` 화면에서는 `AuthShell` footer가 소비 앱이 준 이용약관과 개인정보 링크를 유지한다.
+
 소비 앱은 선택적 `accountBrand`에 `ZDP`처럼 사용자에게 표시할 계정 브랜드를 전달할 수 있다. 값은 앞뒤 공백을 제거한 뒤 Unicode Other 범주와 줄·문단 구분자가 없는 64 코드포인트 이하 텍스트로만 사용되며, 인증 주체나 권한을 바꾸지 않는다. 생략하거나 잘못된 값이면 기존 locale catalog의 `8ailors` 기본값을 유지한다.
 
 이 게이트는 렌더링 계약일 뿐이다. 실제 로그인/회원가입 route와 account hostname이 활성화되기 전에는 소비 앱이 계정 버튼을 live link로 바꾸지 말고 이 상태를 사용해야 한다. `preparing` 화면을 렌더링한다고 해서 계정 생성이나 로그인이 가능하다는 뜻이 아니며, package는 이 상태에서 어떤 endpoint나 navigation도 만들지 않는다.

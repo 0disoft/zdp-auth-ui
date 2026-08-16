@@ -191,6 +191,16 @@
   </section>
   <output data-testid="preparing-submit-count">{preparingSubmitCount}</output>
 
+  <section data-testid="preparing-signup-policy-fixture">
+    <AuthShell
+      locale="en"
+      mode="signup"
+      availability="preparing"
+      termsHref="/terms"
+      privacyHref="/privacy"
+    />
+  </section>
+
   <section data-testid="signup-fixture">
     <AuthShell
       locale="en"
