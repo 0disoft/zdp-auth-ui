@@ -329,6 +329,7 @@ export interface AuthShellProps {
   readonly locale?: ZdpAuthLocale | string;
   readonly mode?: ZdpAuthMode;
   readonly availability?: ZdpAuthAvailability;
+  readonly accountBrand?: string | null;
   readonly providers?: readonly ZdpAuthProvider[];
   readonly action?: string | null;
   readonly method?: 'post';

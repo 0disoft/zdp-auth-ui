@@ -158,7 +158,7 @@
   </section>
 
   <section data-testid="japanese-login-fixture">
-    <AuthShell locale="ja" mode="login">
+    <AuthShell locale="ja" mode="login" accountBrand="ZDP">
       <LoginIdField id="browser-ja-login-id" locale="ja" />
       <PasswordField id="browser-ja-password" name="password" locale="ja" />
     </AuthShell>

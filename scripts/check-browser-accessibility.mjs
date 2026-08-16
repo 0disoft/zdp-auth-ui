@@ -126,6 +126,11 @@ try {
     1,
     'Japanese account routes must localize login fields.'
   );
+  assert.equal(
+    await japaneseLoginFixture.locator('.zdp-auth-shell__summary').textContent(),
+    'ZDP アカウントで続行します。',
+    'AuthShell must localize copy with the consumer-supplied account brand.'
+  );
   const typography = await japaneseLoginFixture.evaluate((fixture) => {
     const heading = fixture.querySelector('h1');
     const summary = fixture.querySelector('.zdp-auth-shell__summary');

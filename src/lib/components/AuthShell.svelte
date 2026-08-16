@@ -23,6 +23,7 @@
   export let locale: ZdpAuthLocale | string = 'en';
   export let mode: ZdpAuthMode = 'login';
   export let availability: ZdpAuthAvailability = 'available';
+  export let accountBrand: string | null = null;
   export let providers: readonly ZdpAuthProvider[] = [];
   export let action: string | null = null;
   export let method: 'post' = 'post';
@@ -38,8 +39,9 @@
   export let onmodechange: ((detail: ZdpAuthModeChangeDetail, event: MouseEvent) => void) | null = null;
 
   $: messages = getAuthMessages(locale);
+  $: normalizedAccountBrand = normalizeAccountBrand(accountBrand);
   $: title = messages.title[mode];
-  $: summary = messages.summary[mode];
+  $: summary = messages.summary[mode].replace(messages.brand, normalizedAccountBrand ?? messages.brand);
   $: primaryAction = messages.actions[mode];
   $: preparing = availability === 'preparing';
   $: nextMode = getNextMode(mode);
@@ -80,6 +82,13 @@
   function normalizeOptionalFormValue(value: string | null): string | null {
     const trimmed = value?.trim();
     return trimmed ? trimmed : null;
+  }
+
+  function normalizeAccountBrand(value: string | null): string | null {
+    const trimmed = value?.trim();
+    return trimmed && trimmed.length <= 64 && !/[\u0000-\u001f\u007f]/u.test(trimmed)
+      ? trimmed
+      : null;
   }
 </script>
 

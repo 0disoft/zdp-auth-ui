@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.5.16
+
+- Added an optional bounded `accountBrand` display prop so shared account screens do not leak the default 8ailors brand into other ZDP products.
+
 ## 0.5.15
 
 - Restored trusted publishing for the private source repository after npm rejected explicit provenance; provenance remains unavailable until npm supports private GitHub sources or the repository becomes public.
