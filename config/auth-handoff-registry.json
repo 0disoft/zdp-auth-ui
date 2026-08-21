@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "products": [
+    {
+      "id": "melamed",
+      "returnPaths": ["/apply"]
+    }
+  ]
+}

@@ -7,6 +7,7 @@
 - `contracts/package-surface.md`: package exports, files allowlist, dist surface
 - `contracts/auth-boundary.md`: UI-only authentication boundary
 - `contracts/auth-feedback.md`: closed feedback codes, localized presentation, and focus behavior
+- `contracts/auth-handoff-registry.md`: generated closed product and return-path registry
 - `contracts/locale-messages.md`: active and planned locale contract
 - `contracts/passkey-provider.md`: passkey and provider UI limits
 
