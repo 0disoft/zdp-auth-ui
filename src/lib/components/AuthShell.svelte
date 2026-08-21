@@ -23,6 +23,7 @@
   export let locale: ZdpAuthLocale | string = 'en';
   export let mode: ZdpAuthMode = 'login';
   export let availability: ZdpAuthAvailability = 'available';
+  export let busy = false;
   export let accountBrand: string | null = null;
   export let providers: readonly ZdpAuthProvider[] = [];
   export let action: string | null = null;
@@ -44,6 +45,8 @@
   $: summary = messages.summary[mode].replace(messages.brand, normalizedAccountBrand ?? messages.brand);
   $: primaryAction = messages.actions[mode];
   $: preparing = availability === 'preparing';
+  $: submitting = busy && !preparing;
+  $: interactionLocked = preparing || submitting;
   $: nextMode = getNextMode(mode);
   $: nextModeLabel = mode === 'login' ? messages.links.signup : messages.links.login;
   $: formMethod = getFormMethod(method);
@@ -54,20 +57,26 @@
 
   function handleSubmit(event: SubmitEvent): void {
     const form = event.currentTarget as HTMLFormElement;
-    if (preparing || onsubmit || !action) {
+    if (interactionLocked || onsubmit || !action) {
       event.preventDefault();
     }
-    if (preparing) {
+    if (interactionLocked) {
       return;
     }
     onsubmit?.({ mode, form, referralCode: normalizedReferralCode }, event);
   }
 
   function handleProviderSelect(provider: ZdpAuthProvider, event: MouseEvent): void {
+    if (interactionLocked) {
+      return;
+    }
     onproviderselect?.({ provider }, event);
   }
 
   function handleModeChange(event: MouseEvent): void {
+    if (interactionLocked) {
+      return;
+    }
     onmodechange?.({ mode: nextMode }, event);
   }
 
@@ -99,61 +108,66 @@
     method={formMethod}
     data-mode={mode}
     data-availability={availability}
+    aria-busy={submitting ? 'true' : 'false'}
     onsubmit={handleSubmit}
   >
-    <Stack gap="md">
-      <header class="zdp-auth-shell__header">
-        <h1>{title}</h1>
-        <p class="zdp-auth-shell__summary">{summary}</p>
-      </header>
+    <fieldset class="zdp-auth-shell__controls" disabled={submitting}>
+      <Stack gap="md">
+        <header class="zdp-auth-shell__header">
+          <h1>{title}</h1>
+          <p class="zdp-auth-shell__summary">{summary}</p>
+        </header>
 
-      {#if providers.length > 0}
-        <div class="zdp-auth-shell__providers" role="group" aria-label={messages.providers.groupLabel}>
-          {#each providers as provider (provider.id)}
-            <ProviderButton {provider} disabled={preparing} onclick={handleProviderSelect} />
-          {/each}
-        </div>
-        <Divider />
-      {/if}
-
-      <slot />
-
-      {#if mode === 'signup' && normalizedReferralCode}
-        <input
-          type="hidden"
-          name={normalizedReferralCodeFieldName}
-          value={normalizedReferralCode}
-          autocomplete="off"
-        />
-      {/if}
-
-      {#if status}
-        <p class="zdp-auth-shell__status" role={invalid ? 'alert' : 'status'} aria-live={invalid ? 'assertive' : 'polite'}>{status}</p>
-      {/if}
-
-      {#if preparing}
-        <p class="zdp-auth-shell__notice" role="status">{messages.availability.preparing}</p>
-      {/if}
-
-      <Inline gap="sm" align="stretch" justify="between">
-        <Button type="submit" disabled={preparing}>{primaryAction}</Button>
-        {#if mode !== 'recovery' && !preparing}
-          <Button type="button" variant="secondary" onclick={handleModeChange}>{nextModeLabel}</Button>
+        {#if providers.length > 0}
+          <div class="zdp-auth-shell__providers" role="group" aria-label={messages.providers.groupLabel}>
+            {#each providers as provider (provider.id)}
+              <ProviderButton {provider} disabled={preparing} onclick={handleProviderSelect} />
+            {/each}
+          </div>
+          <Divider />
         {/if}
-      </Inline>
 
-      <nav class="zdp-auth-shell__links" aria-label={messages.navigation.accountHelp}>
-        {#if mode === 'login' && normalizedRecoveryHref && !preparing}
-          <Link href={normalizedRecoveryHref}>{messages.links.recovery}</Link>
+        <slot />
+
+        {#if mode === 'signup' && normalizedReferralCode}
+          <input
+            type="hidden"
+            name={normalizedReferralCodeFieldName}
+            value={normalizedReferralCode}
+            autocomplete="off"
+          />
         {/if}
-        {#if termsHref && (mode !== 'signup' || preparing)}
-          <Link href={termsHref} target="_blank" rel="noopener noreferrer">{messages.links.terms}</Link>
+
+        {#if submitting}
+          <p class="zdp-auth-shell__notice" role="status" aria-live="polite">{messages.status.waiting}</p>
+        {:else if status}
+          <p class="zdp-auth-shell__status" role={invalid ? 'alert' : 'status'} aria-live={invalid ? 'assertive' : 'polite'}>{status}</p>
         {/if}
-        {#if privacyHref}
-          <Link href={privacyHref}>{messages.links.privacy}</Link>
+
+        {#if preparing}
+          <p class="zdp-auth-shell__notice" role="status">{messages.availability.preparing}</p>
         {/if}
-      </nav>
-    </Stack>
+
+        <Inline gap="sm" align="stretch" justify="between">
+          <Button type="submit" disabled={preparing}>{primaryAction}</Button>
+          {#if mode !== 'recovery' && !preparing}
+            <Button type="button" variant="secondary" onclick={handleModeChange}>{nextModeLabel}</Button>
+          {/if}
+        </Inline>
+
+        <nav class="zdp-auth-shell__links" aria-label={messages.navigation.accountHelp}>
+          {#if mode === 'login' && normalizedRecoveryHref && !preparing}
+            <Link href={normalizedRecoveryHref}>{messages.links.recovery}</Link>
+          {/if}
+          {#if termsHref && (mode !== 'signup' || preparing)}
+            <Link href={termsHref} target="_blank" rel="noopener noreferrer">{messages.links.terms}</Link>
+          {/if}
+          {#if privacyHref}
+            <Link href={privacyHref}>{messages.links.privacy}</Link>
+          {/if}
+        </nav>
+      </Stack>
+    </fieldset>
   </form>
 </Surface>
 
@@ -168,6 +182,13 @@
     text-wrap: var(--zdp-i18n-text-wrap);
     word-break: var(--zdp-i18n-word-break);
     overflow-wrap: var(--zdp-i18n-overflow-wrap);
+  }
+
+  .zdp-auth-shell__controls {
+    border: 0;
+    margin: 0;
+    min-width: 0;
+    padding: 0;
   }
 
   .zdp-auth-shell__header {
