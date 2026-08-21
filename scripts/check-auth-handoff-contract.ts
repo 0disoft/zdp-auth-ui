@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import ts from 'typescript';
 import {
@@ -9,6 +10,10 @@ import {
   type ZdpAuthHandoffRequest,
   type ZdpAuthHandoffResult
 } from '../src/lib/auth-handoff';
+import {
+  createZdpAuthSurfaceModel,
+  zdpAuthSurfaceProviderIds
+} from '../src/lib/auth-surface-model';
 import { checkAuthHandoffRegistryGeneratedFiles } from './auth-handoff-registry-generation';
 
 await checkAuthHandoffRegistryGeneratedFiles();
@@ -30,7 +35,8 @@ const typecheckProgram = ts.createProgram({
     resolve('src/lib/auth-handoff.ts'),
     resolve('src/lib/auth-handoff-registry.generated.ts'),
     resolve('scripts/auth-handoff-registry-generation.ts'),
-    resolve('scripts/generate-auth-handoff-registry.ts')
+    resolve('scripts/generate-auth-handoff-registry.ts'),
+    resolve('src/lib/auth-surface-model.ts')
   ],
   options: {
     forceConsistentCasingInFileNames: true,
@@ -46,6 +52,35 @@ const typecheckProgram = ts.createProgram({
     types: ['node']
   }
 });
+const [publicEntrySource, packageSurfaceBuilderSource] = await Promise.all([
+  readFile(resolve('src/lib/index.ts'), 'utf8'),
+  readFile(resolve('scripts/build-package-surface.ts'), 'utf8')
+]);
+for (const requiredExport of [
+  'createZdpAuthSurfaceModel',
+  'zdpAuthSurfaceProviderIds',
+  'type ZdpAuthSurfaceConfig',
+  'type ZdpAuthSurfaceModel'
+]) {
+  assert.equal(
+    publicEntrySource.includes(requiredExport),
+    true,
+    `The package root must export the auth surface contract: ${requiredExport}.`
+  );
+}
+for (const requiredDeclaration of [
+  'export declare const zdpAuthSurfaceProviderIds',
+  'export interface ZdpAuthSurfaceConfig',
+  'export interface ZdpAuthSurfaceModel',
+  'export declare function createZdpAuthSurfaceModel'
+]) {
+  assert.equal(
+    packageSurfaceBuilderSource.includes(requiredDeclaration),
+    true,
+    `The generated package declaration must include the auth surface contract: ${requiredDeclaration}.`
+  );
+}
+
 const typecheckDiagnostics = ts.getPreEmitDiagnostics(typecheckProgram);
 assert.equal(
   typecheckDiagnostics.length,
@@ -181,7 +216,84 @@ assert.deepEqual(
   'Malformed runtime calls must return a typed rejection instead of throwing.'
 );
 
-console.log('Auth handoff contract check passed.');
+assert.deepEqual(zdpAuthSurfaceProviderIds, ['passkey', 'google', 'github', 'email']);
+assert.equal(Object.isFrozen(zdpAuthSurfaceProviderIds), true);
+
+const loginSurface = createZdpAuthSurfaceModel({
+  locale: 'ko',
+  mode: 'login',
+  availability: 'available',
+  accountBrand: 'ZDP',
+  providerFlags: {
+    email: true,
+    passkey: true,
+    google: true
+  },
+  links: {
+    recoveryHref: ' /recovery ',
+    termsHref: ' /terms ',
+    privacyHref: '   '
+  }
+});
+assert.deepEqual(
+  loginSurface.shell,
+  {
+    locale: 'ko',
+    mode: 'login',
+    availability: 'available',
+    accountBrand: 'ZDP',
+    providers: [
+      { id: 'passkey', label: '패스키', kind: 'passkey' },
+      { id: 'google', label: 'Google', kind: 'oauth' },
+      { id: 'email', label: '이메일', kind: 'email' }
+    ],
+    recoveryHref: '/recovery',
+    termsHref: '/terms',
+    privacyHref: null
+  },
+  'The surface model must keep fixed provider ordering, localized labels, and normalized optional links.'
+);
+assert.equal(loginSurface.messages.title.login, '로그인');
+assert.equal(Object.isFrozen(loginSurface), true);
+assert.equal(Object.isFrozen(loginSurface.shell), true);
+assert.equal(Object.isFrozen(loginSurface.shell.providers), true);
+assert.equal(Object.isFrozen(loginSurface.shell.providers[0]), true);
+
+const recoverySurface = createZdpAuthSurfaceModel({
+  locale: 'en',
+  mode: 'recovery',
+  availability: 'preparing',
+  providerFlags: {
+    passkey: true,
+    google: true,
+    github: true,
+    email: true
+  },
+  links: {
+    recoveryHref: '/recovery'
+  }
+});
+assert.deepEqual(
+  recoverySurface.shell.providers,
+  [],
+  'Recovery surfaces must not inherit sign-in or signup provider buttons.'
+);
+assert.equal(
+  recoverySurface.shell.recoveryHref,
+  null,
+  'Recovery surfaces must not expose a recursive recovery link.'
+);
+assert.equal(
+  createZdpAuthSurfaceModel({
+    locale: 'unsupported',
+    mode: 'login',
+    availability: 'available'
+  }).messages.title.login,
+  'Sign in',
+  'Unknown locales must retain the existing English message fallback.'
+);
+
+console.log('Auth handoff and surface model contract check passed.');
 
 function assertRejected(
   result: ZdpAuthHandoffResult,

@@ -342,7 +342,38 @@ import type {
   ZdpProductLinkTrustPolicy,
   ZdpProductLinkValidation
 } from './contract';
-import type { ZdpAuthLocale } from './i18n';
+import type { ZdpAuthLocale, ZdpAuthMessages } from './i18n';
+export declare const zdpAuthSurfaceProviderIds: readonly ["passkey", "google", "github", "email"];
+export type ZdpAuthSurfaceProviderId = (typeof zdpAuthSurfaceProviderIds)[number];
+export type ZdpAuthSurfaceProviderFlags = Readonly<Partial<Record<ZdpAuthSurfaceProviderId, boolean>>>;
+export interface ZdpAuthSurfaceLinks {
+  readonly recoveryHref?: string | null;
+  readonly termsHref?: string | null;
+  readonly privacyHref?: string | null;
+}
+export interface ZdpAuthSurfaceConfig {
+  readonly locale: ZdpAuthLocale | string;
+  readonly mode: ZdpAuthMode;
+  readonly availability: ZdpAuthAvailability;
+  readonly accountBrand?: string | null;
+  readonly providerFlags?: ZdpAuthSurfaceProviderFlags;
+  readonly links?: ZdpAuthSurfaceLinks;
+}
+export interface ZdpAuthSurfaceShellModel {
+  readonly locale: ZdpAuthLocale | string;
+  readonly mode: ZdpAuthMode;
+  readonly availability: ZdpAuthAvailability;
+  readonly accountBrand: string | null;
+  readonly providers: readonly ZdpAuthProvider[];
+  readonly recoveryHref: string | null;
+  readonly termsHref: string | null;
+  readonly privacyHref: string | null;
+}
+export interface ZdpAuthSurfaceModel {
+  readonly messages: ZdpAuthMessages;
+  readonly shell: ZdpAuthSurfaceShellModel;
+}
+export declare function createZdpAuthSurfaceModel(config: ZdpAuthSurfaceConfig): ZdpAuthSurfaceModel;
 export interface AuthShellProps {
   readonly locale?: ZdpAuthLocale | string;
   readonly mode?: ZdpAuthMode;

@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.5.22
+
+- Added a pure shared authentication surface model that composes trusted consumer feature flags, localized provider labels, and optional links into stable `AuthShell` display props.
+- Kept authentication authority, route calls, session state, credentials, submit state, and server feedback mapping outside the shared UI model.
+
 ## 0.5.21
 
 - Moved the closed login/signup handoff product and return-path registry into a declarative manifest with deterministic generated TypeScript and package declaration output.

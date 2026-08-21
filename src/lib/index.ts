@@ -5,6 +5,16 @@ export { default as PasswordSignupFields } from './components/PasswordSignupFiel
 export { default as ProductLinkApproval } from './components/ProductLinkApproval.svelte';
 export { default as ProviderButton } from './components/ProviderButton.svelte';
 export {
+  createZdpAuthSurfaceModel,
+  zdpAuthSurfaceProviderIds,
+  type ZdpAuthSurfaceConfig,
+  type ZdpAuthSurfaceLinks,
+  type ZdpAuthSurfaceModel,
+  type ZdpAuthSurfaceProviderFlags,
+  type ZdpAuthSurfaceProviderId,
+  type ZdpAuthSurfaceShellModel
+} from './auth-surface-model';
+export {
   getAuthMessages,
   isActiveAuthLocale,
   zdpAuthActiveLocales,
