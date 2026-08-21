@@ -235,8 +235,7 @@
           >{typedFeedback.message}</p>
         {:else if status}
           <p
-            class:zdp-auth-shell__status--error={invalid}
-            class="zdp-auth-shell__status"
+            class="zdp-auth-shell__status zdp-auth-shell__status--error"
             role={invalid ? 'alert' : 'status'}
             aria-live={invalid ? 'assertive' : 'polite'}
           >{status}</p>
