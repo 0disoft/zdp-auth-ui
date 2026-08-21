@@ -15,6 +15,7 @@ ZDP의 공통 인증 UI 패키지다.
 - static product용 login/signup handoff URL helper
 - `login_id + password + 필수 약관 동의`를 위한 portable signup field contract
 - AuthShell availability gate (`available`/`preparing`) — 계정 서비스가 준비 중일 때 제출, provider, 모드 변경을 막고 준비 중 카피를 노출
+- AuthShell controlled busy state — 인증 요청 중 submit, provider, 모드 변경, slotted form control을 잠그고 대기 상태를 노출
 - dist 기반 public package export와 소비 계약 검사
 
 ## 현재 제외
@@ -123,6 +124,30 @@ if (handoff.outcome === 'created') {
 
 이 게이트는 렌더링 계약일 뿐이다. 실제 로그인/회원가입 route와 account hostname이 활성화되기 전에는 소비 앱이 계정 버튼을 live link로 바꾸지 말고 이 상태를 사용해야 한다. `preparing` 화면을 렌더링한다고 해서 계정 생성이나 로그인이 가능하다는 뜻이 아니며, package는 이 상태에서 어떤 endpoint나 navigation도 만들지 않는다.
 
+## 인증 요청 진행 상태
+
+소비 앱은 자기 API 요청을 시작하기 직전에 `busy={true}`를 전달하고 완료·실패·취소 시 `false`로 되돌린다. `busy`인 동안 `AuthShell`은 form에 `aria-busy="true"`를 표시하고 fieldset을 비활성화해 submit, provider, 모드 변경, slot 안의 native form control을 잠근다. native 또는 programmatic 중복 submit도 callback으로 넘기지 않으며 현재 locale의 `status.waiting` 문구를 status 영역에 노출한다.
+
+```svelte
+<AuthShell
+  locale="ko"
+  mode="login"
+  busy={submitting}
+  onsubmit={async ({ form }) => {
+    submitting = true;
+    try {
+      await authenticate(new FormData(form));
+    } finally {
+      submitting = false;
+    }
+  }}
+>
+  <PasswordField id="password" name="password" required />
+</AuthShell>
+```
+
+`busy`는 네트워크 상태를 추론하거나 요청을 실행하지 않는다. 요청 실행, timeout, 취소, 오류 매핑과 `busy` 해제는 소비 앱 책임이다. `availability="preparing"`과 `busy`를 동시에 주면 준비 상태가 우선하며 진행 중 요청으로 표시하지 않는다.
+
 ## 경계
 
 `zdp-auth-ui`는 화면 구조와 사용자가 누르는 표면만 제공한다. 실제 인증, 세션, 패스키 challenge, OAuth callback, 이메일 인증, 계정 생성, 추천 코드 적용은 `zdp-core-platform`과 API 계약이 소유한다.
@@ -142,7 +167,7 @@ if (handoff.outcome === 'created') {
 ## rodi-site-template-svelte에서 반영한 후보
 
 - `@simplewebauthn/browser`: passkey 브라우저 ceremony helper 후보로 도입했다. 서버 검증과 credential 저장은 이 저장소가 소유하지 않는다.
-- `zdp-design-system`: 인증 화면의 시각 기준이며 npm package range `^0.50.6`로 소비한다.
+- `zdp-design-system`: 인증 화면의 시각 기준이며 npm package range `^0.59.1`로 소비한다.
 
 `better-auth`, `drizzle-orm`, `@libsql/client`, server captcha, cookie consent, sitemap, markdown renderer는 인증 UI 패키지에 넣지 않는다.
 
