@@ -9,6 +9,7 @@
     getAuthMessages,
     zdpAuthAvailabilityStates,
     type ZdpAuthAvailability,
+    type ZdpAuthFeedback,
     type ZdpAuthMode,
     type ZdpAuthHandoffResult,
     type ZdpAuthProvider,
@@ -23,7 +24,8 @@
   let password = '';
   let loginId = '';
   let termsAccepted = false;
-  let status = '';
+  let feedback: ZdpAuthFeedback | null = null;
+  let feedbackSequence = 0;
   let invalid = false;
 
   const loginHandoff: ZdpAuthHandoffResult = buildZdpAuthHandoffUrl({
@@ -99,9 +101,17 @@
     ];
   }
 
+  function showFeedback(code: ZdpAuthFeedback['code']): void {
+    feedbackSequence += 1;
+    feedback = { code, sequence: feedbackSequence };
+  }
+
   function handleSubmit(detail: ZdpAuthSubmitDetail): void {
     invalid = false;
-    status = detail.mode === 'recovery' ? messages.status.waiting : '';
+    feedback = null;
+    if (detail.mode === 'recovery') {
+      showFeedback('waiting');
+    }
   }
 </script>
 
@@ -121,17 +131,16 @@
     availability={availability}
     accountBrand="ZDP"
     {providers}
-    {status}
-    {invalid}
+    {feedback}
     termsHref="/terms"
     privacyHref="/privacy"
     onsubmit={handleSubmit}
     onmodechange={(detail) => {
       mode = detail.mode;
-      status = '';
+      feedback = null;
     }}
     onproviderselect={() => {
-      status = messages.status.waiting;
+      showFeedback('waiting');
     }}
   >
     {#if mode === 'signup'}

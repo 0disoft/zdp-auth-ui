@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.5.20
+
+- Added closed typed authentication feedback codes for waiting, registration, invalid input, invalid credentials, rate limits, expiry, and temporary unavailability.
+- Centralized localized feedback copy, alert/status semantics, error focus, and repeat announcements while preserving the legacy `status` and `invalid` props.
+
 ## 0.5.19
 
 - Added a consumer-controlled `AuthShell` busy state that marks the form with `aria-busy`, freezes submit, provider, mode-change, and slotted form controls, blocks duplicate submission, and exposes the localized waiting message.
