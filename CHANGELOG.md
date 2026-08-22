@@ -4,6 +4,13 @@
 
 - No unreleased changes.
 
+## 0.6.0
+
+- Added opt-in `zdp-auth-ui/i18n/<locale>` package entrypoints for all 12 account-route locales so consumers can import one message catalog without loading the synchronous all-locale compatibility surface.
+- Added `zdp-auth-ui/i18n/loader` with `loadAuthMessages()` for dynamic locale loading and English fallback for unsupported locale values.
+- Generated every isolated catalog and its declaration from the existing synchronous message SSOT during the Vite package build, avoiding a second translation source.
+- Added package contract coverage for all 26 generated locale assets, fixed-locale imports, runtime loading, and English fallback.
+
 ## 0.5.22
 
 - Added a pure shared authentication surface model that composes trusted consumer feature flags, localized provider labels, and optional links into stable `AuthShell` display props.
