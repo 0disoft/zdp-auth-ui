@@ -7,6 +7,7 @@
   export let label: string | null = null;
   export let value = '';
   export let locale: ZdpAuthLocale | string = 'en';
+  export let autocomplete: 'username' | 'username webauthn' = 'username';
   export let describedBy: string | readonly string[] | null = null;
   export let helpText: string | null = null;
   export let errorText: string | null = null;
@@ -27,7 +28,7 @@
     {name}
     type="text"
     bind:value
-    autocomplete="username"
+    {autocomplete}
     describedBy={describedByIds}
     errorMessageId={errorId}
     invalid={Boolean(errorText)}

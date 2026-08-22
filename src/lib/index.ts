@@ -55,8 +55,20 @@ export {
   type ZdpAuthSubmitDetail
 } from './auth-contract';
 export {
+  cancelPasskeyCeremony,
+  detectPasskeySupport,
   startPasskeyAuthentication,
-  startPasskeyRegistration
+  startPasskeyRegistration,
+  ZdpPasskeyCeremonyError,
+  zdpPasskeyAuthenticationMediationModes,
+  zdpPasskeyCeremonyKinds,
+  zdpPasskeyErrorReasons,
+  type ZdpPasskeyAuthenticationMediation,
+  type ZdpPasskeyAuthenticationOptions,
+  type ZdpPasskeyCeremonyKind,
+  type ZdpPasskeyCeremonyOptions,
+  type ZdpPasskeyErrorReason,
+  type ZdpPasskeySupport
 } from './passkey';
 export {
   validateProductLinkRequest,

@@ -269,6 +269,30 @@ import type {
   RegistrationResponseJSON,
   AuthenticationResponseJSON
 } from '@simplewebauthn/browser';
+export declare const zdpPasskeyCeremonyKinds: readonly ["authentication", "registration"];
+export type ZdpPasskeyCeremonyKind = (typeof zdpPasskeyCeremonyKinds)[number];
+export declare const zdpPasskeyAuthenticationMediationModes: readonly ["modal", "conditional"];
+export type ZdpPasskeyAuthenticationMediation = (typeof zdpPasskeyAuthenticationMediationModes)[number];
+export declare const zdpPasskeyErrorReasons: readonly ["unsupported", "conditional-ui-unsupported", "conditional-input-missing", "cancelled", "timed-out", "not-allowed", "security-error", "invalid-options", "authenticator-error", "unknown"];
+export type ZdpPasskeyErrorReason = (typeof zdpPasskeyErrorReasons)[number];
+export interface ZdpPasskeySupport {
+  readonly supported: boolean;
+  readonly conditionalUi: boolean;
+  readonly platformAuthenticator: boolean;
+}
+export interface ZdpPasskeyCeremonyOptions {
+  readonly timeoutMs?: number;
+}
+export interface ZdpPasskeyAuthenticationOptions extends ZdpPasskeyCeremonyOptions {
+  readonly mediation?: ZdpPasskeyAuthenticationMediation;
+  readonly verifyBrowserAutofillInput?: boolean;
+}
+export declare class ZdpPasskeyCeremonyError extends Error {
+  readonly name: "ZdpPasskeyCeremonyError";
+  readonly reason: ZdpPasskeyErrorReason;
+  readonly ceremony: ZdpPasskeyCeremonyKind;
+  constructor(ceremony: ZdpPasskeyCeremonyKind, reason: ZdpPasskeyErrorReason, cause?: unknown);
+}
 export {
   getAuthMessages,
   isActiveAuthLocale,
@@ -414,6 +438,7 @@ export interface LoginIdFieldProps {
   readonly label?: string | null;
   readonly value?: string;
   readonly locale?: ZdpAuthLocale | string;
+  readonly autocomplete?: 'username' | 'username webauthn';
   readonly describedBy?: string | readonly string[] | null;
   readonly helpText?: string | null;
   readonly errorText?: string | null;
@@ -457,12 +482,16 @@ export declare function validateProductLinkRequest(
   trust: ZdpProductLinkTrustPolicy,
   now?: Date
 ): ZdpProductLinkValidation;
+export declare function detectPasskeySupport(): Promise<ZdpPasskeySupport>;
 export declare function startPasskeyRegistration(
-  options: PublicKeyCredentialCreationOptionsJSON
+  options: PublicKeyCredentialCreationOptionsJSON,
+  ceremonyOptions?: ZdpPasskeyCeremonyOptions
 ): Promise<RegistrationResponseJSON>;
 export declare function startPasskeyAuthentication(
-  options: PublicKeyCredentialRequestOptionsJSON
+  options: PublicKeyCredentialRequestOptionsJSON,
+  ceremonyOptions?: ZdpPasskeyAuthenticationOptions
 ): Promise<AuthenticationResponseJSON>;
+export declare function cancelPasskeyCeremony(): void;
 `;
 
 await mkdir(distDir, { recursive: true });

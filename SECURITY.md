@@ -17,7 +17,7 @@ Never store or log:
 
 ## Passkeys
 
-The browser helper may call WebAuthn browser APIs from a consumer-triggered interaction. Server challenge creation, attestation/assertion verification, credential storage, and session issue stay in `zdp-core-platform`.
+The browser helper may probe WebAuthn capability without reading credential material. Modal registration and authentication ceremonies must start from a consumer-triggered interaction. Conditional authentication may initialize from a trusted login surface lifecycle so the browser can offer discoverable credentials through autofill; it must first pass support detection and use an input whose autocomplete value ends with `webauthn`. Server challenge creation, attestation/assertion verification, credential storage, and session issue stay in `zdp-core-platform`.
 
 ## Login And Signup Handoff
 
