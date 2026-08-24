@@ -42,7 +42,8 @@ const typecheckProgram = ts.createProgram({
     noUncheckedIndexedAccess: true,
     skipLibCheck: false,
     strict: true,
-    target: ts.ScriptTarget.ES2022
+    target: ts.ScriptTarget.ES2022,
+    types: ['node']
   }
 });
 const typecheckDiagnostics = ts.getPreEmitDiagnostics(typecheckProgram);
