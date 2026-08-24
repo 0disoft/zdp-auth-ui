@@ -5,6 +5,7 @@
 ## Contracts
 
 - `contracts/package-surface.md`: package exports, files allowlist, dist surface
+- `contracts/locale-loading.md`: isolated locale entrypoints and lazy catalog loading
 - `contracts/auth-boundary.md`: UI-only authentication boundary
 - `contracts/auth-feedback.md`: closed feedback codes, localized presentation, and focus behavior
 - `contracts/auth-handoff-registry.md`: generated closed product and return-path registry

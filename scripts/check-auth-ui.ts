@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { readFile, readdir } from 'node:fs/promises';
 import { extname, join, relative } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { compile, type Warning } from 'svelte/compiler';
 import {
   assertVersionSatisfiesCaretRange,
@@ -131,6 +132,7 @@ checkSourceBoundary(sourceFiles);
 checkCleanConsumerExamples(exampleFiles);
 await checkSvelteCompilation();
 await checkDistBundleExternalization();
+await checkGeneratedLocaleEntries();
 
 if (failures.length > 0) {
   throw new Error(`zdp-auth-ui check failed:\n- ${failures.join('\n- ')}`);
@@ -298,6 +300,19 @@ function checkPackageExports(packageJson: PackageJson): void {
       }
     ]
   ]);
+
+  expectedExports.set('./i18n/loader', {
+    types: './dist/i18n/loader.d.ts',
+    import: './dist/i18n/loader.js',
+    default: './dist/i18n/loader.js'
+  });
+  for (const locale of expectedLocales) {
+    expectedExports.set(`./i18n/${locale}`, {
+      types: `./dist/i18n/${locale}.d.ts`,
+      import: `./dist/i18n/${locale}.js`,
+      default: `./dist/i18n/${locale}.js`
+    });
+  }
 
   for (const [exportPath, expectedValue] of expectedExports) {
     const actualValue = packageJson.exports?.[exportPath];
@@ -782,6 +797,76 @@ async function checkDistBundleExternalization(): Promise<void> {
   }
   if (bundle.includes('StaleReactionError')) {
     failures.push('dist/index.js must not embed the Svelte internal client runtime.');
+  }
+}
+
+async function checkGeneratedLocaleEntries(): Promise<void> {
+  const distI18n = join(root, 'dist', 'i18n');
+
+  for (const locale of expectedLocales) {
+    const modulePath = join(distI18n, `${locale}.js`);
+    const declarationPath = join(distI18n, `${locale}.d.ts`);
+    if (!existsSync(modulePath) || !existsSync(declarationPath)) {
+      failures.push(`Build must generate JavaScript and declaration entries for locale ${locale}.`);
+      continue;
+    }
+
+    const localeModule = await import(pathToFileURL(modulePath).href) as {
+      readonly locale?: unknown;
+      readonly messages?: unknown;
+      readonly default?: unknown;
+    };
+    const expectedMessages = getAuthMessages(locale);
+    if (
+      localeModule.locale !== locale
+      || localeModule.default !== localeModule.messages
+      || JSON.stringify(localeModule.messages) !== JSON.stringify(expectedMessages)
+    ) {
+      failures.push(`Generated locale entry ${locale} must preserve its literal locale and message SSOT.`);
+    }
+
+    const declaration = await readFile(declarationPath, 'utf8');
+    if (
+      !declaration.includes(`export declare const locale: "${locale}";`)
+      || !declaration.includes('export declare const messages: ZdpAuthMessages;')
+      || !declaration.includes('export default messages;')
+    ) {
+      failures.push(`Generated locale declaration ${locale} must preserve the shared catalog shape.`);
+    }
+  }
+
+  const loaderPath = join(distI18n, 'loader.js');
+  const loaderDeclarationPath = join(distI18n, 'loader.d.ts');
+  if (!existsSync(loaderPath) || !existsSync(loaderDeclarationPath)) {
+    failures.push('Build must generate JavaScript and declaration entries for the locale loader.');
+    return;
+  }
+
+  const loaderSource = await readFile(loaderPath, 'utf8');
+  for (const forbiddenText of forbiddenSourceBoundaryTexts) {
+    if (loaderSource.includes(forbiddenText)) {
+      failures.push(`Generated locale loader must remain local and stateless: ${forbiddenText}.`);
+    }
+  }
+
+  const loaderModule = await import(pathToFileURL(loaderPath).href) as {
+    readonly loadAuthMessages?: (locale: string) => Promise<unknown>;
+  };
+  if (typeof loaderModule.loadAuthMessages !== 'function') {
+    failures.push('Generated locale loader must export loadAuthMessages().');
+    return;
+  }
+
+  for (const locale of expectedLocales) {
+    const loaded = await loaderModule.loadAuthMessages(locale);
+    if (JSON.stringify(loaded) !== JSON.stringify(getAuthMessages(locale))) {
+      failures.push(`Locale loader must resolve the generated ${locale} catalog.`);
+    }
+  }
+
+  const fallback = await loaderModule.loadAuthMessages('unsupported-locale');
+  if (JSON.stringify(fallback) !== JSON.stringify(getAuthMessages('en'))) {
+    failures.push('Locale loader must fall back to English for unsupported runtime values.');
   }
 }
 
