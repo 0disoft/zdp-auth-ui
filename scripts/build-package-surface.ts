@@ -40,6 +40,16 @@ const contractDeclaration = `export declare const zdpAuthModes: readonly ["login
 export type ZdpAuthMode = (typeof zdpAuthModes)[number];
 export declare const zdpAuthAvailabilityStates: readonly ["available", "preparing"];
 export type ZdpAuthAvailability = (typeof zdpAuthAvailabilityStates)[number];
+export declare const zdpAuthFeedbackCodes: readonly ["waiting", "registered", "invalid_input", "invalid_credentials", "rate_limited", "expired", "unavailable"];
+export type ZdpAuthFeedbackCode = (typeof zdpAuthFeedbackCodes)[number];
+export declare const zdpAuthFeedbackErrorCodes: readonly ["invalid_input", "invalid_credentials", "rate_limited", "expired", "unavailable"];
+export type ZdpAuthFeedbackErrorCode = (typeof zdpAuthFeedbackErrorCodes)[number];
+export interface ZdpAuthFeedback {
+  readonly code: ZdpAuthFeedbackCode;
+  readonly sequence?: number;
+}
+export declare function isZdpAuthFeedbackCode(candidate: unknown): candidate is ZdpAuthFeedbackCode;
+export declare function isZdpAuthFeedbackErrorCode(candidate: unknown): candidate is ZdpAuthFeedbackErrorCode;
 export declare const zdpAuthHandoffModes: readonly ["login", "signup"];
 export declare const zdpAuthHandoffProductIds: readonly ["melamed"];
 export type ZdpAuthHandoffMode = (typeof zdpAuthHandoffModes)[number];
@@ -273,13 +283,20 @@ export {
 } from './i18n';
 export {
   buildZdpAuthHandoffUrl,
+  isZdpAuthFeedbackCode,
+  isZdpAuthFeedbackErrorCode,
   zdpAuthAvailabilityStates,
+  zdpAuthFeedbackCodes,
+  zdpAuthFeedbackErrorCodes,
   zdpAuthModes,
   zdpAuthHandoffModes,
   zdpAuthHandoffProductIds,
   zdpAuthHandoffReturnPathRegistry,
   zdpAuthProviderKinds,
   type ZdpAuthAvailability,
+  type ZdpAuthFeedback,
+  type ZdpAuthFeedbackCode,
+  type ZdpAuthFeedbackErrorCode,
   type ZdpAuthMode,
   type ZdpAuthModeChangeDetail,
   type ZdpAuthHandoffMode,
@@ -311,6 +328,7 @@ export {
 } from './contract';
 import type {
   ZdpAuthAvailability,
+  ZdpAuthFeedback,
   ZdpAuthMode,
   ZdpAuthModeChangeDetail,
   ZdpAuthHandoffRequest,
@@ -333,6 +351,7 @@ export interface AuthShellProps {
   readonly providers?: readonly ZdpAuthProvider[];
   readonly action?: string | null;
   readonly method?: 'post';
+  readonly feedback?: ZdpAuthFeedback | null;
   readonly status?: string | null;
   readonly invalid?: boolean;
   readonly referralCode?: string | null;

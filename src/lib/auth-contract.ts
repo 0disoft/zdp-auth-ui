@@ -4,11 +4,46 @@ export type ZdpAuthMode = (typeof zdpAuthModes)[number];
 export const zdpAuthAvailabilityStates = ['available', 'preparing'] as const;
 export type ZdpAuthAvailability = (typeof zdpAuthAvailabilityStates)[number];
 
+export const zdpAuthFeedbackCodes = [
+  'waiting',
+  'registered',
+  'invalid_input',
+  'invalid_credentials',
+  'rate_limited',
+  'expired',
+  'unavailable'
+] as const;
+export type ZdpAuthFeedbackCode = (typeof zdpAuthFeedbackCodes)[number];
+
+export const zdpAuthFeedbackErrorCodes = [
+  'invalid_input',
+  'invalid_credentials',
+  'rate_limited',
+  'expired',
+  'unavailable'
+] as const;
+export type ZdpAuthFeedbackErrorCode = (typeof zdpAuthFeedbackErrorCodes)[number];
+
+export interface ZdpAuthFeedback {
+  readonly code: ZdpAuthFeedbackCode;
+  readonly sequence?: number;
+}
+
+export function isZdpAuthFeedbackCode(candidate: unknown): candidate is ZdpAuthFeedbackCode {
+  return typeof candidate === 'string'
+    && (zdpAuthFeedbackCodes as readonly string[]).includes(candidate);
+}
+
+export function isZdpAuthFeedbackErrorCode(candidate: unknown): candidate is ZdpAuthFeedbackErrorCode {
+  return typeof candidate === 'string'
+    && (zdpAuthFeedbackErrorCodes as readonly string[]).includes(candidate);
+}
+
 /*
  * mf:anchor zdp.auth-ui.public-auth-contract
- * purpose: Locate the reusable auth UI event and provider contract shared by Astro, SvelteKit, and Tauri consumers.
- * search: auth modes, provider selection, submit detail, mode change, reusable auth UI
- * invariant: UI contracts describe browser interaction only and never own identity, session, permission, or token truth.
+ * purpose: Locate the reusable auth UI event, provider, and typed feedback contract shared by Astro, SvelteKit, and Tauri consumers.
+ * search: auth modes, provider selection, submit detail, mode change, typed feedback, reusable auth UI
+ * invariant: UI contracts describe browser interaction only and never own identity, session, permission, token, or server-error truth.
  * risk: authn, authz, privacy
  */
 export const zdpAuthProviderKinds = ['passkey', 'oauth', 'email'] as const;

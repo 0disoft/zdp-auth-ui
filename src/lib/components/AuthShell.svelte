@@ -7,18 +7,28 @@
     Stack,
     Surface
   } from 'zdp-design-system';
-  import { setContext } from 'svelte';
-  import type {
-    ZdpAuthAvailability,
-    ZdpAuthMode,
-    ZdpAuthModeChangeDetail,
-    ZdpAuthProvider,
-    ZdpAuthProviderSelectDetail,
-    ZdpAuthSubmitDetail
+  import { onMount, setContext, tick } from 'svelte';
+  import {
+    isZdpAuthFeedbackCode,
+    isZdpAuthFeedbackErrorCode,
+    type ZdpAuthAvailability,
+    type ZdpAuthFeedback,
+    type ZdpAuthFeedbackCode,
+    type ZdpAuthMode,
+    type ZdpAuthModeChangeDetail,
+    type ZdpAuthProvider,
+    type ZdpAuthProviderSelectDetail,
+    type ZdpAuthSubmitDetail
   } from '../auth-contract';
-  import { getAuthMessages, type ZdpAuthLocale } from '../i18n';
+  import { getAuthMessages, type ZdpAuthLocale, type ZdpAuthMessages } from '../i18n';
   import ProviderButton from './ProviderButton.svelte';
   import { termsLinkContextKey, type TermsLinkContext } from '../terms-link-context';
+
+  interface AuthFeedbackPresentation {
+    readonly code: ZdpAuthFeedbackCode;
+    readonly message: string;
+    readonly invalid: boolean;
+  }
 
   export let locale: ZdpAuthLocale | string = 'en';
   export let mode: ZdpAuthMode = 'login';
@@ -28,6 +38,7 @@
   export let providers: readonly ZdpAuthProvider[] = [];
   export let action: string | null = null;
   export let method: 'post' = 'post';
+  export let feedback: ZdpAuthFeedback | null = null;
   export let status: string | null = null;
   export let invalid = false;
   export let referralCode: string | null = null;
@@ -38,6 +49,10 @@
   export let onsubmit: ((detail: ZdpAuthSubmitDetail, event: SubmitEvent) => void) | null = null;
   export let onproviderselect: ((detail: ZdpAuthProviderSelectDetail, event: MouseEvent) => void) | null = null;
   export let onmodechange: ((detail: ZdpAuthModeChangeDetail, event: MouseEvent) => void) | null = null;
+
+  let mounted = false;
+  let feedbackElement: HTMLParagraphElement | null = null;
+  let previousFeedbackKey: string | null = null;
 
   $: messages = getAuthMessages(locale);
   $: normalizedAccountBrand = normalizeAccountBrand(accountBrand);
@@ -53,7 +68,20 @@
   $: normalizedReferralCode = normalizeOptionalFormValue(referralCode);
   $: normalizedReferralCodeFieldName = normalizeOptionalFormValue(referralCodeFieldName) ?? 'referral_code';
   $: normalizedRecoveryHref = normalizeOptionalFormValue(recoveryHref);
+  $: typedFeedback = resolveTypedFeedback(feedback, messages, mode);
+  $: feedbackKey = getFeedbackKey(feedback);
+  $: if (mounted && feedbackKey !== previousFeedbackKey) {
+    previousFeedbackKey = feedbackKey;
+    if (typedFeedback?.invalid) {
+      void focusTypedFeedback();
+    }
+  }
   setContext<TermsLinkContext>(termsLinkContextKey, () => termsHref?.trim() || null);
+
+  onMount(() => {
+    previousFeedbackKey = feedbackKey;
+    mounted = true;
+  });
 
   function handleSubmit(event: SubmitEvent): void {
     const form = event.currentTarget as HTMLFormElement;
@@ -99,6 +127,61 @@
       ? trimmed
       : null;
   }
+
+  function resolveTypedFeedback(
+    value: ZdpAuthFeedback | null,
+    catalog: ZdpAuthMessages,
+    currentMode: ZdpAuthMode
+  ): AuthFeedbackPresentation | null {
+    if (!value || !isZdpAuthFeedbackCode(value.code)) {
+      return null;
+    }
+
+    const invalid = isZdpAuthFeedbackErrorCode(value.code);
+    switch (value.code) {
+      case 'waiting':
+        return { code: value.code, message: catalog.status.waiting, invalid };
+      case 'registered':
+        return { code: value.code, message: catalog.feedback.registered, invalid };
+      case 'invalid_input':
+        return { code: value.code, message: catalog.feedback.invalidInput, invalid };
+      case 'invalid_credentials':
+        return {
+          code: value.code,
+          message: currentMode === 'login' ? catalog.feedback.loginFailed : catalog.feedback.invalidInput,
+          invalid
+        };
+      case 'rate_limited':
+      case 'unavailable':
+        return {
+          code: value.code,
+          message: currentMode === 'signup'
+            ? catalog.feedback.signupUnavailable
+            : catalog.feedback.loginUnavailable,
+          invalid
+        };
+      case 'expired':
+        return { code: value.code, message: catalog.feedback.expiredPage, invalid };
+    }
+  }
+
+  function getFeedbackKey(value: ZdpAuthFeedback | null): string | null {
+    if (!value || !isZdpAuthFeedbackCode(value.code)) {
+      return null;
+    }
+
+    const sequence = typeof value.sequence === 'number'
+      && Number.isSafeInteger(value.sequence)
+      && value.sequence >= 0
+      ? value.sequence
+      : 0;
+    return `${value.code}:${sequence}`;
+  }
+
+  async function focusTypedFeedback(): Promise<void> {
+    await tick();
+    feedbackElement?.focus();
+  }
 </script>
 
 <Surface padding="lg">
@@ -140,8 +223,31 @@
 
         {#if submitting}
           <p class="zdp-auth-shell__notice" role="status" aria-live="polite">{messages.status.waiting}</p>
+        {:else if typedFeedback}
+          {#if typedFeedback.invalid}
+            <p
+              bind:this={feedbackElement}
+              class="zdp-auth-shell__status zdp-auth-shell__status--error"
+              data-feedback-code={typedFeedback.code}
+              role="alert"
+              aria-live="assertive"
+              tabindex="-1"
+            >{typedFeedback.message}</p>
+          {:else}
+            <p
+              bind:this={feedbackElement}
+              class="zdp-auth-shell__status"
+              data-feedback-code={typedFeedback.code}
+              role="status"
+              aria-live="polite"
+            >{typedFeedback.message}</p>
+          {/if}
         {:else if status}
-          <p class="zdp-auth-shell__status" role={invalid ? 'alert' : 'status'} aria-live={invalid ? 'assertive' : 'polite'}>{status}</p>
+          <p
+            class="zdp-auth-shell__status zdp-auth-shell__status--error"
+            role={invalid ? 'alert' : 'status'}
+            aria-live={invalid ? 'assertive' : 'polite'}
+          >{status}</p>
         {/if}
 
         {#if preparing}
@@ -223,12 +329,16 @@
   }
 
   .zdp-auth-shell__status {
-    color: var(--zdp-color-accent-danger);
+    color: var(--zdp-color-ink-muted);
     font-size: var(--zdp-type-body-small-size);
     line-height: var(--zdp-type-body-small-line-height);
     margin: 0;
     min-width: 0;
     overflow-wrap: var(--zdp-i18n-overflow-wrap);
+  }
+
+  .zdp-auth-shell__status--error {
+    color: var(--zdp-color-accent-danger);
   }
 
   .zdp-auth-shell__notice {

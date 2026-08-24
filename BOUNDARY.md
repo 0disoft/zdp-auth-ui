@@ -11,6 +11,7 @@
 - Browser-only passkey start helper boundary
 - Closed-registry login/signup handoff URL composition for static products
 - Portable password-signup field composition aligned to the Core registration input names
+- Closed typed feedback codes and their localized status, alert, and focus presentation
 
 ## Does Not Own
 
@@ -24,6 +25,7 @@
 - Direct datastore access
 - Product callback navigation or desktop credential handoff
 - Authentication-state lookup, return navigation, or auth-origin trust configuration
+- Server error classification, raw server messages, retry policy, or authentication throttling truth
 
 ## Required Handoff
 
@@ -43,6 +45,8 @@ The `AuthShell` availability gate is a rendering contract only. When `availabili
 The `AuthShell` busy state is also consumer-controlled UI state only. When `busy` is true on an available surface, the shell exposes `aria-busy`, disables its fieldset so shell-owned actions and slotted native controls cannot race the active request, blocks duplicate native or programmatic submission, and shows the active-locale waiting notice. The consumer owns request execution, timeout, cancellation, result handling, and clearing `busy`; the package does not observe the network or retain submitted values. `preparing` takes precedence if both inputs are supplied.
 
 The optional `accountBrand` is display-only consumer configuration. It substitutes the locale catalog's account brand after bounded text validation and does not select an identity provider, auth origin, account authority, permission, or session.
+
+The optional typed `feedback` value is also a rendering contract. The consumer maps its API or SDK result to a closed UI code; `AuthShell` selects locale copy, alert or status semantics, and error focus behavior. A repeated code uses an incremented non-negative `sequence` as a non-rendered update key. Raw server messages, provider payloads, account identifiers, stack traces, tokens, and credentials must never be placed in the feedback value. The legacy `status` and `invalid` props remain compatibility-only and are ignored while typed feedback is present.
 
 `buildZdpAuthHandoffUrl` is a pure composition boundary. It accepts a caller-trusted, pathless, credential-free canonical HTTPS auth origin and only registered product/return-path pairs. It returns a typed created or rejected result and never fetches, reads authentication state, stores data, or navigates. The consuming product owns the trusted origin configuration, renders or follows the resulting URL, and verifies the current session through its own BFF or API after return.
 
