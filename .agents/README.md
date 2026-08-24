@@ -12,6 +12,7 @@ Start with `BOUNDARY.md`, `SECURITY.md`, `CHECKLIST.md`, and `VALIDATION.md`. Th
 ## Local Routes
 
 - `.agents/checklists/package-surface.md`
+- `.agents/checklists/auth-handoff-registry.md`
 - `.agents/checklists/locale-messages.md`
 - `.agents/checklists/passkey-provider.md`
 - `.agents/checklists/security-copy.md`

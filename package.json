@@ -1,6 +1,6 @@
 {
   "name": "zdp-auth-ui",
-  "version": "0.5.20",
+  "version": "0.5.21",
   "private": false,
   "license": "MIT",
   "type": "module",
@@ -53,6 +53,8 @@
     "./dist/styles.css"
   ],
   "scripts": {
+    "auth-handoff:generate": "bun scripts/generate-auth-handoff-registry.ts",
+    "auth-handoff:check": "bun scripts/generate-auth-handoff-registry.ts --check",
     "build": "vite build && vite build --config vite.server.config.ts && bun scripts/preserve-server-component-identity.ts && bun scripts/build-package-surface.ts && bun scripts/check-ssr-package-surface.ts",
     "build:bundle": "vite build && vite build --config vite.server.config.ts",
     "browser:check": "node scripts/check-browser-accessibility.mjs && node scripts/check-auth-shell-busy.mjs && node scripts/check-auth-feedback-browser.mjs",

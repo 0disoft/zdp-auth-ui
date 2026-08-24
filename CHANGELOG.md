@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.5.21
+
+- Moved the closed login/signup handoff product and return-path registry into a declarative manifest with deterministic generated TypeScript and package declaration output.
+- Added CI drift detection and manifest-wide contract coverage so new products cannot bypass canonical path, uniqueness, ordering, or query-size constraints.
+
 ## 0.5.20
 
 - Added closed typed authentication feedback codes for waiting, registration, invalid input, invalid credentials, rate limits, expiry, and temporary unavailability.

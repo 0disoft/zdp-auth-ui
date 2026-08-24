@@ -9,16 +9,29 @@ import {
   type ZdpAuthHandoffRequest,
   type ZdpAuthHandoffResult
 } from '../src/lib/auth-handoff';
+import { checkAuthHandoffRegistryGeneratedFiles } from './auth-handoff-registry-generation';
+
+await checkAuthHandoffRegistryGeneratedFiles();
+
+const primaryProductId = zdpAuthHandoffProductIds[0];
+assert.ok(primaryProductId, 'The generated handoff registry must contain at least one product.');
+const primaryReturnPath = zdpAuthHandoffReturnPathRegistry[primaryProductId][0];
+assert.ok(primaryReturnPath, `Product ${primaryProductId} must contain at least one return path.`);
 
 const validRequest: ZdpAuthHandoffRequest = {
   mode: 'login',
-  productId: 'melamed',
+  productId: primaryProductId,
   trustedAuthOrigin: 'https://accounts.zdp.example',
-  returnPath: '/apply'
+  returnPath: primaryReturnPath
 };
 
 const typecheckProgram = ts.createProgram({
-  rootNames: [resolve('src/lib/auth-handoff.ts')],
+  rootNames: [
+    resolve('src/lib/auth-handoff.ts'),
+    resolve('src/lib/auth-handoff-registry.generated.ts'),
+    resolve('scripts/auth-handoff-registry-generation.ts'),
+    resolve('scripts/generate-auth-handoff-registry.ts')
+  ],
   options: {
     forceConsistentCasingInFileNames: true,
     module: ts.ModuleKind.ESNext,
@@ -29,7 +42,8 @@ const typecheckProgram = ts.createProgram({
     noUncheckedIndexedAccess: true,
     skipLibCheck: false,
     strict: true,
-    target: ts.ScriptTarget.ES2022
+    target: ts.ScriptTarget.ES2022,
+    types: ['node']
   }
 });
 const typecheckDiagnostics = ts.getPreEmitDiagnostics(typecheckProgram);
@@ -40,30 +54,41 @@ assert.equal(
 );
 
 assert.deepEqual(zdpAuthHandoffModes, ['login', 'signup']);
-assert.deepEqual(zdpAuthHandoffProductIds, ['melamed']);
-assert.deepEqual(zdpAuthHandoffReturnPathRegistry, { melamed: ['/apply'] });
+assert.equal(zdpAuthHandoffProductIds.length > 0, true);
 assert.equal(Object.isFrozen(zdpAuthHandoffModes), true);
 assert.equal(Object.isFrozen(zdpAuthHandoffProductIds), true);
 assert.equal(Object.isFrozen(zdpAuthHandoffReturnPathRegistry), true);
-assert.equal(Object.isFrozen(zdpAuthHandoffReturnPathRegistry.melamed), true);
 
-assert.deepEqual(
-  buildZdpAuthHandoffUrl(validRequest),
-  {
-    outcome: 'created',
-    url: 'https://accounts.zdp.example/login?product_id=melamed&return_path=%2Fapply'
-  },
-  'Login handoff URLs must use the fixed route and canonical query order.'
-);
+for (const productId of zdpAuthHandoffProductIds) {
+  const registeredReturnPaths = zdpAuthHandoffReturnPathRegistry[productId];
+  assert.equal(registeredReturnPaths.length > 0, true, `Product ${productId} must register a return path.`);
+  assert.equal(Object.isFrozen(registeredReturnPaths), true);
 
-assert.deepEqual(
-  buildZdpAuthHandoffUrl({ ...validRequest, mode: 'signup' }),
-  {
-    outcome: 'created',
-    url: 'https://accounts.zdp.example/signup?product_id=melamed&return_path=%2Fapply'
-  },
-  'Signup handoff URLs must use the fixed route and canonical query order.'
-);
+  for (const returnPath of registeredReturnPaths) {
+    const query = new URLSearchParams([
+      ['product_id', productId],
+      ['return_path', returnPath]
+    ]).toString();
+
+    assert.deepEqual(
+      buildZdpAuthHandoffUrl({ ...validRequest, productId, returnPath }),
+      {
+        outcome: 'created',
+        url: `https://accounts.zdp.example/login?${query}`
+      },
+      `Login handoff URL must be generated for ${productId}${returnPath}.`
+    );
+
+    assert.deepEqual(
+      buildZdpAuthHandoffUrl({ ...validRequest, mode: 'signup', productId, returnPath }),
+      {
+        outcome: 'created',
+        url: `https://accounts.zdp.example/signup?${query}`
+      },
+      `Signup handoff URL must be generated for ${productId}${returnPath}.`
+    );
+  }
+}
 
 for (const trustedAuthOrigin of [
   'http://accounts.zdp.example',
@@ -145,7 +170,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   Reflect.apply(buildZdpAuthHandoffUrl, undefined, [
-    { ...validRequest, productId: 'melamed&return_path=/other' }
+    { ...validRequest, productId: `${primaryProductId}&return_path=/other` }
   ]),
   { outcome: 'rejected', reason: 'untrusted-product' },
   'Product identifiers cannot inject query delimiters or bypass the closed registry.'

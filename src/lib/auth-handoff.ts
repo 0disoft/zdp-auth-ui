@@ -1,12 +1,16 @@
+import {
+  zdpAuthHandoffProductIds,
+  zdpAuthHandoffReturnPathRegistry,
+  type ZdpAuthHandoffProductId
+} from './auth-handoff-registry.generated';
+
 export const zdpAuthHandoffModes = Object.freeze(['login', 'signup'] as const);
-export const zdpAuthHandoffProductIds = Object.freeze(['melamed'] as const);
-
 export type ZdpAuthHandoffMode = (typeof zdpAuthHandoffModes)[number];
-export type ZdpAuthHandoffProductId = (typeof zdpAuthHandoffProductIds)[number];
-
-export const zdpAuthHandoffReturnPathRegistry = Object.freeze({
-  melamed: Object.freeze(['/apply'] as const)
-} satisfies Readonly<Record<ZdpAuthHandoffProductId, readonly string[]>>);
+export {
+  zdpAuthHandoffProductIds,
+  zdpAuthHandoffReturnPathRegistry,
+  type ZdpAuthHandoffProductId
+};
 
 export interface ZdpAuthHandoffRequest {
   readonly mode: ZdpAuthHandoffMode;
