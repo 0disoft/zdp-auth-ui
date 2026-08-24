@@ -224,15 +224,24 @@
         {#if submitting}
           <p class="zdp-auth-shell__notice" role="status" aria-live="polite">{messages.status.waiting}</p>
         {:else if typedFeedback}
-          <p
-            bind:this={feedbackElement}
-            class:zdp-auth-shell__status--error={typedFeedback.invalid}
-            class="zdp-auth-shell__status"
-            data-feedback-code={typedFeedback.code}
-            role={typedFeedback.invalid ? 'alert' : 'status'}
-            aria-live={typedFeedback.invalid ? 'assertive' : 'polite'}
-            tabindex={typedFeedback.invalid ? -1 : undefined}
-          >{typedFeedback.message}</p>
+          {#if typedFeedback.invalid}
+            <p
+              bind:this={feedbackElement}
+              class="zdp-auth-shell__status zdp-auth-shell__status--error"
+              data-feedback-code={typedFeedback.code}
+              role="alert"
+              aria-live="assertive"
+              tabindex="-1"
+            >{typedFeedback.message}</p>
+          {:else}
+            <p
+              bind:this={feedbackElement}
+              class="zdp-auth-shell__status"
+              data-feedback-code={typedFeedback.code}
+              role="status"
+              aria-live="polite"
+            >{typedFeedback.message}</p>
+          {/if}
         {:else if status}
           <p
             class="zdp-auth-shell__status zdp-auth-shell__status--error"
