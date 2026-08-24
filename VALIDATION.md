@@ -11,6 +11,7 @@
 | native browser form validation and focus behavior | `zdp_auth_ui_browser_accessibility_check` |
 | rendered Melamed login/signup handoff links and rejected-path non-rendering | `zdp_auth_ui_browser_accessibility_check` |
 | desktop product-link trust, fail-closed states, fake API decisions, keyboard behavior, and DOM redaction | `zdp_auth_ui_check`, `zdp_auth_ui_browser_accessibility_check` |
+| passkey capability detection, conditional-UI autocomplete, modal and conditional ceremonies, cancellation, timeout, and typed errors | `zdp_auth_ui_check`, `zdp_auth_ui_build` |
 | browser/Node SSR package build output or `dist/**` surface | `zdp_auth_ui_build` |
 | npm package contents or release readiness | `zdp_auth_ui_npm_pack_dry_run` |
 | clean consumer behavior after pack evidence | `zdp_auth_ui_clean_consumer_local_smoke` or `zdp_auth_ui_clean_consumer_smoke` |
@@ -25,7 +26,7 @@
 - Service boundary: `service.yaml`
 - Package surface: `package.json`, `src/lib/index.ts`, `src/lib/auth-contract.ts`, `src/lib/auth-handoff.ts`, `src/lib/password-signup.ts`, `src/lib/i18n.ts`
 - Dist builders and SSR regression: `vite.config.ts`, `vite.server.config.ts`, `scripts/build-package-surface.ts`, `scripts/check-ssr-package-surface.ts`
-- Package checker: `scripts/check-auth-handoff-contract.ts`, `scripts/check-auth-ui.ts`
+- Package checker: `scripts/check-auth-handoff-contract.ts`, `scripts/check-passkey-progressive-enhancement.ts`, `scripts/check-auth-ui.ts`
 - Release workflow: `.github/workflows/publish-npm.yml`, `scripts/check-release-workflow.ts`
 - Consumer fixture: `examples/clean-consumer/AuthUiCleanConsumer.svelte`
 - Boundary docs: `BOUNDARY.md`, `SECURITY.md`
@@ -53,7 +54,7 @@
 - `service.yaml`, `BOUNDARY.md`, `SECURITY.md`, and agent docs must agree that this package is UI-only.
 - `package.json` exports, build output, and checker expectations must agree on root, styles, i18n, and contract entrypoints.
 - Locale docs and checker rules must agree that all 12 locales have login/signup copy while only reviewed feature and policy combinations are active.
-- Passkey docs and source must agree that server challenge and credential storage stay outside this package.
+- Passkey docs, source, declarations, and CI checks must agree on fail-closed capability detection, conditional UI requiring an autocomplete value ending in `webauthn`, typed cancellation and caller-bounded timeout, and server-owned challenge verification and credential storage.
 - Product-link docs, source, declarations, unit checks, and browser fixture must agree that the component is disabled by default, never calls a live route, validates the trusted HTTPS verification context, and fails closed without rendering challenge references.
 - Auth handoff docs, source, declarations, adversarial checks, browser fixture, and clean consumer must agree on the closed product/return-path registry, canonical HTTPS origin, fixed login/signup routes and bounded query, typed rejection, rejected-path non-rendering, and caller-owned navigation.
 - Password-signup docs, source, declarations, clean consumer, and browser fixture must agree on `login_id`, `password`, required terms acceptance, terms consent reference, locale, no package-owned network call, and immediate consumer-owned password clearing.

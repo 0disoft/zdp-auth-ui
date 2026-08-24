@@ -252,10 +252,10 @@ function checkPackageJson(
 
   if (
     packageJson.scripts?.check
-    !== 'bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-auth-ui.ts && bun run --conditions development scripts/check-dev-ssr-consumer.mjs && bun run release:check'
+    !== 'bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-passkey-progressive-enhancement.ts && bun scripts/check-auth-ui.ts && bun run --conditions development scripts/check-dev-ssr-consumer.mjs && bun run release:check'
   ) {
     failures.push(
-      'package.json scripts.check must run the lock fixture, product-link contract checker, auth handoff contract checker, auth UI contract checker, dev SSR consumer check, and release workflow checker.'
+      'package.json scripts.check must run the lock fixture, product-link contract checker, auth handoff contract checker, passkey progressive-enhancement checker, auth UI contract checker, dev SSR consumer check, and release workflow checker.'
     );
   }
 

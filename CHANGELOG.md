@@ -4,6 +4,12 @@
 
 - No unreleased changes.
 
+## 0.7.0
+
+- Added fail-closed WebAuthn, conditional-UI, and platform-authenticator capability detection for shared authentication surfaces.
+- Added modal and conditional passkey authentication, caller-bounded ceremony timeouts, explicit cancellation, and stable typed error reasons while keeping challenge verification and session authority server-owned.
+- Added opt-in `username webauthn` support to `LoginIdField` and executable regression coverage for unsupported, successful, cancelled, timed-out, and conditional browser paths.
+
 ## 0.6.0
 
 - Added opt-in `zdp-auth-ui/i18n/<locale>` package entrypoints for all 12 account-route locales so consumers can import one message catalog without loading the synchronous all-locale compatibility surface.
