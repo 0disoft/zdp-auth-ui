@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.5.19
+
+- Added a consumer-controlled `AuthShell` busy state that marks the form with `aria-busy`, freezes submit, provider, mode-change, and slotted form controls, blocks duplicate submission, and exposes the localized waiting message.
+- Added a focused Chromium regression covering busy-state entry, duplicate-event rejection, and interaction restoration.
+
 ## 0.5.18
 
 - Kept consumer-configured terms and privacy links visible on preparing signup screens while avoiding a duplicate terms link on active signup forms.
