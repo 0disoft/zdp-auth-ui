@@ -86,3 +86,148 @@ assert.ok(zdpPasskeyErrorReasons.includes('timed-out'));
 assert.ok(zdpPasskeyErrorReasons.includes('unsupported'));
 
 cancelPasskeyCeremony();
+
+const originalGlobals = new Map<string, PropertyDescriptor | undefined>();
+for (const key of ['PublicKeyCredential', 'document', 'location', 'navigator']) {
+  originalGlobals.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
+}
+
+function setTestGlobal(key: string, value: unknown): void {
+  Object.defineProperty(globalThis, key, {
+    configurable: true,
+    writable: true,
+    value
+  });
+}
+
+function restoreTestGlobals(): void {
+  for (const [key, descriptor] of originalGlobals) {
+    if (descriptor) {
+      Object.defineProperty(globalThis, key, descriptor);
+    } else {
+      Reflect.deleteProperty(globalThis, key);
+    }
+  }
+}
+
+type CredentialGet = (request: CredentialRequestOptions) => Promise<Credential | null>;
+
+let hasAutofillInput = false;
+let credentialGet: CredentialGet = async () => createAuthenticationCredential();
+let capturedRequest: CredentialRequestOptions | null = null;
+
+class TestPublicKeyCredential {
+  static async isConditionalMediationAvailable(): Promise<boolean> {
+    return true;
+  }
+
+  static async isUserVerifyingPlatformAuthenticatorAvailable(): Promise<boolean> {
+    return true;
+  }
+}
+
+function createAuthenticationCredential(): Credential {
+  const byte = new Uint8Array([1]).buffer;
+  return {
+    id: 'credential-id',
+    rawId: byte,
+    response: {
+      authenticatorData: byte,
+      clientDataJSON: byte,
+      signature: byte,
+      userHandle: null
+    },
+    type: 'public-key',
+    authenticatorAttachment: 'platform',
+    getClientExtensionResults: () => ({})
+  } as unknown as Credential;
+}
+
+function waitForAbort(request: CredentialRequestOptions): Promise<Credential | null> {
+  return new Promise((_, reject) => {
+    const signal = request.signal;
+    assert.ok(signal, 'Passkey ceremonies must provide an abort signal.');
+    signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+  });
+}
+
+try {
+  setTestGlobal('PublicKeyCredential', TestPublicKeyCredential);
+  setTestGlobal('location', { hostname: 'localhost' });
+  setTestGlobal('document', {
+    querySelector: () => hasAutofillInput ? {} : null,
+    querySelectorAll: () => ({ length: hasAutofillInput ? 1 : 0 })
+  });
+  setTestGlobal('navigator', {
+    credentials: {
+      get: async (request: CredentialRequestOptions) => {
+        capturedRequest = request;
+        return credentialGet(request);
+      }
+    }
+  });
+
+  assert.deepEqual(
+    await detectPasskeySupport(),
+    { supported: true, conditionalUi: true, platformAuthenticator: true },
+    'Browser capability probes must report the available WebAuthn features.'
+  );
+
+  const modalResponse = await startPasskeyAuthentication(options);
+  assert.equal(modalResponse.id, 'credential-id');
+  assert.equal(capturedRequest?.mediation, undefined);
+
+  await assert.rejects(
+    () => startPasskeyAuthentication(options, { mediation: 'conditional' }),
+    (error: unknown) => {
+      assert.ok(error instanceof ZdpPasskeyCeremonyError);
+      assert.equal(error.reason, 'conditional-input-missing');
+      return true;
+    },
+    'Conditional UI must fail closed when its autocomplete input is absent.'
+  );
+
+  hasAutofillInput = true;
+  const conditionalResponse = await startPasskeyAuthentication(options, {
+    mediation: 'conditional'
+  });
+  assert.equal(conditionalResponse.id, 'credential-id');
+  assert.equal(capturedRequest?.mediation, 'conditional');
+
+  await assert.rejects(
+    () => startPasskeyAuthentication(options, { timeoutMs: 999 }),
+    (error: unknown) => {
+      assert.ok(error instanceof ZdpPasskeyCeremonyError);
+      assert.equal(error.reason, 'invalid-options');
+      return true;
+    },
+    'Timeouts outside the public bounds must fail before a ceremony starts.'
+  );
+
+  credentialGet = waitForAbort;
+  const cancelledCeremony = startPasskeyAuthentication(options);
+  await Promise.resolve();
+  cancelPasskeyCeremony();
+  await assert.rejects(
+    cancelledCeremony,
+    (error: unknown) => {
+      assert.ok(error instanceof ZdpPasskeyCeremonyError);
+      assert.equal(error.reason, 'cancelled');
+      return true;
+    },
+    'Explicit cancellation must return the stable cancelled reason.'
+  );
+
+  await assert.rejects(
+    () => startPasskeyAuthentication(options, { timeoutMs: 1_000 }),
+    (error: unknown) => {
+      assert.ok(error instanceof ZdpPasskeyCeremonyError);
+      assert.equal(error.reason, 'timed-out');
+      return true;
+    },
+    'Caller-bounded timeout must cancel the browser ceremony and retain timeout classification.'
+  );
+} finally {
+  cancelPasskeyCeremony();
+  restoreTestGlobals();
+}

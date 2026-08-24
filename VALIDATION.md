@@ -11,7 +11,7 @@
 | native browser form validation and focus behavior | `zdp_auth_ui_browser_accessibility_check` |
 | rendered Melamed login/signup handoff links and rejected-path non-rendering | `zdp_auth_ui_browser_accessibility_check` |
 | desktop product-link trust, fail-closed states, fake API decisions, keyboard behavior, and DOM redaction | `zdp_auth_ui_check`, `zdp_auth_ui_browser_accessibility_check` |
-| passkey capability detection, conditional-UI autocomplete, unsupported runtime, and typed ceremony errors | `scripts/check-passkey-progressive-enhancement.ts`, `zdp_auth_ui_build` |
+| passkey capability detection, conditional-UI autocomplete, modal and conditional ceremonies, cancellation, timeout, and typed errors | `zdp_auth_ui_check`, `zdp_auth_ui_build` |
 | browser/Node SSR package build output or `dist/**` surface | `zdp_auth_ui_build` |
 | npm package contents or release readiness | `zdp_auth_ui_npm_pack_dry_run` |
 | clean consumer behavior after pack evidence | `zdp_auth_ui_clean_consumer_local_smoke` or `zdp_auth_ui_clean_consumer_smoke` |

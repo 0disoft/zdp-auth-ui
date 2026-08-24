@@ -43,8 +43,5 @@ jobs:
       - name: Check
         run: bun run check
 
-      - name: Check passkey progressive enhancement
-        run: bun scripts/check-passkey-progressive-enhancement.ts
-
       - name: Check browser accessibility
         run: bun run browser:check
