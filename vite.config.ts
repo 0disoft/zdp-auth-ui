@@ -5,7 +5,7 @@ import {
   zdpAuthTargetLocales,
   type ZdpAuthLocale,
   type ZdpAuthMessages
-} from './src/lib/i18n';
+} from './src/lib/i18n.ts';
 
 const externalPackageRoots = new Set([
   '@simplewebauthn/browser',
