@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
 
 const root = process.cwd();
-const fixtureRoot = await mkdtemp(join(tmpdir(), 'zdp-auth-ui-busy-'));
+const fixtureParent = join(root, '.vite');
+await mkdir(fixtureParent, { recursive: true });
+const fixtureRoot = await mkdtemp(join(fixtureParent, 'zdp-auth-ui-busy-'));
 const cacheDir = join(fixtureRoot, '.vite-cache');
 
 await Promise.all([
@@ -140,7 +141,7 @@ try {
   assert.equal(await modeChange.isDisabled(), true, 'Busy auth must disable mode changes without removing the control.');
   assert.equal(await password.isDisabled(), true, 'Busy auth must freeze slotted form controls through the fieldset boundary.');
   assert.equal(
-    await fixture.getByRole('status').getByText('Please wait.', { exact: true }).count(),
+    await fixture.getByRole('status').getByText('Checking now.', { exact: true }).count(),
     1,
     'Busy auth must expose the localized waiting message.'
   );
@@ -169,7 +170,7 @@ try {
   assert.equal(await modeChange.isEnabled(), true, 'Clearing busy must restore mode interaction.');
   assert.equal(await password.isEnabled(), true, 'Clearing busy must restore slotted fields.');
   assert.equal(
-    await fixture.getByText('Please wait.', { exact: true }).count(),
+    await fixture.getByText('Checking now.', { exact: true }).count(),
     0,
     'Clearing busy must remove the waiting status.'
   );

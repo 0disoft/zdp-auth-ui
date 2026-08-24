@@ -89,13 +89,16 @@ async function buildArtifact(gitHead: string, artifactDirectory: string): Promis
     );
     await mkdir(artifactDirectory, { recursive: true });
 
-    const npmExecutable = process.platform === 'win32' ? 'npm.cmd' : 'npm';
     const packed = spawnSync(
-      npmExecutable,
+      'npm',
       ['pack', '--json', '--pack-destination', artifactDirectory],
-      { cwd: stagingDirectory, encoding: 'utf8', shell: false }
+      {
+        cwd: stagingDirectory,
+        encoding: 'utf8',
+        shell: process.platform === 'win32'
+      }
     );
-    assert.equal(packed.status, 0, packed.stderr || 'npm pack failed.');
+    assert.equal(packed.status, 0, packed.error?.message || packed.stderr || 'npm pack failed.');
 
     // npm 10/11 emit an array of pack results; npm 12 emits an object keyed by
     // package name. Accept both so the release gate is version-agnostic.
