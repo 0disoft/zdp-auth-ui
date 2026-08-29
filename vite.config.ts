@@ -26,7 +26,7 @@ function isExternalPackage(id: string): boolean {
  * purpose: Generate independently importable locale catalogs and the lazy loader from the synchronous message SSOT.
  * search: locale subpath, lazy auth messages, loadAuthMessages, generated catalog
  * invariant: Generated modules contain message data only and never select a remote URL or own authentication state.
- * risk: config, performance
+ * risk: config
  */
 function authLocaleEntries(): Plugin {
   return {
