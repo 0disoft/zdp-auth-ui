@@ -6,7 +6,7 @@
       "name": "zdp-auth-ui",
       "dependencies": {
         "@simplewebauthn/browser": "^13.3.0",
-        "zdp-design-system": "^0.59.1",
+        "zdp-design-system": "^0.61.0",
       },
       "devDependencies": {
         "@sveltejs/vite-plugin-svelte": "^7.3.0",
@@ -156,7 +156,7 @@
 
     "vitefu": ["vitefu@1.1.3", "", { "peerDependencies": { "vite": "^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0" }, "optionalPeers": ["vite"] }, "sha512-ub4okH7Z5KLjb6hDyjqrGXqWtWvoYdU3IGm/NorpgHncKoLTCfRIbvlhBm7r0YstIaQRYlp4yEbFqDcKSzXSSg=="],
 
-    "zdp-design-system": ["zdp-design-system@0.59.1", "", { "peerDependencies": { "svelte": "^5.56.0" } }, "sha512-Iikn1Tk+sOlhFkF6rF6weaWaOrHnesDMVdnbMIQzZoRlC3wP35/KVQtaL7C+65DM84fyo6IxrRuvJ6wb5gp+XA=="],
+    "zdp-design-system": ["zdp-design-system@0.61.0", "", { "peerDependencies": { "svelte": "^5.56.0" } }, "sha512-CUN4Xil+1vD+V1t9FUCYWgHvMihb0uAFnOH+z54XK371R5EQ/nfswNNW20IvgcOrT+h1928O2RK8zyIvifd/cA=="],
 
     "zimmerframe": ["zimmerframe@1.1.4", "", {}, "sha512-B58NGBEoc8Y9MWWCQGl/gq9xBCe4IiKM0a2x7GZdQKOW5Exr8S1W24J6OgM1njK8xCRGvAJIL/MxXHf6SkmQKQ=="],
 

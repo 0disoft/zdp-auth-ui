@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.7.1
+
+- Updated the published design-system dependency to `zdp-design-system ^0.61.0` so authentication surfaces consume the current form-control chrome and the simplified TermSheet package contract without a nested older design-system copy.
+
 ## 0.7.0
 
 - Added fail-closed WebAuthn, conditional-UI, and platform-authenticator capability detection for shared authentication surfaces.
