@@ -29,6 +29,7 @@ export interface ZdpAuthMessages {
     readonly loginId: string;
     readonly email: string;
     readonly password: string;
+    readonly passwordConfirmation: string;
     readonly name: string;
     readonly termsAcceptance: string;
   };
@@ -71,6 +72,7 @@ export interface ZdpAuthMessages {
     readonly signupUnavailable: string;
     readonly loginFailed: string;
     readonly loginUnavailable: string;
+    readonly passwordMismatch: string;
   };
   readonly productLink: {
     readonly title: string;
@@ -147,6 +149,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
       loginId: '아이디',
       email: '이메일',
       password: '비밀번호',
+      passwordConfirmation: '비밀번호 확인',
       name: '이름',
       termsAcceptance: '필수 이용약관에 동의합니다.'
     },
@@ -188,7 +191,8 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
       expiredPage: '페이지가 만료되었습니다. 새로고침 후 다시 시도해 주세요.',
       signupUnavailable: '지금은 회원가입을 완료할 수 없습니다. 잠시 후 다시 시도해 주세요.',
       loginFailed: '아이디 또는 비밀번호를 확인해 주세요.',
-      loginUnavailable: '지금은 로그인할 수 없습니다. 잠시 후 다시 시도해 주세요.'
+      loginUnavailable: '지금은 로그인할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+      passwordMismatch: '비밀번호가 일치하지 않습니다.'
     },
     productLink: {
       title: '데스크톱 제품 연결',
@@ -240,6 +244,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
       loginId: 'Login ID',
       email: 'Email',
       password: 'Password',
+      passwordConfirmation: 'Confirm password',
       name: 'Name',
       termsAcceptance: 'I agree to the required terms.'
     },
@@ -281,7 +286,8 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
       expiredPage: 'This page expired. Refresh and try again.',
       signupUnavailable: 'Account creation is temporarily unavailable. Try again shortly.',
       loginFailed: 'Check your login ID and password.',
-      loginUnavailable: 'Sign in is temporarily unavailable. Try again shortly.'
+      loginUnavailable: 'Sign in is temporarily unavailable. Try again shortly.',
+      passwordMismatch: 'Passwords do not match.'
     },
     productLink: {
       title: 'Connect desktop product',
@@ -320,116 +326,116 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
   zh: localizedAuthMessages({
     title: ['登录', '创建账户', '恢复账户'],
     summary: ['使用您的 8ailors 账户继续。', '创建您的 8ailors 账户。', '我们会将恢复说明发送到您的电子邮箱。'],
-    fields: ['登录 ID', '电子邮箱', '密码', '姓名', '我同意必需的使用条款。'],
+    fields: ['登录 ID', '电子邮箱', '密码', '姓名', '我同意必需的使用条款。', '确认密码'],
     actions: ['登录', '创建账户', '获取恢复邮件', '使用通行密钥继续', '显示密码', '隐藏密码'],
     groupLabel: '选择登录方式', accountHelp: '账户帮助',
     links: ['我已有账户', '创建新账户', '忘记密码', '使用条款', '隐私政策'],
     status: ['正在确认。', '请检查输入内容后重试。'], preparing: '账户服务尚未开放。',
-    feedback: ['账户已创建。请登录以继续。', '请检查您输入的信息。', '此页面已过期。请刷新后重试。', '暂时无法创建账户。请稍后重试。', '请检查您的登录 ID 和密码。', '暂时无法登录。请稍后重试。']
+    feedback: ['账户已创建。请登录以继续。', '请检查您输入的信息。', '此页面已过期。请刷新后重试。', '暂时无法创建账户。请稍后重试。', '请检查您的登录 ID 和密码。', '暂时无法登录。请稍后重试。', '两次输入的密码不一致。']
   }),
   es: localizedAuthMessages({
     title: ['Iniciar sesión', 'Crear cuenta', 'Recuperar cuenta'],
     summary: ['Continúa con tu cuenta de 8ailors.', 'Crea tu cuenta de 8ailors.', 'Enviaremos las instrucciones de recuperación a tu correo electrónico.'],
-    fields: ['ID de acceso', 'Correo electrónico', 'Contraseña', 'Nombre', 'Acepto los términos obligatorios.'],
+    fields: ['ID de acceso', 'Correo electrónico', 'Contraseña', 'Nombre', 'Acepto los términos obligatorios.', 'Confirmar contraseña'],
     actions: ['Iniciar sesión', 'Crear cuenta', 'Recibir correo de recuperación', 'Continuar con clave de acceso', 'Mostrar contraseña', 'Ocultar contraseña'],
     groupLabel: 'Elige cómo iniciar sesión', accountHelp: 'Ayuda de la cuenta',
     links: ['Ya tengo una cuenta', 'Crear una cuenta nueva', 'Olvidé mi contraseña', 'Términos', 'Privacidad'],
     status: ['Comprobando.', 'Revisa los datos e inténtalo de nuevo.'], preparing: 'El servicio de cuentas aún no está disponible.',
-    feedback: ['Cuenta creada. Inicia sesión para continuar.', 'Revisa la información introducida.', 'La página ha caducado. Actualízala e inténtalo de nuevo.', 'No se puede crear la cuenta temporalmente. Inténtalo más tarde.', 'Revisa tu ID de acceso y contraseña.', 'No se puede iniciar sesión temporalmente. Inténtalo más tarde.']
+    feedback: ['Cuenta creada. Inicia sesión para continuar.', 'Revisa la información introducida.', 'La página ha caducado. Actualízala e inténtalo de nuevo.', 'No se puede crear la cuenta temporalmente. Inténtalo más tarde.', 'Revisa tu ID de acceso y contraseña.', 'No se puede iniciar sesión temporalmente. Inténtalo más tarde.', 'Las contraseñas no coinciden.']
   }),
   fr: localizedAuthMessages({
     title: ['Se connecter', 'Créer un compte', 'Récupérer le compte'],
     summary: ['Continuez avec votre compte 8ailors.', 'Créez votre compte 8ailors.', 'Nous enverrons les instructions de récupération à votre adresse e-mail.'],
-    fields: ['Identifiant', 'Adresse e-mail', 'Mot de passe', 'Nom', "J’accepte les conditions obligatoires."],
+    fields: ['Identifiant', 'Adresse e-mail', 'Mot de passe', 'Nom', "J’accepte les conditions obligatoires.", 'Confirmer le mot de passe'],
     actions: ['Se connecter', 'Créer un compte', 'Recevoir l’e-mail de récupération', 'Continuer avec une clé d’accès', 'Afficher le mot de passe', 'Masquer le mot de passe'],
     groupLabel: 'Choisissez une méthode de connexion', accountHelp: 'Aide du compte',
     links: ["J’ai déjà un compte", 'Créer un nouveau compte', 'Mot de passe oublié', 'Conditions', 'Confidentialité'],
     status: ['Vérification en cours.', 'Vérifiez les informations et réessayez.'], preparing: "Le service de comptes n’est pas encore disponible.",
-    feedback: ['Compte créé. Connectez-vous pour continuer.', 'Vérifiez les informations saisies.', 'Cette page a expiré. Actualisez-la et réessayez.', 'La création de compte est temporairement indisponible. Réessayez plus tard.', 'Vérifiez votre identifiant et votre mot de passe.', 'La connexion est temporairement indisponible. Réessayez plus tard.']
+    feedback: ['Compte créé. Connectez-vous pour continuer.', 'Vérifiez les informations saisies.', 'Cette page a expiré. Actualisez-la et réessayez.', 'La création de compte est temporairement indisponible. Réessayez plus tard.', 'Vérifiez votre identifiant et votre mot de passe.', 'La connexion est temporairement indisponible. Réessayez plus tard.', 'Les mots de passe ne correspondent pas.']
   }),
   hi: localizedAuthMessages({
     title: ['साइन इन करें', 'खाता बनाएँ', 'खाता पुनर्प्राप्त करें'],
     summary: ['अपने 8ailors खाते से आगे बढ़ें।', 'अपना 8ailors खाता बनाएँ।', 'हम पुनर्प्राप्ति निर्देश आपके ईमेल पर भेजेंगे।'],
-    fields: ['लॉगिन आईडी', 'ईमेल', 'पासवर्ड', 'नाम', 'मैं आवश्यक शर्तों से सहमत हूँ।'],
+    fields: ['लॉगिन आईडी', 'ईमेल', 'पासवर्ड', 'नाम', 'मैं आवश्यक शर्तों से सहमत हूँ।', 'पासवर्ड की पुष्टि करें'],
     actions: ['साइन इन करें', 'खाता बनाएँ', 'पुनर्प्राप्ति ईमेल पाएँ', 'पासकी से आगे बढ़ें', 'पासवर्ड दिखाएँ', 'पासवर्ड छिपाएँ'],
     groupLabel: 'साइन इन करने का तरीका चुनें', accountHelp: 'खाता सहायता',
     links: ['मेरा पहले से खाता है', 'नया खाता बनाएँ', 'मैं पासवर्ड भूल गया', 'शर्तें', 'गोपनीयता'],
     status: ['जाँच की जा रही है।', 'जानकारी जाँचें और फिर प्रयास करें।'], preparing: 'खाता सेवा अभी उपलब्ध नहीं है।',
-    feedback: ['खाता बन गया। आगे बढ़ने के लिए साइन इन करें।', 'दर्ज की गई जानकारी जाँचें।', 'यह पेज समाप्त हो गया है। रीफ़्रेश करके फिर प्रयास करें।', 'अभी खाता नहीं बनाया जा सकता। थोड़ी देर बाद प्रयास करें।', 'अपनी लॉगिन आईडी और पासवर्ड जाँचें।', 'अभी साइन इन नहीं किया जा सकता। थोड़ी देर बाद प्रयास करें।']
+    feedback: ['खाता बन गया। आगे बढ़ने के लिए साइन इन करें।', 'दर्ज की गई जानकारी जाँचें।', 'यह पेज समाप्त हो गया है। रीफ़्रेश करके फिर प्रयास करें।', 'अभी खाता नहीं बनाया जा सकता। थोड़ी देर बाद प्रयास करें।', 'अपनी लॉगिन आईडी और पासवर्ड जाँचें।', 'अभी साइन इन नहीं किया जा सकता। थोड़ी देर बाद प्रयास करें।', 'पासवर्ड मेल नहीं खा रहे हैं।']
   }),
   ja: localizedAuthMessages({
     title: ['ログイン', 'アカウントを作成', 'アカウントを復旧'],
     summary: ['8ailors アカウントで続行します。', '8ailors アカウントを作成します。', '復旧手順をメールでお送りします。'],
-    fields: ['ログイン ID', 'メールアドレス', 'パスワード', '名前', '必須の利用規約に同意します。'],
+    fields: ['ログイン ID', 'メールアドレス', 'パスワード', '名前', '必須の利用規約に同意します。', 'パスワード確認'],
     actions: ['ログイン', 'アカウントを作成', '復旧メールを受け取る', 'パスキーで続行', 'パスワードを表示', 'パスワードを隠す'],
     groupLabel: 'ログイン方法を選択', accountHelp: 'アカウントのヘルプ',
     links: ['アカウントをお持ちの方', '新しいアカウントを作成', 'パスワードを忘れた方', '利用規約', 'プライバシー'],
     status: ['確認中です。', '入力内容を確認して、もう一度お試しください。'], preparing: 'アカウントサービスはまだ利用できません。',
-    feedback: ['アカウントを作成しました。ログインしてください。', '入力内容を確認してください。', 'ページの有効期限が切れました。更新してもう一度お試しください。', '現在アカウントを作成できません。しばらくしてからお試しください。', 'ログイン ID またはパスワードを確認してください。', '現在ログインできません。しばらくしてからお試しください。']
+    feedback: ['アカウントを作成しました。ログインしてください。', '入力内容を確認してください。', 'ページの有効期限が切れました。更新してもう一度お試しください。', '現在アカウントを作成できません。しばらくしてからお試しください。', 'ログイン ID またはパスワードを確認してください。', '現在ログインできません。しばらくしてからお試しください。', 'パスワードが一致しません。']
   }),
   vi: localizedAuthMessages({
     title: ['Đăng nhập', 'Tạo tài khoản', 'Khôi phục tài khoản'],
     summary: ['Tiếp tục bằng tài khoản 8ailors của bạn.', 'Tạo tài khoản 8ailors của bạn.', 'Chúng tôi sẽ gửi hướng dẫn khôi phục đến email của bạn.'],
-    fields: ['ID đăng nhập', 'Email', 'Mật khẩu', 'Tên', 'Tôi đồng ý với các điều khoản bắt buộc.'],
+    fields: ['ID đăng nhập', 'Email', 'Mật khẩu', 'Tên', 'Tôi đồng ý với các điều khoản bắt buộc.', 'Xác nhận mật khẩu'],
     actions: ['Đăng nhập', 'Tạo tài khoản', 'Nhận email khôi phục', 'Tiếp tục bằng passkey', 'Hiện mật khẩu', 'Ẩn mật khẩu'],
     groupLabel: 'Chọn cách đăng nhập', accountHelp: 'Trợ giúp tài khoản',
     links: ['Tôi đã có tài khoản', 'Tạo tài khoản mới', 'Tôi quên mật khẩu', 'Điều khoản', 'Quyền riêng tư'],
     status: ['Đang kiểm tra.', 'Hãy kiểm tra thông tin rồi thử lại.'], preparing: 'Dịch vụ tài khoản chưa khả dụng.',
-    feedback: ['Đã tạo tài khoản. Hãy đăng nhập để tiếp tục.', 'Hãy kiểm tra thông tin đã nhập.', 'Trang này đã hết hạn. Hãy tải lại rồi thử lại.', 'Tạm thời không thể tạo tài khoản. Hãy thử lại sau.', 'Hãy kiểm tra ID đăng nhập và mật khẩu.', 'Tạm thời không thể đăng nhập. Hãy thử lại sau.']
+    feedback: ['Đã tạo tài khoản. Hãy đăng nhập để tiếp tục.', 'Hãy kiểm tra thông tin đã nhập.', 'Trang này đã hết hạn. Hãy tải lại rồi thử lại.', 'Tạm thời không thể tạo tài khoản. Hãy thử lại sau.', 'Hãy kiểm tra ID đăng nhập và mật khẩu.', 'Tạm thời không thể đăng nhập. Hãy thử lại sau.', 'Mật khẩu không khớp.']
   }),
   ru: localizedAuthMessages({
     title: ['Войти', 'Создать аккаунт', 'Восстановить аккаунт'],
     summary: ['Продолжите с аккаунтом 8ailors.', 'Создайте аккаунт 8ailors.', 'Мы отправим инструкции по восстановлению на вашу электронную почту.'],
-    fields: ['Логин', 'Электронная почта', 'Пароль', 'Имя', 'Я принимаю обязательные условия.'],
+    fields: ['Логин', 'Электронная почта', 'Пароль', 'Имя', 'Я принимаю обязательные условия.', 'Подтверждение пароля'],
     actions: ['Войти', 'Создать аккаунт', 'Получить письмо для восстановления', 'Продолжить с ключом доступа', 'Показать пароль', 'Скрыть пароль'],
     groupLabel: 'Выберите способ входа', accountHelp: 'Помощь с аккаунтом',
     links: ['У меня уже есть аккаунт', 'Создать новый аккаунт', 'Я забыл пароль', 'Условия', 'Конфиденциальность'],
     status: ['Проверяем.', 'Проверьте данные и повторите попытку.'], preparing: 'Сервис аккаунтов пока недоступен.',
-    feedback: ['Аккаунт создан. Войдите, чтобы продолжить.', 'Проверьте введённые данные.', 'Срок действия страницы истёк. Обновите её и повторите попытку.', 'Создание аккаунта временно недоступно. Повторите попытку позже.', 'Проверьте логин и пароль.', 'Вход временно недоступен. Повторите попытку позже.']
+    feedback: ['Аккаунт создан. Войдите, чтобы продолжить.', 'Проверьте введённые данные.', 'Срок действия страницы истёк. Обновите её и повторите попытку.', 'Создание аккаунта временно недоступно. Повторите попытку позже.', 'Проверьте логин и пароль.', 'Вход временно недоступен. Повторите попытку позже.', 'Пароли не совпадают.']
   }),
   id: localizedAuthMessages({
     title: ['Masuk', 'Buat akun', 'Pulihkan akun'],
     summary: ['Lanjutkan dengan akun 8ailors Anda.', 'Buat akun 8ailors Anda.', 'Kami akan mengirim petunjuk pemulihan ke email Anda.'],
-    fields: ['ID masuk', 'Email', 'Kata sandi', 'Nama', 'Saya menyetujui ketentuan wajib.'],
+    fields: ['ID masuk', 'Email', 'Kata sandi', 'Nama', 'Saya menyetujui ketentuan wajib.', 'Konfirmasi kata sandi'],
     actions: ['Masuk', 'Buat akun', 'Terima email pemulihan', 'Lanjutkan dengan passkey', 'Tampilkan kata sandi', 'Sembunyikan kata sandi'],
     groupLabel: 'Pilih cara masuk', accountHelp: 'Bantuan akun',
     links: ['Saya sudah memiliki akun', 'Buat akun baru', 'Saya lupa kata sandi', 'Ketentuan', 'Privasi'],
     status: ['Sedang memeriksa.', 'Periksa informasi lalu coba lagi.'], preparing: 'Layanan akun belum tersedia.',
-    feedback: ['Akun berhasil dibuat. Masuk untuk melanjutkan.', 'Periksa informasi yang Anda masukkan.', 'Halaman ini telah kedaluwarsa. Muat ulang lalu coba lagi.', 'Pembuatan akun sementara tidak tersedia. Coba lagi nanti.', 'Periksa ID masuk dan kata sandi Anda.', 'Proses masuk sementara tidak tersedia. Coba lagi nanti.']
+    feedback: ['Akun berhasil dibuat. Masuk untuk melanjutkan.', 'Periksa informasi yang Anda masukkan.', 'Halaman ini telah kedaluwarsa. Muat ulang lalu coba lagi.', 'Pembuatan akun sementara tidak tersedia. Coba lagi nanti.', 'Periksa ID masuk dan kata sandi Anda.', 'Proses masuk sementara tidak tersedia. Coba lagi nanti.', 'Kata sandi tidak cocok.']
   }),
   ms: localizedAuthMessages({
     title: ['Log masuk', 'Cipta akaun', 'Pulihkan akaun'],
     summary: ['Teruskan dengan akaun 8ailors anda.', 'Cipta akaun 8ailors anda.', 'Kami akan menghantar arahan pemulihan ke e-mel anda.'],
-    fields: ['ID log masuk', 'E-mel', 'Kata laluan', 'Nama', 'Saya bersetuju dengan terma wajib.'],
+    fields: ['ID log masuk', 'E-mel', 'Kata laluan', 'Nama', 'Saya bersetuju dengan terma wajib.', 'Pengesahan kata laluan'],
     actions: ['Log masuk', 'Cipta akaun', 'Terima e-mel pemulihan', 'Teruskan dengan kunci laluan', 'Tunjukkan kata laluan', 'Sembunyikan kata laluan'],
     groupLabel: 'Pilih cara log masuk', accountHelp: 'Bantuan akaun',
     links: ['Saya sudah mempunyai akaun', 'Cipta akaun baharu', 'Saya terlupa kata laluan', 'Terma', 'Privasi'],
     status: ['Sedang menyemak.', 'Semak maklumat dan cuba lagi.'], preparing: 'Perkhidmatan akaun belum tersedia.',
-    feedback: ['Akaun berjaya dicipta. Log masuk untuk meneruskan.', 'Semak maklumat yang anda masukkan.', 'Halaman ini telah tamat tempoh. Muat semula dan cuba lagi.', 'Penciptaan akaun tidak tersedia buat sementara waktu. Cuba lagi kemudian.', 'Semak ID log masuk dan kata laluan anda.', 'Log masuk tidak tersedia buat sementara waktu. Cuba lagi kemudian.']
+    feedback: ['Akaun berjaya dicipta. Log masuk untuk meneruskan.', 'Semak maklumat yang anda masukkan.', 'Halaman ini telah tamat tempoh. Muat semula dan cuba lagi.', 'Penciptaan akaun tidak tersedia buat sementara waktu. Cuba lagi kemudian.', 'Semak ID log masuk dan kata laluan anda.', 'Log masuk tidak tersedia buat sementara waktu. Cuba lagi kemudian.', 'Kata laluan tidak sepadan.']
   }),
   th: localizedAuthMessages({
     title: ['เข้าสู่ระบบ', 'สร้างบัญชี', 'กู้คืนบัญชี'],
     summary: ['ดำเนินการต่อด้วยบัญชี 8ailors ของคุณ', 'สร้างบัญชี 8ailors ของคุณ', 'เราจะส่งคำแนะนำการกู้คืนไปยังอีเมลของคุณ'],
-    fields: ['รหัสเข้าสู่ระบบ', 'อีเมล', 'รหัสผ่าน', 'ชื่อ', 'ฉันยอมรับข้อกำหนดที่จำเป็น'],
+    fields: ['รหัสเข้าสู่ระบบ', 'อีเมล', 'รหัสผ่าน', 'ชื่อ', 'ฉันยอมรับข้อกำหนดที่จำเป็น', 'ยืนยันรหัสผ่าน'],
     actions: ['เข้าสู่ระบบ', 'สร้างบัญชี', 'รับอีเมลกู้คืน', 'ดำเนินการต่อด้วยพาสคีย์', 'แสดงรหัสผ่าน', 'ซ่อนรหัสผ่าน'],
     groupLabel: 'เลือกวิธีเข้าสู่ระบบ', accountHelp: 'ความช่วยเหลือเกี่ยวกับบัญชี',
     links: ['ฉันมีบัญชีแล้ว', 'สร้างบัญชีใหม่', 'ฉันลืมรหัสผ่าน', 'ข้อกำหนด', 'ความเป็นส่วนตัว'],
     status: ['กำลังตรวจสอบ', 'โปรดตรวจสอบข้อมูลแล้วลองอีกครั้ง'], preparing: 'บริการบัญชียังไม่พร้อมใช้งาน',
-    feedback: ['สร้างบัญชีแล้ว โปรดเข้าสู่ระบบเพื่อดำเนินการต่อ', 'โปรดตรวจสอบข้อมูลที่กรอก', 'หน้านี้หมดอายุแล้ว โปรดรีเฟรชและลองอีกครั้ง', 'ไม่สามารถสร้างบัญชีได้ชั่วคราว โปรดลองอีกครั้งภายหลัง', 'โปรดตรวจสอบรหัสเข้าสู่ระบบและรหัสผ่าน', 'ไม่สามารถเข้าสู่ระบบได้ชั่วคราว โปรดลองอีกครั้งภายหลัง']
+    feedback: ['สร้างบัญชีแล้ว โปรดเข้าสู่ระบบเพื่อดำเนินการต่อ', 'โปรดตรวจสอบข้อมูลที่กรอก', 'หน้านี้หมดอายุแล้ว โปรดรีเฟรชและลองอีกครั้ง', 'ไม่สามารถสร้างบัญชีได้ชั่วคราว โปรดลองอีกครั้งภายหลัง', 'โปรดตรวจสอบรหัสเข้าสู่ระบบและรหัสผ่าน', 'ไม่สามารถเข้าสู่ระบบได้ชั่วคราว โปรดลองอีกครั้งภายหลัง', 'รหัสผ่านไม่ตรงกัน']
   })
 };
 
 interface LocalizedAuthCopy {
   readonly title: readonly [string, string, string];
   readonly summary: readonly [string, string, string];
-  readonly fields: readonly [string, string, string, string, string];
+  readonly fields: readonly [string, string, string, string, string, string];
   readonly actions: readonly [string, string, string, string, string, string];
   readonly groupLabel: string;
   readonly accountHelp: string;
   readonly links: readonly [string, string, string, string, string];
   readonly status: readonly [string, string];
   readonly preparing: string;
-  readonly feedback: readonly [string, string, string, string, string, string];
+  readonly feedback: readonly [string, string, string, string, string, string, string];
 }
 
 function localizedAuthMessages(copy: LocalizedAuthCopy): ZdpAuthMessages {
@@ -439,7 +445,8 @@ function localizedAuthMessages(copy: LocalizedAuthCopy): ZdpAuthMessages {
     summary: { login: copy.summary[0], signup: copy.summary[1], recovery: copy.summary[2] },
     fields: {
       loginId: copy.fields[0], email: copy.fields[1], password: copy.fields[2],
-      name: copy.fields[3], termsAcceptance: copy.fields[4]
+      name: copy.fields[3], termsAcceptance: copy.fields[4],
+      passwordConfirmation: copy.fields[5]
     },
     actions: {
       login: copy.actions[0], signup: copy.actions[1], recovery: copy.actions[2],
@@ -457,7 +464,8 @@ function localizedAuthMessages(copy: LocalizedAuthCopy): ZdpAuthMessages {
     availability: { preparing: copy.preparing },
     feedback: {
       registered: copy.feedback[0], invalidInput: copy.feedback[1], expiredPage: copy.feedback[2],
-      signupUnavailable: copy.feedback[3], loginFailed: copy.feedback[4], loginUnavailable: copy.feedback[5]
+      signupUnavailable: copy.feedback[3], loginFailed: copy.feedback[4], loginUnavailable: copy.feedback[5],
+      passwordMismatch: copy.feedback[6]
     },
     productLink: fallbackProductLinkMessages
   };

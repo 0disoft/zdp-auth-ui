@@ -219,6 +219,30 @@ try {
     'Signup must focus the required password after login ID is present.'
   );
   await signupPassword.fill('valid-browser-signup-password');
+  const confirmation = signupFixture.getByLabel('Confirm password', { exact: true });
+  await signupSubmit.click();
+  assert.equal(await confirmation.evaluate((element) => document.activeElement === element), true,
+    'Signup must require password confirmation.');
+  assert.equal(await confirmation.getAttribute('autocomplete'), 'new-password');
+  await confirmation.fill('different-password');
+  await confirmation.blur();
+  assert.equal(await confirmation.getAttribute('aria-invalid'), 'true');
+  assert.equal(await signupFixture.getByText('Passwords do not match.', { exact: true }).count(), 1);
+  await signupTerms.check();
+  await signupSubmit.click();
+  assert.equal(await page.getByTestId('signup-submit-count').textContent(), '0',
+    'Mismatched credentials must never reach the consumer.');
+  await confirmation.fill('valid-browser-signup-password');
+  await signupPassword.fill('changed-browser-signup-password');
+  await signupSubmit.click();
+  assert.equal(await page.getByTestId('signup-submit-count').textContent(), '0',
+    'Changing the original password must invalidate an earlier match.');
+  await signupPassword.fill('valid-browser-signup-password');
+  assert.equal(await confirmation.evaluate((element) => element.validity.valid), true);
+  assert.deepEqual(await signupFixture.locator('form').evaluate((form) => [...new FormData(form).keys()].sort()),
+    ['locale', 'login_id', 'password', 'terms_accepted', 'terms_consent_ref'],
+    'Confirmation must never become a transmitted form field.');
+  await signupTerms.uncheck();
   await signupSubmit.click();
   assert.equal(
     await signupTerms.evaluate((element) => document.activeElement === element),
@@ -242,6 +266,7 @@ try {
     '',
     'The consuming fixture must be able to clear the password immediately after handoff.'
   );
+  assert.equal(await confirmation.inputValue(), '', 'Clearing the password must also clear confirmation.');
 
   await password.fill('valid-browser-fixture-password');
   await submit.click();

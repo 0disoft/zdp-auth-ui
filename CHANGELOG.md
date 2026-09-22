@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.8.0
+
+- Require password confirmation in shared signup fields, with localized mismatch feedback in all 12 locales. Confirmation stays in the browser, blocks mismatched submissions, and clears when the consumer clears the password.
+
 ## 0.7.1
 
 - Updated the published design-system dependency to `zdp-design-system ^0.61.0` so authentication surfaces consume the current form-control chrome and the simplified TermSheet package contract without a nested older design-system copy.

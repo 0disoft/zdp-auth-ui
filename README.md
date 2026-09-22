@@ -154,7 +154,7 @@ if (handoff.outcome === 'created') {
 
 소비 앱은 이 패키지에서 발생한 submit/provider/passkey 선택을 받아 자기 API 클라이언트나 SDK에 연결한다. 이 패키지는 `fetch`, cookie, localStorage, sessionStorage, DB, provider secret을 직접 다루지 않는다.
 
-`PasswordSignupFields`는 Core의 password registration 입력 이름에 맞춘 form field만 렌더링한다. 소비 앱은 submit event에서 값을 즉시 자기 BFF 또는 typed SDK로 넘기고 password 변수를 지운다. 이 패키지는 trusted-edge HMAC proof를 만들거나 staging registration route를 직접 호출하지 않으며, 계정 생성 성공·실패와 session 발급도 판단하지 않는다. `termsConsentRef`는 소비 앱이 현재 게시된 필수 약관 버전에서 만든 신뢰된 참조를 전달해야 하고, 임의 사용자 입력을 그대로 넣으면 안 된다.
+`PasswordSignupFields`는 Core의 password registration 입력 이름에 맞춘 전송 필드와 필수 비밀번호 확인란을 렌더링한다. 확인란은 브라우저에서 두 비밀번호를 비교하며, 값이 다르면 제출을 막는다. 확인란에는 전송용 이름을 지정하지 않아 `FormData`에 포함되지 않는다. 붙여넣기를 허용하고 두 비밀번호 입력란 모두 `autocomplete="new-password"`를 사용한다. 소비 앱은 submit event에서 값을 즉시 자기 BFF 또는 typed SDK로 넘기고 password 변수를 지운다. 이때 확인란도 함께 비워진다. 이 패키지는 trusted-edge HMAC proof를 만들거나 staging registration route를 직접 호출하지 않으며, 계정 생성 성공·실패와 session 발급도 판단하지 않는다. `termsConsentRef`는 소비 앱이 현재 게시된 필수 약관 버전에서 만든 신뢰된 참조를 전달해야 하고, 임의 사용자 입력을 그대로 넣으면 안 된다.
 
 `buildZdpAuthHandoffUrl`은 인증 상태를 읽거나 쓰지 않고 URL 문자열만 만든다. session, token, user, cookie, storage, network call, navigation은 모두 소비 앱과 auth runtime의 책임이다. absolute URL, protocol-relative path, backslash, fragment, control character, traversal, encoded path, query delimiter, malformed encoding, registry 밖 경로는 fail closed다.
 

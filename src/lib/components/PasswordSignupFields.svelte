@@ -16,6 +16,31 @@
   export let loginIdError: string | null = null;
   export let passwordError: string | null = null;
 
+  let confirmation = '';
+  let confirmationTouched = false;
+
+  // Consumers clear the credential after handoff; clear its local confirmation too.
+  $: if (!password) {
+    confirmation = '';
+    confirmationTouched = false;
+  }
+  $: mismatch = confirmation.length > 0 && confirmation !== password;
+
+  function validateConfirmation(node: HTMLDivElement, message: string) {
+    const input = node.querySelector('input');
+    const revealError = () => { confirmationTouched = true; };
+    input?.setCustomValidity(message);
+    input?.addEventListener('blur', revealError);
+    input?.addEventListener('invalid', revealError);
+    return {
+      update(nextMessage: string) { input?.setCustomValidity(nextMessage); },
+      destroy() {
+        input?.removeEventListener('blur', revealError);
+        input?.removeEventListener('invalid', revealError);
+      }
+    };
+  }
+
   $: messages = getAuthMessages(contract.locale);
   const termsHrefContext = getContext<TermsLinkContext | undefined>(termsLinkContextKey);
   $: termsHref = termsHrefContext?.() ?? null;
@@ -40,6 +65,19 @@
     required
     {disabled}
   />
+  <div use:validateConfirmation={mismatch ? messages.feedback.passwordMismatch : ''}>
+    <PasswordField
+      id={`${idPrefix}-password-confirmation`}
+      name=""
+      label={messages.fields.passwordConfirmation}
+      locale={contract.locale}
+      autocomplete="new-password"
+      bind:value={confirmation}
+      errorText={confirmationTouched && mismatch ? messages.feedback.passwordMismatch : null}
+      required
+      {disabled}
+    />
+  </div>
   <div class="zdp-auth-signup-terms">
     <Checkbox
       id={`${idPrefix}-terms-accepted`}
