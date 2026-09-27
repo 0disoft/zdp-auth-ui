@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.8.7
+
+- Corrected the published `AuthShell` prop declaration to include its existing `busy` state, and added a package-import type check for consumers.
+
 ## 0.8.6
 
 - Checks runtime imports and all-locale TypeScript access from files extracted from the release tarball in an isolated consumer directory.

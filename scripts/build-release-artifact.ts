@@ -145,7 +145,14 @@ async function checkPackedConsumer(tarball: string, checkDirectory: string): Pro
   const archive = await readFile(tarball);
   const consumerRoot = join(checkDirectory, 'consumer');
   const packageRoot = join(consumerRoot, 'node_modules', 'zdp-auth-ui');
-  for (const entry of ['package.json', 'dist/i18n.js', 'dist/i18n.d.ts', 'dist/styles.css']) {
+  for (const entry of [
+    'package.json',
+    'dist/index.d.ts',
+    'dist/contract.d.ts',
+    'dist/i18n.js',
+    'dist/i18n.d.ts',
+    'dist/styles.css'
+  ]) {
     const output = join(packageRoot, entry);
     await mkdir(dirname(output), { recursive: true });
     await writeFile(output, readTarEntry(archive, `package/${entry}`));
