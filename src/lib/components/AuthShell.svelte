@@ -55,6 +55,7 @@
   let previousFeedbackKey: string | null = null;
   let previousLegacyErrorKey: string | null = null;
   let pendingFocusKey: string | null = null;
+  let sameTaskSubmitHandled = false;
 
   $: messages = getAuthMessages(locale);
   $: normalizedAccountBrand = normalizeAccountBrand(accountBrand);
@@ -97,24 +98,26 @@
 
   function handleSubmit(event: SubmitEvent): void {
     const form = event.currentTarget as HTMLFormElement;
-    if (interactionLocked || onsubmit || !action) {
+    if (interactionLocked || sameTaskSubmitHandled || onsubmit || !action) {
       event.preventDefault();
     }
-    if (interactionLocked) {
+    if (interactionLocked || sameTaskSubmitHandled) {
       return;
     }
+    sameTaskSubmitHandled = true;
+    queueMicrotask(() => { sameTaskSubmitHandled = false; });
     onsubmit?.({ mode, form, referralCode: normalizedReferralCode }, event);
   }
 
   function handleProviderSelect(provider: ZdpAuthProvider, event: MouseEvent): void {
-    if (interactionLocked) {
+    if (interactionLocked || sameTaskSubmitHandled) {
       return;
     }
     onproviderselect?.({ provider }, event);
   }
 
   function handleModeChange(event: MouseEvent): void {
-    if (interactionLocked) {
+    if (interactionLocked || sameTaskSubmitHandled) {
       return;
     }
     onmodechange?.({ mode: nextMode }, event);

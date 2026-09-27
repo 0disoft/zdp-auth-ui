@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.8.8
+
+- Rejects same-task duplicate auth submissions and related provider or mode actions before the consumer's `busy` prop can render, while leaving request completion with the consumer.
+
 ## 0.8.7
 
 - Corrected the published `AuthShell` prop declaration to include its existing `busy` state, and added a package-import type check for consumers.

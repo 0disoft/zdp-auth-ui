@@ -41,6 +41,7 @@ await Promise.all([
           {providers}
           onsubmit={() => {
             submitCount += 1;
+            document.body.dataset.authSubmitCount = String(submitCount);
             busy = true;
           }}
           onproviderselect={() => {
@@ -132,7 +133,12 @@ try {
   const modeChange = fixture.getByRole('button', { name: 'Create a new account', exact: true });
 
   await password.fill('valid-busy-state-password');
-  await submit.click();
+  const sameTaskSubmitCount = await form.evaluate((element) => {
+    element.requestSubmit();
+    element.requestSubmit();
+    return Number(document.body.dataset.authSubmitCount);
+  });
+  assert.equal(sameTaskSubmitCount, 1, 'Two submits in one task must emit only one auth callback.');
 
   assert.equal(await page.getByTestId('busy-submit-count').textContent(), '1', 'The first valid submit must reach the consumer once.');
   assert.equal(await form.getAttribute('aria-busy'), 'true', 'The form must expose its controlled busy state to assistive technology.');
@@ -174,6 +180,8 @@ try {
     0,
     'Clearing busy must remove the waiting status.'
   );
+  await submit.click();
+  assert.equal(await page.getByTestId('busy-submit-count').textContent(), '2', 'A completed request must allow a new submission.');
 
   console.log('AuthShell controlled busy-state browser check passed.');
 } finally {
