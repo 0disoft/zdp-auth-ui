@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.8.2
+
+- Corrected the published locale catalog declaration to expose all 12 message catalogs, while keeping feature activation limited to the reviewed locales.
+- Added a package-import TypeScript check so generated declarations cannot silently narrow the public catalog again.
+
 ## 0.8.1
 
 - Refreshed the registry dependency lines to `zdp-design-system ^0.63.0` and `@simplewebauthn/browser ^14.0.0`, adopted current toolchain minors, and kept the TypeScript `^6.0.3` compiler line the package contract checks require.

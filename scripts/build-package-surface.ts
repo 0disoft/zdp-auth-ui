@@ -257,7 +257,7 @@ export interface ZdpAuthMessages {
     };
   };
 }
-export declare const zdpAuthMessages: Record<ZdpAuthActiveLocale, ZdpAuthMessages>;
+export declare const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages>;
 export declare function isActiveAuthLocale(locale: string): locale is ZdpAuthActiveLocale;
 export declare function getAuthMessages(locale: ZdpAuthLocale | string): ZdpAuthMessages;
 `;
