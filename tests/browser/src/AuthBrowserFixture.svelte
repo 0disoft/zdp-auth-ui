@@ -31,6 +31,7 @@
   let approveBusy = false;
   let denyBusy = false;
   let completionCount = 0;
+  let clockShiftDecisionCount = 0;
 
   const fixtureNow = new Date('2026-07-15T04:05:00.000Z');
   const loginHandoff: ZdpAuthHandoffResult = buildZdpAuthHandoffUrl({
@@ -268,6 +269,18 @@
       busy={denyBusy}
       ondecision={handleDeny}
     />
+  </section>
+
+  <section data-testid="product-link-clock-shift">
+    <ProductLinkApproval
+      id="product-link-clock-shift"
+      enabled
+      locale="en"
+      request={createProductLinkRequest('plc_clock_shift_fixture_012345')}
+      trust={createTrust('plc_clock_shift_fixture_012345')}
+      ondecision={() => { clockShiftDecisionCount += 1; }}
+    />
+    <output data-testid="clock-shift-decision-count">{clockShiftDecisionCount}</output>
   </section>
 
   <section data-testid="product-link-unsafe">

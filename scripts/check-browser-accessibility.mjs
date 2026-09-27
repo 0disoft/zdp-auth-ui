@@ -444,6 +444,7 @@ try {
   for (const challengeRef of [
     'plc_approve_fixture_0123456789',
     'plc_deny_fixture_012345678901',
+    'plc_clock_shift_fixture_012345',
     'plc_unsafe_fixture_012345678',
     'plc_stale_fixture_0123456789',
     'plc_expired_fixture_01234567',
@@ -462,6 +463,26 @@ try {
       false,
       `Verification and credential material must not be rendered into the DOM: ${privateText}`
     );
+  }
+
+  const clockPage = await browser.newPage();
+  const clockPageErrors = [];
+  clockPage.on('pageerror', (error) => clockPageErrors.push(error.message));
+  try {
+    await clockPage.clock.setFixedTime('2026-07-15T04:05:00.000Z');
+    await clockPage.goto(`http://127.0.0.1:${address.port}`, { waitUntil: 'domcontentloaded' });
+    const clockFixture = clockPage.getByTestId('product-link-clock-shift');
+    const clockApprove = clockFixture.getByRole('button', { name: 'Approve connection', exact: true });
+    await clockApprove.waitFor();
+    await clockPage.clock.setFixedTime('2026-07-15T04:07:00.000Z');
+    await clockApprove.click();
+    assert.equal(await clockFixture.getByTestId('clock-shift-decision-count').textContent(), '0', 'An expired request must not emit a decision after a delayed deadline refresh.');
+    const staleStatus = clockFixture.getByRole('alert').getByText('This request is out of date. Start again from the desktop product.', { exact: true });
+    await staleStatus.waitFor();
+    assert.equal(await clockFixture.getByRole('button').count(), 0, 'Click-time expiry must remove decision controls.');
+    assert.deepEqual(clockPageErrors, []);
+  } finally {
+    await clockPage.close();
   }
 
   console.log('Auth UI browser accessibility, login/signup handoff, and product-link flow check passed.');

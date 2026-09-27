@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.8.4
+
+- Revalidates product-link trust and expiry when a decision button is clicked, even if a delayed deadline timer still leaves the button visible.
+
 ## 0.8.3
 
 - Focuses newly visible authentication errors after a pending request ends, including the legacy status path used by current web apps.

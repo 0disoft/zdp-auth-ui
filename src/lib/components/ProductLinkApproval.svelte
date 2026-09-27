@@ -81,6 +81,12 @@
       return;
     }
 
+    const decisionNow = now ?? new Date();
+    if (!validateProductLinkRequest(request, trust, decisionNow).actionable) {
+      if (now === null) clockNow = decisionNow;
+      return;
+    }
+
     decisionFocusRequested = true;
     ondecision?.({ challengeRef: request.challengeRef, decision }, event);
   }
