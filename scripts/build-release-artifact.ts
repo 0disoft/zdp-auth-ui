@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { appendFile, cp, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { basename, isAbsolute, join, relative, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { gunzipSync } from 'node:zlib';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import ts from 'typescript';
 
 interface PackageManifest {
   readonly name?: unknown;
@@ -140,6 +141,50 @@ async function buildArtifact(gitHead: string, artifactDirectory: string): Promis
   }
 }
 
+async function checkPackedConsumer(tarball: string, checkDirectory: string): Promise<void> {
+  const archive = await readFile(tarball);
+  const consumerRoot = join(checkDirectory, 'consumer');
+  const packageRoot = join(consumerRoot, 'node_modules', 'zdp-auth-ui');
+  for (const entry of ['package.json', 'dist/i18n.js', 'dist/i18n.d.ts', 'dist/styles.css']) {
+    const output = join(packageRoot, entry);
+    await mkdir(dirname(output), { recursive: true });
+    await writeFile(output, readTarEntry(archive, `package/${entry}`));
+  }
+
+  const runtimeConsumer = join(consumerRoot, 'consumer.mjs');
+  await writeFile(runtimeConsumer, `import { zdpAuthMessages, zdpAuthTargetLocales } from 'zdp-auth-ui/i18n';
+if (zdpAuthTargetLocales.length !== 12 || !zdpAuthMessages.ja?.title.login) {
+  throw new Error('Packed locale catalog is incomplete.');
+}
+`);
+  await import(pathToFileURL(runtimeConsumer).href);
+
+  const typeConsumer = join(consumerRoot, 'consumer.ts');
+  await writeFile(typeConsumer, await readFile(join(root, 'tests/package-types.ts'), 'utf8'));
+  const program = ts.createProgram({
+    rootNames: [typeConsumer],
+    options: {
+      module: ts.ModuleKind.ESNext,
+      moduleResolution: ts.ModuleResolutionKind.Bundler,
+      noEmit: true,
+      skipLibCheck: true,
+      strict: true,
+      target: ts.ScriptTarget.ES2022,
+      types: []
+    }
+  });
+  const diagnostics = ts.getPreEmitDiagnostics(program);
+  assert.equal(
+    diagnostics.length,
+    0,
+    ts.formatDiagnosticsWithColorAndContext(diagnostics, {
+      getCanonicalFileName: (file) => file,
+      getCurrentDirectory: () => consumerRoot,
+      getNewLine: () => '\n'
+    })
+  );
+}
+
 const args = process.argv.slice(2);
 const checkOnly = args.length === 1 && args[0] === '--check';
 const gitHeadIndex = args.indexOf('--git-head');
@@ -148,8 +193,9 @@ const githubOutputIndex = args.indexOf('--github-output');
 if (checkOnly) {
   const checkDirectory = await mkdtemp(join(tmpdir(), 'zdp-release-artifact-check-'));
   try {
-    await buildArtifact(checkGitHead, checkDirectory);
-    console.log('Release artifact check passed.');
+    const { tarball } = await buildArtifact(checkGitHead, checkDirectory);
+    await checkPackedConsumer(tarball, checkDirectory);
+    console.log('Release artifact and packed consumer checks passed.');
   } finally {
     await rm(checkDirectory, { recursive: true, force: true });
   }

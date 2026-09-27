@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.8.6
+
+- Checks runtime imports and all-locale TypeScript access from files extracted from the release tarball in an isolated consumer directory.
+
 ## 0.8.5
 
 - Added whole-project Svelte and TypeScript diagnostics to the package check and aligned PR CI with the release workflow's Node 24 runtime.

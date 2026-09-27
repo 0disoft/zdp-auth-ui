@@ -13,7 +13,7 @@
 | desktop product-link trust, fail-closed states, fake API decisions, keyboard behavior, and DOM redaction | `zdp_auth_ui_check`, `zdp_auth_ui_browser_accessibility_check` |
 | passkey capability detection, conditional-UI autocomplete, modal and conditional ceremonies, cancellation, timeout, and typed errors | `zdp_auth_ui_check`, `zdp_auth_ui_build` |
 | browser/Node SSR package build output or `dist/**` surface | `zdp_auth_ui_build` |
-| npm package contents or release readiness | `zdp_auth_ui_npm_pack_dry_run` |
+| npm package contents or release readiness | `zdp_auth_ui_npm_pack_dry_run`, `zdp_auth_ui_check` (release tarball consumer) |
 | clean consumer behavior after pack evidence | `zdp_auth_ui_clean_consumer_local_smoke` or `zdp_auth_ui_clean_consumer_smoke` |
 | repository architecture contract | `zdp_architecture_validate_auth_ui_repository` |
 | architecture catalog or linter rule changes | `zdp_architecture_validate_fast` |
