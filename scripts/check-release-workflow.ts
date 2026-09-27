@@ -13,8 +13,8 @@ const packageJson = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'))
 };
 const changelog = readFileSync(join(root, 'CHANGELOG.md'), 'utf8');
 const serviceContract = readFileSync(join(root, 'service.yaml'), 'utf8');
-const actionReferences = [...workflow.matchAll(/^\s*- uses:\s+([^\s#]+)/gm)].map((match) => match[1]);
-const ciActionReferences = [...ciWorkflow.matchAll(/^\s*(?:-\s+)?uses:\s+([^\s#]+)/gm)].map((match) => match[1]);
+const actionReferences = [...workflow.matchAll(/^\s*- uses:\s+([^\s#]+)/gm)].map((match) => match[1] ?? '');
+const ciActionReferences = [...ciWorkflow.matchAll(/^\s*(?:-\s+)?uses:\s+([^\s#]+)/gm)].map((match) => match[1] ?? '');
 
 assert.equal(typeof packageJson.version, 'string', 'package.json must declare a string version.');
 assert.equal(packageJson.packageManager, 'bun@1.3.14');
@@ -57,6 +57,8 @@ assert.ok(
 assert.ok(ciWorkflow.includes('permissions:\n  contents: read'));
 assert.ok(ciWorkflow.includes('uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7'));
 assert.ok(ciWorkflow.includes('persist-credentials: false'));
+assert.ok(ciWorkflow.includes('uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6'));
+assert.ok(ciWorkflow.includes('node-version: 24'));
 assert.ok(ciWorkflow.includes('uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2'));
 assert.ok(ciActionReferences.length > 0, 'Main CI must use at least one external action.');
 assert.ok(

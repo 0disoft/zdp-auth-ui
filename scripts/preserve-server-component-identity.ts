@@ -26,6 +26,7 @@ function isBoundaryCall(node: ts.CallExpression): boolean {
     return false;
   }
   const firstArgument = node.arguments[0];
+  if (firstArgument === undefined) return false;
   return ts.isArrowFunction(firstArgument) || ts.isFunctionExpression(firstArgument);
 }
 

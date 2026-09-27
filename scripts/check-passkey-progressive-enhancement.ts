@@ -115,6 +115,7 @@ type CredentialGet = (request: CredentialRequestOptions) => Promise<Credential |
 let hasAutofillInput = false;
 let credentialGet: CredentialGet = async () => createAuthenticationCredential();
 let capturedRequest: CredentialRequestOptions | null = null;
+const getCapturedRequest = (): CredentialRequestOptions | null => capturedRequest;
 
 class TestPublicKeyCredential {
   static async isConditionalMediationAvailable(): Promise<boolean> {
@@ -175,7 +176,7 @@ try {
 
   const modalResponse = await startPasskeyAuthentication(options);
   assert.equal(modalResponse.id, 'credential-id');
-  assert.equal(capturedRequest?.mediation, undefined);
+  assert.equal(getCapturedRequest()?.mediation, undefined);
 
   await assert.rejects(
     () => startPasskeyAuthentication(options, { mediation: 'conditional' }),
@@ -192,7 +193,7 @@ try {
     mediation: 'conditional'
   });
   assert.equal(conditionalResponse.id, 'credential-id');
-  assert.equal(capturedRequest?.mediation, 'conditional');
+  assert.equal(getCapturedRequest()?.mediation, 'conditional');
 
   await assert.rejects(
     () => startPasskeyAuthentication(options, { timeoutMs: 999 }),

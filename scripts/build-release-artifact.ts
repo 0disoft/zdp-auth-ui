@@ -154,11 +154,13 @@ if (checkOnly) {
     await rm(checkDirectory, { recursive: true, force: true });
   }
 } else {
-  assert.ok(gitHeadIndex >= 0 && args[gitHeadIndex + 1], 'Missing --git-head value.');
-  assert.ok(githubOutputIndex >= 0 && args[githubOutputIndex + 1], 'Missing --github-output value.');
-  const { tarball, integrity, manifest } = await buildArtifact(args[gitHeadIndex + 1], root);
+  const gitHead = args[gitHeadIndex + 1];
+  const githubOutput = args[githubOutputIndex + 1];
+  assert.ok(gitHeadIndex >= 0 && gitHead, 'Missing --git-head value.');
+  assert.ok(githubOutputIndex >= 0 && githubOutput, 'Missing --github-output value.');
+  const { tarball, integrity, manifest } = await buildArtifact(gitHead, root);
   await appendFile(
-    args[githubOutputIndex + 1],
+    githubOutput,
     `tarball=${basename(tarball)}\nintegrity=${integrity}\nmanifest=${basename(manifest)}\n`,
     'utf8'
   );

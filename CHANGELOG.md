@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.8.5
+
+- Added whole-project Svelte and TypeScript diagnostics to the package check and aligned PR CI with the release workflow's Node 24 runtime.
+
 ## 0.8.4
 
 - Revalidates product-link trust and expiry when a decision button is clicked, even if a delayed deadline timer still leaves the button visible.

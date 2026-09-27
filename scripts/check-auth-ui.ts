@@ -252,10 +252,10 @@ function checkPackageJson(
 
   if (
     packageJson.scripts?.check
-    !== 'bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-passkey-progressive-enhancement.ts && bun scripts/check-auth-ui.ts && bun scripts/check-package-types.ts && bun run --conditions development scripts/check-dev-ssr-consumer.mjs && bun run release:check'
+    !== 'svelte-check --tsconfig ./tsconfig.json && bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-passkey-progressive-enhancement.ts && bun scripts/check-auth-ui.ts && bun scripts/check-package-types.ts && bun run --conditions development scripts/check-dev-ssr-consumer.mjs && bun run release:check'
   ) {
     failures.push(
-      'package.json scripts.check must run the lock fixture, product-link contract checker, auth handoff contract checker, passkey progressive-enhancement checker, auth UI contract checker, published package type check, dev SSR consumer check, and release workflow checker.'
+      'package.json scripts.check must run svelte-check, the lock fixture, product-link contract checker, auth handoff contract checker, passkey progressive-enhancement checker, auth UI contract checker, published package type check, dev SSR consumer check, and release workflow checker.'
     );
   }
 
@@ -440,7 +440,7 @@ function checkCiWorkflow(ciWorkflow: string): void {
   }
 
   const actionReferences = [...ciWorkflow.matchAll(/^\s*(?:-\s+)?uses:\s+([^\s#]+)/gm)].map(
-    (match) => match[1]
+    (match) => match[1] ?? ''
   );
   if (
     actionReferences.length === 0 ||
@@ -735,13 +735,13 @@ function getDesignSystemImportNames(source: string): Set<string> {
   let match: RegExpExecArray | null;
 
   while ((match = importPattern.exec(source))) {
-    for (const rawSpecifier of match[1].split(',')) {
+    for (const rawSpecifier of (match[1] ?? '').split(',')) {
       const specifier = rawSpecifier.trim();
       if (!specifier) {
         continue;
       }
 
-      importNames.add(specifier.split(/\s+as\s+/)[0].trim());
+      importNames.add((specifier.split(/\s+as\s+/)[0] ?? '').trim());
     }
   }
 

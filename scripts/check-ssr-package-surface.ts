@@ -1,5 +1,11 @@
 import { render } from 'svelte/server';
-import { AuthShell } from '../dist/index.server.js';
+import type { Component } from 'svelte';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+
+const { AuthShell } = await import(pathToFileURL(resolve('dist/index.server.js')).href) as {
+  AuthShell: Component<Record<string, unknown>>;
+};
 
 const preparingMessage = '계정 서비스는 아직 준비 중입니다.';
 const recoveryLabel = '비밀번호를 잊었어요';

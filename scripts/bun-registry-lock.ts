@@ -22,13 +22,14 @@ export function readBunRegistryLockEntry(
     .map((line) => line.trim())
     .filter((line) => line.startsWith(entryPrefix));
 
-  if (matchingLines.length !== 1) {
+  const matchingLine = matchingLines[0];
+  if (matchingLines.length !== 1 || matchingLine === undefined) {
     throw new Error(
       `bun.lock must contain exactly one registry entry for ${packageName}; found ${matchingLines.length}.`
     );
   }
 
-  const propertySource = matchingLines[0].replace(/,$/, '');
+  const propertySource = matchingLine.replace(/,$/, '');
   let parsedProperty: unknown;
 
   try {

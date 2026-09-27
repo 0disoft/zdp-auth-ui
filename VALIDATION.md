@@ -6,7 +6,7 @@
 
 | Change scope | Check |
 | --- | --- |
-| auth UI source, locale messages, service boundary, source boundary | `zdp_auth_ui_check` |
+| auth UI source, locale messages, service boundary, source boundary, Svelte and TypeScript diagnostics | `zdp_auth_ui_check` |
 | password-signup field names, native required validation, terms reference, and consumer-owned password clearing | `zdp_auth_ui_check`, `zdp_auth_ui_browser_accessibility_check` |
 | native browser form validation and focus behavior | `zdp_auth_ui_browser_accessibility_check` |
 | rendered Melamed login/signup handoff links and rejected-path non-rendering | `zdp_auth_ui_browser_accessibility_check` |
@@ -26,7 +26,7 @@
 - Service boundary: `service.yaml`
 - Package surface: `package.json`, `src/lib/index.ts`, `src/lib/auth-contract.ts`, `src/lib/auth-handoff.ts`, `src/lib/password-signup.ts`, `src/lib/i18n.ts`
 - Dist builders and SSR regression: `vite.config.ts`, `vite.server.config.ts`, `scripts/build-package-surface.ts`, `scripts/check-ssr-package-surface.ts`
-- Package checker: `scripts/check-auth-handoff-contract.ts`, `scripts/check-passkey-progressive-enhancement.ts`, `scripts/check-auth-ui.ts`
+- Package checker: `scripts/check-auth-handoff-contract.ts`, `scripts/check-passkey-progressive-enhancement.ts`, `scripts/check-auth-ui.ts`, `scripts/check-package-types.ts`
 - Release workflow: `.github/workflows/publish-npm.yml`, `scripts/check-release-workflow.ts`
 - Consumer fixture: `examples/clean-consumer/AuthUiCleanConsumer.svelte`
 - Boundary docs: `BOUNDARY.md`, `SECURITY.md`
