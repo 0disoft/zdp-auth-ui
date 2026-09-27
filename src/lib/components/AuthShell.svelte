@@ -53,6 +53,8 @@
   let mounted = false;
   let feedbackElement: HTMLParagraphElement | null = null;
   let previousFeedbackKey: string | null = null;
+  let previousLegacyErrorKey: string | null = null;
+  let pendingFocusKey: string | null = null;
 
   $: messages = getAuthMessages(locale);
   $: normalizedAccountBrand = normalizeAccountBrand(accountBrand);
@@ -70,16 +72,26 @@
   $: normalizedRecoveryHref = normalizeOptionalFormValue(recoveryHref);
   $: typedFeedback = resolveTypedFeedback(feedback, messages, mode);
   $: feedbackKey = getFeedbackKey(feedback);
+  $: legacyErrorKey = invalid && status ? status : null;
+  $: visibleErrorKey = typedFeedback
+    ? (typedFeedback.invalid && feedbackKey ? `typed:${feedbackKey}` : null)
+    : (legacyErrorKey ? `legacy:${legacyErrorKey}` : null);
   $: if (mounted && feedbackKey !== previousFeedbackKey) {
     previousFeedbackKey = feedbackKey;
-    if (typedFeedback?.invalid) {
-      void focusTypedFeedback();
-    }
+    pendingFocusKey = typedFeedback?.invalid && feedbackKey ? `typed:${feedbackKey}` : null;
+  }
+  $: if (mounted && legacyErrorKey !== previousLegacyErrorKey) {
+    previousLegacyErrorKey = legacyErrorKey;
+    if (!typedFeedback) pendingFocusKey = legacyErrorKey ? `legacy:${legacyErrorKey}` : null;
+  }
+  $: if (mounted && !submitting && pendingFocusKey && pendingFocusKey === visibleErrorKey) {
+    void focusFeedback(pendingFocusKey);
   }
   setContext<TermsLinkContext>(termsLinkContextKey, () => termsHref?.trim() || null);
 
   onMount(() => {
     previousFeedbackKey = feedbackKey;
+    previousLegacyErrorKey = legacyErrorKey;
     mounted = true;
   });
 
@@ -178,9 +190,12 @@
     return `${value.code}:${sequence}`;
   }
 
-  async function focusTypedFeedback(): Promise<void> {
+  async function focusFeedback(expectedKey: string): Promise<void> {
     await tick();
-    feedbackElement?.focus();
+    if (!submitting && pendingFocusKey === expectedKey && visibleErrorKey === expectedKey && feedbackElement?.isConnected) {
+      feedbackElement.focus();
+      pendingFocusKey = null;
+    }
   }
 </script>
 
@@ -243,11 +258,17 @@
             >{typedFeedback.message}</p>
           {/if}
         {:else if status}
-          <p
-            class="zdp-auth-shell__status zdp-auth-shell__status--error"
-            role={invalid ? 'alert' : 'status'}
-            aria-live={invalid ? 'assertive' : 'polite'}
-          >{status}</p>
+          {#if invalid}
+            <p
+              bind:this={feedbackElement}
+              class="zdp-auth-shell__status zdp-auth-shell__status--error"
+              role="alert"
+              aria-live="assertive"
+              tabindex="-1"
+            >{status}</p>
+          {:else}
+            <p class="zdp-auth-shell__status" role="status" aria-live="polite">{status}</p>
+          {/if}
         {/if}
 
         {#if preparing}

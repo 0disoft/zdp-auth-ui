@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.8.3
+
+- Focuses newly visible authentication errors after a pending request ends, including the legacy status path used by current web apps.
+- Keeps success status text outside the error presentation and avoids focusing a stale fallback error when typed feedback is cleared.
+
 ## 0.8.2
 
 - Corrected the published locale catalog declaration to expose all 12 message catalogs, while keeping feature activation limited to the reviewed locales.

@@ -9,6 +9,9 @@
   let feedback: ZdpAuthFeedback | null = null;
   let feedbackSequence = 0;
   let password = '';
+  let busy = false;
+  let legacyStatus = 'Legacy fallback status.';
+  let legacyInvalid = true;
 
   function showFeedback(code: ZdpAuthFeedbackCode): void {
     feedbackSequence += 1;
@@ -21,8 +24,9 @@
     locale="en"
     mode="login"
     {feedback}
-    status="Legacy fallback status."
-    invalid
+    {busy}
+    status={legacyStatus}
+    invalid={legacyInvalid}
   >
     <PasswordField
       id="typed-feedback-password"
@@ -51,6 +55,18 @@
     >Show registered</button>
     <button type="button" data-testid="clear-feedback" onclick={() => (feedback = null)}>
       Clear feedback
+    </button>
+    <button type="button" data-testid="queue-typed-error" onclick={() => { busy = true; showFeedback('invalid_credentials'); }}>
+      Queue typed error
+    </button>
+    <button type="button" data-testid="queue-legacy-error" onclick={() => { feedback = null; busy = true; legacyStatus = 'Legacy request failed.'; legacyInvalid = true; }}>
+      Queue legacy error
+    </button>
+    <button type="button" data-testid="release-busy" onclick={() => (busy = false)}>
+      Release busy
+    </button>
+    <button type="button" data-testid="show-legacy-success" onclick={() => { feedback = null; legacyStatus = 'Legacy saved.'; legacyInvalid = false; }}>
+      Show legacy success
     </button>
   </div>
 </section>

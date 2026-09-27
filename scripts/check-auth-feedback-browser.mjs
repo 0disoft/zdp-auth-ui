@@ -158,6 +158,42 @@ try {
     0,
     'Typed feedback codes must leave the DOM when the consumer clears feedback.'
   );
+  assert.equal(
+    await fixture.getByTestId('clear-feedback').evaluate((element) => document.activeElement === element),
+    true,
+    'Clearing typed feedback must not focus the unchanged legacy fallback error.'
+  );
+
+  await fixture.getByTestId('queue-typed-error').click();
+  assert.equal(await fixture.locator('[data-feedback-code="invalid_credentials"]').count(), 0);
+  await fixture.getByTestId('release-busy').click();
+  await page.waitForFunction(() => document.activeElement?.getAttribute('data-feedback-code') === 'invalid_credentials');
+
+  await fixture.getByTestId('queue-legacy-error').click();
+  await fixture.getByTestId('release-busy').click();
+  const legacyError = fixture.getByRole('alert').getByText('Legacy request failed.', { exact: true });
+  await legacyError.waitFor();
+  await page.waitForFunction(() => document.activeElement?.textContent === 'Legacy request failed.');
+  assert.equal(await legacyError.getAttribute('tabindex'), '-1');
+
+  await fixture.getByTestId('queue-typed-error').click();
+  await fixture.getByTestId('show-registered').click();
+  const releaseBusy = fixture.getByTestId('release-busy');
+  await releaseBusy.click();
+  await registeredFeedback.waitFor();
+  assert.equal(
+    await releaseBusy.evaluate((element) => document.activeElement === element),
+    true,
+    'A superseded error must not steal focus after busy ends.'
+  );
+
+  const legacySuccessButton = fixture.getByTestId('show-legacy-success');
+  await legacySuccessButton.click();
+  const legacySuccess = fixture.getByRole('status').getByText('Legacy saved.', { exact: true });
+  await legacySuccess.waitFor();
+  assert.equal(await legacySuccess.getAttribute('tabindex'), null);
+  assert.equal((await legacySuccess.getAttribute('class'))?.includes('zdp-auth-shell__status--error'), false);
+  assert.equal(await legacySuccessButton.evaluate((element) => document.activeElement === element), true);
 
   assert.deepEqual(browserErrors, [], `Typed auth feedback fixture must run without browser errors: ${browserErrors.join(' | ')}`);
   console.log('Typed auth feedback browser contract check passed.');
