@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.8.9
+
+- This is the combined package update since the published 0.5.18 release: password confirmation, all 12 locale catalog types, pending-error focus, same-task submission protection, and decision-time product-link validation.
+- Package and release checks now cover the full Svelte/TypeScript project and packed consumer declarations. CI and trusted publishing use Bun 1.4.2, matching the locally verified current stable toolchain.
+
 ## 0.8.8
 
 - Rejects same-task duplicate auth submissions and related provider or mode actions before the consumer's `busy` prop can render, while leaving request completion with the consumer.
