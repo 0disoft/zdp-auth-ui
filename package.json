@@ -1,6 +1,6 @@
 {
   "name": "zdp-auth-ui",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "private": false,
   "license": "MIT",
   "type": "module",
@@ -129,16 +129,16 @@
     "package:check": "bun run check"
   },
   "dependencies": {
-    "@simplewebauthn/browser": "^13.3.0",
-    "zdp-design-system": "^0.61.0"
+    "@simplewebauthn/browser": "^14.0.0",
+    "zdp-design-system": "^0.63.0"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^7.3.0",
-    "@types/node": "^26.2.0",
-    "playwright-core": "1.62.1",
-    "svelte": "^5.56.8",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@types/node": "^26.6.3",
+    "playwright-core": "1.63.0",
+    "svelte": "^5.57.1",
     "typescript": "^6.0.3",
-    "vite": "^8.2.1"
+    "vite": "^8.3.1"
   },
   "peerDependencies": {
     "svelte": "^5.56.0"

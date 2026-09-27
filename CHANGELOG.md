@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.8.1
+
+- Refreshed the registry dependency lines to `zdp-design-system ^0.63.0` and `@simplewebauthn/browser ^14.0.0`, adopted current toolchain minors, and kept the TypeScript `^6.0.3` compiler line the package contract checks require.
+
 ## 0.8.0
 
 - Require password confirmation in shared signup fields, with localized mismatch feedback in all 12 locales. Confirmation stays in the browser, blocks mismatched submissions, and clears when the consumer clears the password.
