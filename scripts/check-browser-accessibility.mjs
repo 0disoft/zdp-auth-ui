@@ -321,6 +321,12 @@ try {
     '/privacy',
     'Preparing signup must keep the consumer-configured privacy link visible.'
   );
+  const preparingSignupFields = page.getByTestId('preparing-signup-fields-fixture');
+  assert.equal(
+    await preparingSignupFields.getByRole('link', { name: 'Terms', exact: true }).count(),
+    1,
+    'Preparing signup with consent fields must expose only the terms link beside the checkbox.'
+  );
 
   const distFixture = page.getByTestId('dist-auth-shell-fixture');
   assert.equal(

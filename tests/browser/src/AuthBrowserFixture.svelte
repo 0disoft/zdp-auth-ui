@@ -202,6 +202,18 @@
     />
   </section>
 
+  <section data-testid="preparing-signup-fields-fixture">
+    <AuthShell
+      locale="en"
+      mode="signup"
+      availability="preparing"
+      termsHref="/terms"
+      signupTermsInSlot
+    >
+      <PasswordSignupFields idPrefix="browser-preparing-signup" contract={signupContract} />
+    </AuthShell>
+  </section>
+
   <section data-testid="signup-fixture">
     <AuthShell
       locale="en"

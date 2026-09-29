@@ -45,6 +45,7 @@
   export let referralCodeFieldName = 'referral_code';
   export let recoveryHref: string | null = null;
   export let termsHref: string | null = null;
+  export let signupTermsInSlot = false;
   export let privacyHref: string | null = null;
   export let onsubmit: ((detail: ZdpAuthSubmitDetail, event: SubmitEvent) => void) | null = null;
   export let onproviderselect: ((detail: ZdpAuthProviderSelectDetail, event: MouseEvent) => void) | null = null;
@@ -289,7 +290,7 @@
           {#if mode === 'login' && normalizedRecoveryHref && !preparing}
             <Link href={normalizedRecoveryHref}>{messages.links.recovery}</Link>
           {/if}
-          {#if termsHref && (mode !== 'signup' || preparing)}
+          {#if termsHref && (mode !== 'signup' || (preparing && !signupTermsInSlot))}
             <Link href={termsHref} target="_blank" rel="noopener noreferrer">{messages.links.terms}</Link>
           {/if}
           {#if privacyHref}

@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.8.11
+
+- Avoid a duplicate terms link when a preparing signup screen already renders the consent fields; keep the link available for shells without those fields.
+
 ## 0.8.10
 
 - Place the signup terms link below the required checkbox on narrow screens so translated acceptance text and the link remain fully visible.

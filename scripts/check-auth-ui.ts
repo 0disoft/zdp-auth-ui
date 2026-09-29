@@ -581,7 +581,8 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
   }
 
   for (const requiredText of [
-    "mode !== 'signup' || preparing",
+    "mode !== 'signup' || (preparing && !signupTermsInSlot)",
+    'export let signupTermsInSlot = false;',
     'setContext<TermsLinkContext>',
     "import { termsLinkContextKey"
   ]) {
