@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.8.10
+
+- Place the signup terms link below the required checkbox on narrow screens so translated acceptance text and the link remain fully visible.
+
 ## 0.8.9
 
 - This is the combined package update since the published 0.5.18 release: password confirmation, all 12 locale catalog types, pending-error focus, same-task submission protection, and decision-time product-link validation.

@@ -127,9 +127,13 @@
     );
   }
 
-  @media (max-width: 24rem) {
+  @media (max-width: 30rem) {
     .zdp-auth-signup-terms {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    .zdp-auth-signup-terms :global(.zdp-link) {
+      margin-inline-start: calc(var(--zdp-control-choice-size) + var(--zdp-space-3));
     }
   }
 </style>
