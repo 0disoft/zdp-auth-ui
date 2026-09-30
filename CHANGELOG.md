@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.8.13
+
+- Include `fields.passwordConfirmation` and `feedback.passwordMismatch` in published locale declarations.
+- Check the complete source and public message type shapes for drift, and verify both fields through public imports in the packed consumer.
+
 ## 0.8.12
 
 - Include `signupTermsInSlot` in the published `AuthShellProps` declaration and check it through a package import so consumers can use the terms-link fix with TypeScript.

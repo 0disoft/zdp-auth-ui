@@ -180,6 +180,7 @@ export interface ZdpAuthMessages {
     readonly loginId: string;
     readonly email: string;
     readonly password: string;
+    readonly passwordConfirmation: string;
     readonly name: string;
     readonly termsAcceptance: string;
   };
@@ -222,6 +223,7 @@ export interface ZdpAuthMessages {
     readonly signupUnavailable: string;
     readonly loginFailed: string;
     readonly loginUnavailable: string;
+    readonly passwordMismatch: string;
   };
   readonly productLink: {
     readonly title: string;

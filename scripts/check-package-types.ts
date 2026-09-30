@@ -9,7 +9,7 @@ if (config.error) {
 
 const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, root);
 const program = ts.createProgram({
-  rootNames: [resolve(root, 'tests/package-types.ts')],
+  rootNames: [resolve(root, 'tests/package-types.ts'), resolve(root, 'tests/package-message-parity.ts')],
   options: { ...parsed.options, noEmit: true }
 });
 const diagnostics = [...parsed.errors, ...ts.getPreEmitDiagnostics(program)];
@@ -22,4 +22,4 @@ if (diagnostics.length > 0) {
   throw new Error(ts.formatDiagnosticsWithColorAndContext(diagnostics, host));
 }
 
-process.stdout.write('Published package i18n declarations typecheck.\n');
+process.stdout.write('Published package i18n declarations typecheck and match the source catalog.\n');

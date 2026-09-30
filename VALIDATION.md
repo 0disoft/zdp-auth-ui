@@ -50,6 +50,8 @@
 
 ## Contract Drift Checks
 
+- `scripts/check-package-types.ts` checks source/public `ZdpAuthMessages` type parity through `tests/package-message-parity.ts`. Keep this source comparison outside the portable packed-consumer fixture. `tests/package-types.ts` uses public imports for confirmation labels and mismatch messages across all 12 locales and is also compiled from the actual release tarball.
+
 - `vite.config.ts` must externalize dependency package roots and subpaths so the browser library never embeds a second Svelte runtime; `vite.server.config.ts` must keep Svelte external while compiling design-system components into a Node SSR entrypoint.
 - `service.yaml`, `BOUNDARY.md`, `SECURITY.md`, and agent docs must agree that this package is UI-only.
 - `package.json` exports, build output, and checker expectations must agree on root, styles, i18n, and contract entrypoints.
