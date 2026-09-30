@@ -10,5 +10,6 @@ const japaneseTitle: string = zdpAuthMessages.ja.title.login;
 const signupTitles: string[] = zdpAuthTargetLocales.map((locale) => zdpAuthMessages[locale].title.signup);
 const activeLocale: ZdpAuthActiveLocale = zdpAuthActiveLocales[0];
 const busyShellProps: AuthShellProps = { busy: true };
+const signupShellProps: AuthShellProps = { mode: 'signup', availability: 'preparing', signupTermsInSlot: true };
 
-void [japaneseTitle, signupTitles, activeLocale, busyShellProps];
+void [japaneseTitle, signupTitles, activeLocale, busyShellProps, signupShellProps];

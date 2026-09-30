@@ -4,6 +4,10 @@
 
 - No unreleased changes.
 
+## 0.8.12
+
+- Include `signupTermsInSlot` in the published `AuthShellProps` declaration and check it through a package import so consumers can use the terms-link fix with TypeScript.
+
 ## 0.8.11
 
 - Avoid a duplicate terms link when a preparing signup screen already renders the consent fields; keep the link available for shells without those fields.

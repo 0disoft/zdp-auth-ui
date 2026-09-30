@@ -414,6 +414,7 @@ export interface AuthShellProps {
   readonly referralCodeFieldName?: string;
   readonly recoveryHref?: string | null;
   readonly termsHref?: string | null;
+  readonly signupTermsInSlot?: boolean;
   readonly privacyHref?: string | null;
   readonly onsubmit?: ((detail: ZdpAuthSubmitDetail, event: SubmitEvent) => void) | null;
   readonly onproviderselect?: ((detail: ZdpAuthProviderSelectDetail, event: MouseEvent) => void) | null;
