@@ -31,7 +31,8 @@ const componentPaths = [
   'src/lib/components/PasswordField.svelte',
   'src/lib/components/PasswordSignupFields.svelte',
   'src/lib/components/ProductLinkApproval.svelte',
-  'src/lib/components/ProviderButton.svelte'
+  'src/lib/components/ProviderButton.svelte',
+  'src/lib/components/PasskeySettings.svelte'
 ] as const;
 const exampleComponentPaths = [
   'examples/clean-consumer/AuthUiCleanConsumer.svelte'
@@ -39,6 +40,7 @@ const exampleComponentPaths = [
 const sourceBoundaryExtensions = new Set(['.svelte', '.ts']);
 const forbiddenSourceBoundaryTexts = ['fetch(', 'localStorage', 'sessionStorage', 'document.cookie'] as const;
 const componentDesignSystemImports: Record<string, readonly string[]> = {
+  'src/lib/components/PasskeySettings.svelte': ['Button', 'Field', 'Input', 'Label', 'Surface'],
   'src/lib/components/ProviderButton.svelte': ['Button'],
   'src/lib/components/PasswordField.svelte': [
     'ErrorText',
@@ -252,7 +254,7 @@ function checkPackageJson(
 
   if (
     packageJson.scripts?.check
-    !== 'svelte-check --tsconfig ./tsconfig.json && bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-passkey-progressive-enhancement.ts && bun scripts/check-auth-ui.ts && bun scripts/check-package-types.ts && bun run --conditions development scripts/check-dev-ssr-consumer.mjs && bun run release:check'
+    !== 'svelte-check --tsconfig ./tsconfig.json && bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-passkey-progressive-enhancement.ts && bun scripts/check-passkey-settings.ts && bun scripts/check-auth-ui.ts && bun scripts/check-package-types.ts && bun run --conditions development scripts/check-dev-ssr-consumer.mjs && bun run release:check'
   ) {
     failures.push(
       'package.json scripts.check must run svelte-check, the lock fixture, product-link contract checker, auth handoff contract checker, passkey progressive-enhancement checker, auth UI contract checker, published package type check, dev SSR consumer check, and release workflow checker.'

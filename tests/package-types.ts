@@ -5,7 +5,8 @@ import {
   getAuthMessages,
   type ZdpAuthActiveLocale
 } from 'zdp-auth-ui/i18n';
-import type { AuthShellProps } from 'zdp-auth-ui';
+import { PasskeySettings, getPasskeySettingsMessages, validPasskeyLabel, type AuthShellProps,
+  type PasskeySettingsProps, type ZdpPasskeySettingsState } from 'zdp-auth-ui';
 
 const japaneseTitle: string = zdpAuthMessages.ja.title.login;
 const signupTitles: string[] = zdpAuthTargetLocales.map((locale) => zdpAuthMessages[locale].title.signup);
@@ -16,3 +17,8 @@ const busyShellProps: AuthShellProps = { busy: true };
 const signupShellProps: AuthShellProps = { mode: 'signup', availability: 'preparing', signupTermsInSlot: true };
 
 void [japaneseTitle, signupTitles, confirmationLabels, mismatchMessages, activeLocale, busyShellProps, signupShellProps];
+const passkeyState: ZdpPasskeySettingsState = { status: 'ready', passkeys: [],
+  capabilities: { register: true, rename: false, revoke: true }, reauthentication: 'password' };
+const passkeyProps: PasskeySettingsProps = { state: passkeyState, busy: false,
+  onaction: detail => { if (detail.action === 'register') void detail.currentPassword; } };
+void [PasskeySettings, passkeyProps, getPasskeySettingsMessages('ko').removeHelp, validPasskeyLabel('Desktop')];

@@ -496,6 +496,30 @@ export declare function startPasskeyAuthentication(
   ceremonyOptions?: ZdpPasskeyAuthenticationOptions
 ): Promise<AuthenticationResponseJSON>;
 export declare function cancelPasskeyCeremony(): void;
+export interface ZdpManagedPasskey { readonly passkey_id: string; readonly label: string; readonly created_at: string; readonly last_used_at: string | null; }
+export interface ZdpPasskeySettingsState {
+  readonly status: 'ready' | 'preparing' | 'unavailable';
+  readonly passkeys: readonly ZdpManagedPasskey[];
+  readonly capabilities: { readonly register: boolean; readonly rename: boolean; readonly revoke: boolean };
+  readonly reauthentication: 'password' | 'passkey';
+}
+export type ZdpPasskeySettingsAction =
+  | { readonly action: 'register'; readonly label: string; readonly currentPassword?: string }
+  | { readonly action: 'rename'; readonly passkeyId: string; readonly label: string }
+  | { readonly action: 'revoke'; readonly passkeyId: string; readonly currentPassword?: string };
+export type ZdpPasskeySettingsFeedback = 'saved' | 'failed' | 'unconfirmed' | 'expired' | 'rate_limited' | null;
+export interface PasskeySettingsProps {
+  readonly locale?: string;
+  readonly idPrefix?: string;
+  readonly state?: ZdpPasskeySettingsState;
+  readonly busy?: boolean;
+  readonly feedback?: ZdpPasskeySettingsFeedback;
+  readonly onaction?: ((detail: ZdpPasskeySettingsAction, event: SubmitEvent) => void) | null;
+}
+export declare const PasskeySettings: Component<PasskeySettingsProps>;
+export type ZdpPasskeySettingsMessages = Readonly<Record<'title' | 'description' | 'add' | 'rename' | 'remove' | 'name' | 'save' | 'cancel' | 'confirmRemove' | 'reauthPassword' | 'reauthPasskey' | 'removeHelp' | 'empty' | 'preparing' | 'unavailable' | 'created' | 'lastUsed' | 'neverUsed' | 'invalidName' | 'currentPassword' | 'saved' | 'failed' | 'unconfirmed' | 'expired' | 'rate_limited' | 'waiting' | 'invalidPassword', string>>;
+export declare function getPasskeySettingsMessages(locale: string): ZdpPasskeySettingsMessages;
+export declare function validPasskeyLabel(value: string): boolean;
 `;
 
 await mkdir(distDir, { recursive: true });

@@ -4,6 +4,10 @@ export { default as PasswordField } from './components/PasswordField.svelte';
 export { default as PasswordSignupFields } from './components/PasswordSignupFields.svelte';
 export { default as ProductLinkApproval } from './components/ProductLinkApproval.svelte';
 export { default as ProviderButton } from './components/ProviderButton.svelte';
+export { default as PasskeySettings } from './components/PasskeySettings.svelte';
+export { validPasskeyLabel, type ZdpManagedPasskey, type ZdpPasskeySettingsState,
+  type ZdpPasskeySettingsAction, type ZdpPasskeySettingsFeedback } from './passkey-settings-contract';
+export { getPasskeySettingsMessages, type ZdpPasskeySettingsMessages } from './passkey-settings-messages';
 export {
   createZdpAuthSurfaceModel,
   zdpAuthSurfaceProviderIds,

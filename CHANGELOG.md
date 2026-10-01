@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.9.0
+
+- Add a shared passkey management surface with a safe metadata list, inline add/rename/revoke editors and server-selected reauthentication prompts.
+- Keep capability gates, pending locks, action callbacks and confirmed results consumer-owned. Clear passwords after handoff or cancellation and cover all 12 auth locales.
+
 ## 0.8.14
 
 - Share the same-task interaction guard across provider selection, password submission and mode changes, including disabled providers.

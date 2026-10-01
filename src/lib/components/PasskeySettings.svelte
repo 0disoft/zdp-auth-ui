@@ -1,0 +1,152 @@
+<script lang="ts">
+  import { Button, Field, Input, Label, Surface } from 'zdp-design-system';
+  import { onMount, tick } from 'svelte';
+  import PasswordField from './PasswordField.svelte';
+  import { getPasskeySettingsMessages } from '../passkey-settings-messages';
+  import { validPasskeyLabel, type ZdpPasskeySettingsAction, type ZdpPasskeySettingsFeedback,
+    type ZdpPasskeySettingsState } from '../passkey-settings-contract';
+
+  export let locale = 'en';
+  export let idPrefix = 'passkey-settings';
+  export let state: ZdpPasskeySettingsState = { status: 'preparing', passkeys: [],
+    capabilities: { register: false, rename: false, revoke: false }, reauthentication: 'password' };
+  export let busy = false;
+  export let feedback: ZdpPasskeySettingsFeedback = null;
+  export let onaction: ((detail: ZdpPasskeySettingsAction, event: SubmitEvent) => void) | null = null;
+
+  let editor: 'register' | 'rename' | 'revoke' | null = null;
+  let selectedId = '';
+  let name = '';
+  let password = '';
+  let touched = false;
+  let mounted = false;
+  let sameTask = false;
+  let submitted = false;
+  let editorElement: HTMLDivElement;
+  let feedbackElement: HTMLParagraphElement;
+  let returnFocus: HTMLElement | null = null;
+  $: copy = getPasskeySettingsMessages(locale);
+  $: ready = state.status === 'ready';
+  $: locked = busy || !ready || !onaction || feedback === 'unconfirmed';
+  $: permitted = editor !== null && state.capabilities[editor];
+  $: nameInvalid = editor !== 'revoke' && !validPasskeyLabel(name);
+  $: passwordInvalid = Array.from(password).length < 12 || Array.from(password).length > 128;
+  $: if (submitted && !busy && feedback === 'saved' && editor) close(false);
+  $: if (!busy && editor && (!ready || !permitted)) close(false);
+  $: if (mounted && feedback && !busy) void tick().then(() => feedbackElement?.focus());
+  onMount(() => { mounted = true; });
+
+  async function open(action: typeof editor, id = '', label = '') {
+    if (locked || !action || !state.capabilities[action]) return;
+    returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    editor = action; selectedId = id; name = label; password = ''; touched = false; submitted = false;
+    await tick();
+    editorElement?.querySelector<HTMLInputElement>('input')?.focus();
+  }
+  function close(restoreFocus = true) {
+    if (busy) return;
+    editor = null; selectedId = ''; name = ''; password = ''; touched = false; submitted = false;
+    if (restoreFocus) returnFocus?.focus();
+  }
+  function submit(event: SubmitEvent) {
+    event.preventDefault();
+    if (locked || !editor || !permitted || sameTask) return;
+    touched = true;
+    if (nameInvalid && editor !== 'revoke') return;
+    if (editor !== 'rename' && state.reauthentication === 'password' &&
+        passwordInvalid) return;
+    sameTask = true;
+    queueMicrotask(() => { sameTask = false; });
+    const currentPassword = state.reauthentication === 'password' ? password : undefined;
+    const detail: ZdpPasskeySettingsAction = editor === 'register'
+      ? { action: editor, label: name.trim(), currentPassword }
+      : editor === 'rename' ? { action: editor, passkeyId: selectedId, label: name.trim() }
+      : { action: editor, passkeyId: selectedId, currentPassword };
+    // The consumer receives the immediate value; the component retains no verifier after handoff.
+    password = '';
+    submitted = true;
+    onaction?.(detail, event);
+  }
+  function date(value: string): string {
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return copy.unavailable;
+    try { return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(parsed); }
+    catch { return new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(parsed); }
+  }
+</script>
+
+<Surface padding="lg">
+  <section class="zdp-passkey-settings" aria-labelledby={`${idPrefix}-title`} aria-busy={busy}>
+    <header>
+      <div><h2 id={`${idPrefix}-title`}>{copy.title}</h2><p>{copy.description}</p></div>
+      {#if ready && state.capabilities.register}
+        <Button type="button" variant="secondary" disabled={locked} onclick={() => open('register')}>
+          {copy.add}
+        </Button>
+      {/if}
+    </header>
+    {#if !ready}
+      <p role="status">{state.status === 'preparing' ? copy.preparing : copy.unavailable}</p>
+    {:else}
+      {#if state.passkeys.length === 0}<p>{copy.empty}</p>{/if}
+      <ul>
+        {#each state.passkeys as key (key.passkey_id)}
+          <li>
+            <div><strong>{key.label}</strong><p>{copy.created}: {date(key.created_at)} · {copy.lastUsed}: {key.last_used_at ? date(key.last_used_at) : copy.neverUsed}</p></div>
+            <div class="zdp-passkey-settings__actions">
+              {#if state.capabilities.rename}<Button type="button" variant="secondary" disabled={locked} onclick={() => open('rename', key.passkey_id, key.label)}>{copy.rename}</Button>{/if}
+              {#if state.capabilities.revoke}<Button type="button" variant="secondary" disabled={locked} onclick={() => open('revoke', key.passkey_id, key.label)}>{copy.remove}</Button>{/if}
+            </div>
+          </li>
+        {/each}
+      </ul>
+      {#if editor}
+        <div class="zdp-passkey-settings__editor" bind:this={editorElement}>
+          <form method="post" onsubmit={submit}>
+            <fieldset disabled={locked}>
+              <legend>{editor === 'register' ? copy.add : editor === 'rename' ? copy.rename : `${copy.remove}: ${name}`}</legend>
+              {#if editor === 'revoke'}<p>{copy.removeHelp}</p>{:else}
+                <Field invalid={touched && nameInvalid}>
+                  <Label forId={`${idPrefix}-name`}>{copy.name}</Label>
+                  <Input id={`${idPrefix}-name`} name="label" bind:value={name} required
+                    describedBy={touched && nameInvalid ? `${idPrefix}-name-error` : null} />
+                  {#if touched && nameInvalid}<p id={`${idPrefix}-name-error`} role="alert">{copy.invalidName}</p>{/if}
+                </Field>
+              {/if}
+              {#if editor !== 'rename'}
+                <p>{state.reauthentication === 'passkey' ? copy.reauthPasskey : copy.reauthPassword}</p>
+                {#if state.reauthentication === 'password'}
+                  <PasswordField id={`${idPrefix}-password`} name="current_password" {locale} bind:value={password}
+                    label={copy.currentPassword} autocomplete="current-password" required disabled={locked} />
+                  {#if touched && passwordInvalid}<p role="alert">{copy.invalidPassword}</p>{/if}
+                {/if}
+              {/if}
+              <div class="zdp-passkey-settings__actions">
+                <Button type="button" variant="secondary" disabled={locked} onclick={() => close()}>{copy.cancel}</Button>
+                <Button type="submit" disabled={locked}>{editor === 'revoke' ? copy.confirmRemove : editor === 'register' ? copy.add : copy.save}</Button>
+              </div>
+            </fieldset>
+          </form>
+        </div>
+      {/if}
+    {/if}
+    {#if busy}<p role="status" aria-live="polite">{copy.waiting}</p>
+    {:else if feedback}<p bind:this={feedbackElement} role={feedback === 'saved' ? 'status' : 'alert'} tabindex="-1">{copy[feedback]}</p>{/if}
+  </section>
+</Surface>
+
+<style>
+  .zdp-passkey-settings { display: grid; gap: var(--zdp-space-4); min-width: 0; color: var(--zdp-color-ink-normal); }
+  header, li { display: flex; align-items: center; justify-content: space-between; gap: var(--zdp-space-4); min-width: 0; }
+  h2, p { margin: 0; overflow-wrap: anywhere; }
+  h2 { font-size: var(--zdp-type-section-title-size); color: var(--zdp-color-ink-strong); }
+  header > div, li > div:first-child { display: grid; gap: var(--zdp-space-2); min-width: 0; }
+  p { color: var(--zdp-color-ink-muted); }
+  ul { list-style: none; padding: 0; margin: 0; display: grid; }
+  li { padding-block: var(--zdp-space-4); border-top: var(--zdp-control-border-width) solid var(--zdp-color-line-subtle); }
+  .zdp-passkey-settings__actions { display: flex; justify-content: flex-end; gap: var(--zdp-space-2); flex-wrap: wrap; }
+  .zdp-passkey-settings__editor { border-top: var(--zdp-control-border-width) solid var(--zdp-color-line-subtle); padding-top: var(--zdp-space-4); }
+  fieldset { display: grid; gap: var(--zdp-space-3); border: 0; padding: 0; margin: 0; min-width: 0; }
+  legend { margin-bottom: var(--zdp-space-3); font-weight: var(--zdp-font-weight-semibold); }
+  @media (max-width: 40rem) { li { align-items: flex-start; flex-direction: column; } li > .zdp-passkey-settings__actions { align-self: flex-end; } }
+</style>

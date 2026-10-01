@@ -15,3 +15,11 @@ Consumers can pass a `kind: 'passkey'` provider to `AuthShell` and handle `onpro
 `startPasskeyAuthentication` returns SimpleWebAuthn JSON, including `clientExtensionResults`. Core's WebAuthn credential parser accepts that field as an alias for `extensions`. Forward the immediate response without persisting it or treating it as a verified login. Do not automatically replay begin or complete after a network error; a fresh user interaction starts a new ceremony.
 
 Native form fallback with password fields must use POST so passwords do not leak through URLs or logs.
+
+## Management surface
+
+`PasskeySettings` renders only safe metadata (`passkey_id`, `label`, `created_at`, `last_used_at`) and consumer-controlled capabilities. Its default is preparing with no actionable controls. Never infer the reauthentication method or mutation availability from the browser or from an empty list; source both from the authenticated server.
+
+The component emits immediate add, rename or revoke intentions through `onaction`. The consumer sets `busy` synchronously, owns server reauthentication and browser ceremonies, and refreshes the list after a confirmed write. Registration and revocation require current-session, operation and exact-target-bound reauthentication on the server. Rename stays disabled until its owning server contract exists. No UI success, ceremony response or stale capability is an authorization decision.
+
+Password input is cleared on cancellation and immediately after callback handoff. No password, grant, challenge, public key material or browser payload is persisted or included in metadata. A lost write response uses `unconfirmed` feedback, which disables mutation controls. The consumer must reload authoritative state before clearing that feedback for a new user-initiated attempt; do not automatically replay the change. Removing an account credential does not claim to remove its saved entry from the user's authenticator.

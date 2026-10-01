@@ -19,7 +19,7 @@ await Promise.all([
   writeFile(
     join(fixtureRoot, 'BusyAuthFixture.svelte'),
     `<script lang="ts">
-      import { AuthShell, PasswordField, type ZdpAuthProvider } from 'zdp-auth-ui';
+      import { AuthShell, PasswordField, PasskeySettings, type ZdpAuthProvider } from 'zdp-auth-ui';
 
       let busy = false;
       let password = '';
@@ -27,6 +27,13 @@ await Promise.all([
       let providerCount = 0;
       let passkeyCount = 0;
       let modeChangeCount = 0;
+      let managementBusy = false;
+      let managementFeedback = null;
+      let managementCount = 0;
+      let managementReady = false;
+      $: managementState = { status: managementReady ? 'ready' : 'preparing', passkeys: [
+        { passkey_id: '00000000-0000-0000-0000-000000000001', label: 'Desktop', created_at: '2026-10-02T00:00:00Z', last_used_at: null }
+      ], capabilities: { register: true, rename: true, revoke: true }, reauthentication: 'password' };
 
       const providers: readonly ZdpAuthProvider[] = [
         { id: 'google', kind: 'oauth', label: 'Google' },
@@ -73,6 +80,14 @@ await Promise.all([
       <output data-testid="busy-provider-count">{providerCount}</output>
       <output data-testid="busy-passkey-count">{passkeyCount}</output>
       <output data-testid="busy-mode-count">{modeChangeCount}</output>
+      <section data-testid="management-fixture">
+        <PasskeySettings locale="en" state={managementState} busy={managementBusy} feedback={managementFeedback}
+          onaction={(detail) => { managementCount += 1; document.body.dataset.managementCount = String(managementCount);
+            document.body.dataset.managementAction = detail.action;
+            managementFeedback = null; managementBusy = true; }} />
+      </section>
+      <button data-testid="management-ready" onclick={() => managementReady = true}>Ready</button>
+      <button data-testid="management-saved" onclick={() => { managementBusy = false; managementFeedback = 'saved'; }}>Saved</button>
     </main>`
   )
 ]);
@@ -204,6 +219,28 @@ try {
   assert.equal(await password.isDisabled(), true, 'Passkey requests must freeze password fields.');
   await page.getByTestId('clear-busy').click();
   assert.equal(await passkey.isEnabled(), true, 'Cancellation must restore passkey interaction.');
+
+  const management = page.getByTestId('management-fixture');
+  assert.equal(await management.locator('button').count(), 0, 'Preparing management must expose no mutation controls.');
+  await page.getByTestId('management-ready').click();
+  await management.getByRole('button', { name: 'Add', exact: true }).click();
+  await management.locator('input[name="label"]').fill('Phone');
+  await management.locator('input[name="current_password"]').fill('fixture-password-only');
+  await management.locator('form').evaluate(form => { form.requestSubmit(); form.requestSubmit(); });
+  assert.equal(await page.locator('body').getAttribute('data-management-count'), '1', 'Duplicate management submits must hand off once.');
+  assert.equal(await management.locator('input[name="current_password"]').inputValue(), '', 'Password must clear at handoff.');
+  assert.equal(await management.getByRole('button', { name: 'Cancel', exact: true }).isDisabled(), true);
+  await page.getByTestId('management-saved').click();
+  await management.locator('form').waitFor({ state: 'detached' });
+  await management.getByRole('button', { name: 'Rename', exact: true }).click();
+  assert.equal(await management.locator('input[name="label"]').inputValue(), 'Desktop', 'A prior success must not close the next editor.');
+  await management.getByRole('button', { name: 'Cancel', exact: true }).click();
+  assert.equal(await management.getByRole('button', { name: 'Rename', exact: true }).evaluate(button => button === document.activeElement), true);
+  await management.getByRole('button', { name: 'Remove', exact: true }).click();
+  await management.locator('input[name="current_password"]').fill('fixture-password-only');
+  await management.locator('form').evaluate(form => form.requestSubmit());
+  assert.equal(await page.locator('body').getAttribute('data-management-action'), 'revoke');
+  assert.equal(await management.locator('input[name="current_password"]').inputValue(), '');
 
   console.log('AuthShell controlled busy-state browser check passed.');
 } finally {
