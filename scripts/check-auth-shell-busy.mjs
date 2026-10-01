@@ -25,10 +25,12 @@ await Promise.all([
       let password = '';
       let submitCount = 0;
       let providerCount = 0;
+      let passkeyCount = 0;
       let modeChangeCount = 0;
 
       const providers: readonly ZdpAuthProvider[] = [
-        { id: 'google', kind: 'oauth', label: 'Google' }
+        { id: 'google', kind: 'oauth', label: 'Google' },
+        { id: 'passkey', kind: 'passkey', label: 'Use a passkey' }
       ];
     <\/script>
 
@@ -44,8 +46,12 @@ await Promise.all([
             document.body.dataset.authSubmitCount = String(submitCount);
             busy = true;
           }}
-          onproviderselect={() => {
-            providerCount += 1;
+          onproviderselect={({ provider }) => {
+            if (provider.kind === 'passkey') {
+              passkeyCount += 1;
+              document.body.dataset.passkeyCount = String(passkeyCount);
+              busy = true;
+            } else providerCount += 1;
           }}
           onmodechange={() => {
             modeChangeCount += 1;
@@ -65,6 +71,7 @@ await Promise.all([
       <button data-testid="clear-busy" type="button" onclick={() => (busy = false)}>Clear busy</button>
       <output data-testid="busy-submit-count">{submitCount}</output>
       <output data-testid="busy-provider-count">{providerCount}</output>
+      <output data-testid="busy-passkey-count">{passkeyCount}</output>
       <output data-testid="busy-mode-count">{modeChangeCount}</output>
     </main>`
   )
@@ -130,6 +137,7 @@ try {
   const password = fixture.getByLabel('Password', { exact: true });
   const submit = fixture.getByRole('button', { name: 'Sign in', exact: true });
   const provider = fixture.getByRole('button', { name: 'Google', exact: true });
+  const passkey = fixture.getByRole('button', { name: 'Use a passkey', exact: true });
   const modeChange = fixture.getByRole('button', { name: 'Create a new account', exact: true });
 
   await password.fill('valid-busy-state-password');
@@ -144,6 +152,7 @@ try {
   assert.equal(await form.getAttribute('aria-busy'), 'true', 'The form must expose its controlled busy state to assistive technology.');
   assert.equal(await submit.isDisabled(), true, 'Busy auth must disable the submit control.');
   assert.equal(await provider.isDisabled(), true, 'Busy auth must disable provider selection.');
+  assert.equal(await passkey.isDisabled(), true, 'Password submission must disable passkey selection.');
   assert.equal(await modeChange.isDisabled(), true, 'Busy auth must disable mode changes without removing the control.');
   assert.equal(await password.isDisabled(), true, 'Busy auth must freeze slotted form controls through the fieldset boundary.');
   assert.equal(
@@ -182,6 +191,19 @@ try {
   );
   await submit.click();
   assert.equal(await page.getByTestId('busy-submit-count').textContent(), '2', 'A completed request must allow a new submission.');
+
+  await page.getByTestId('clear-busy').click();
+  const sameTaskPasskeyCount = await passkey.evaluate((element) => {
+    element.click();
+    element.click();
+    element.closest('form').requestSubmit();
+    return Number(document.body.dataset.passkeyCount);
+  });
+  assert.equal(sameTaskPasskeyCount, 1, 'Duplicate provider clicks must start only one ceremony.');
+  assert.equal(await page.getByTestId('busy-submit-count').textContent(), '2', 'Passkey selection must lock password submission in the same task.');
+  assert.equal(await password.isDisabled(), true, 'Passkey requests must freeze password fields.');
+  await page.getByTestId('clear-busy').click();
+  assert.equal(await passkey.isEnabled(), true, 'Cancellation must restore passkey interaction.');
 
   console.log('AuthShell controlled busy-state browser check passed.');
 } finally {

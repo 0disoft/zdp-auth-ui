@@ -111,9 +111,11 @@
   }
 
   function handleProviderSelect(provider: ZdpAuthProvider, event: MouseEvent): void {
-    if (interactionLocked || sameTaskSubmitHandled) {
+    if (interactionLocked || sameTaskSubmitHandled || provider.disabled) {
       return;
     }
+    sameTaskSubmitHandled = true;
+    queueMicrotask(() => { sameTaskSubmitHandled = false; });
     onproviderselect?.({ provider }, event);
   }
 
@@ -121,6 +123,8 @@
     if (interactionLocked || sameTaskSubmitHandled) {
       return;
     }
+    sameTaskSubmitHandled = true;
+    queueMicrotask(() => { sameTaskSubmitHandled = false; });
     onmodechange?.({ mode: nextMode }, event);
   }
 

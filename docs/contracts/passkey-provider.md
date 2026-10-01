@@ -10,4 +10,8 @@ The browser helper may start or cancel a consumer-triggered ceremony. It may not
 
 Provider buttons are selection UI. They do not own provider truth, provider secrets, authorization headers, callback payloads, or redirect policy.
 
+Consumers can pass a `kind: 'passkey'` provider to `AuthShell` and handle `onproviderselect`. Selection, submit and mode-change callbacks share a same-task guard. Set `busy` synchronously before beginning the server request, keep it set through the browser ceremony and completion request, and clear it on failure or dismissal. Provider availability must come from the consuming server's rollout gate; browser capability alone does not activate a route.
+
+`startPasskeyAuthentication` returns SimpleWebAuthn JSON, including `clientExtensionResults`. Core's WebAuthn credential parser accepts that field as an alias for `extensions`. Forward the immediate response without persisting it or treating it as a verified login. Do not automatically replay begin or complete after a network error; a fresh user interaction starts a new ceremony.
+
 Native form fallback with password fields must use POST so passwords do not leak through URLs or logs.

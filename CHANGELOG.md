@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.8.14
+
+- Share the same-task interaction guard across provider selection, password submission and mode changes, including disabled providers.
+- Verify passkey selection locks password fields and duplicate clicks start only one consumer callback.
+
 ## 0.8.13
 
 - Include `fields.passwordConfirmation` and `feedback.passwordMismatch` in published locale declarations.
