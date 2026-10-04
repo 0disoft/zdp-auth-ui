@@ -58,5 +58,5 @@
 ## Manual Gates
 
 - Broad auth screen adoption requires manual approval.
-- Package release requires manual approval and publish-specific mustflow intents.
+- Package release requires user authorization and the documented publish procedure.
 - CI billing or private-runner startup failures are environment gates, not package validation failures.
