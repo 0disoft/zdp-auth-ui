@@ -17,8 +17,19 @@
 </script>
 
 <Button variant="secondary" size="md" disabled={disabled || provider.disabled} onclick={handleClick}>
-  <span class="zdp-auth-provider-button__mark" aria-hidden="true">
-    {getProviderMark(provider)}
+  <span class="zdp-auth-provider-button__mark" class:zdp-auth-provider-button__mark--passkey={provider.kind === 'passkey'} aria-hidden="true">
+    {#if provider.kind === 'passkey'}
+      <svg class="zdp-auth-provider-button__passkey-icon" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        aria-hidden="true" focusable="false">
+        <circle cx="8" cy="7" r="3" />
+        <path d="M2 20v-2a6 6 0 0 1 11-3" />
+        <circle cx="18" cy="12" r="3" />
+        <path d="M18 15v7m0-3h3" />
+      </svg>
+    {:else}
+      {getProviderMark(provider)}
+    {/if}
   </span>
   <span>{provider.label}</span>
 </Button>
@@ -37,5 +48,17 @@
     overflow: hidden;
     padding-inline: var(--zdp-space-1);
     text-align: center;
+  }
+
+  .zdp-auth-provider-button__mark--passkey {
+    border: 0;
+    padding-inline: 0;
+    width: var(--zdp-control-choice-size);
+  }
+
+  .zdp-auth-provider-button__passkey-icon {
+    display: block;
+    height: 100%;
+    width: 100%;
   }
 </style>
