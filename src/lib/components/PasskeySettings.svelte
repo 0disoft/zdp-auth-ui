@@ -15,6 +15,7 @@
     capabilities: { register: false, rename: false, revoke: false }, reauthentication: 'password' };
   export let busy = false;
   export let feedback: ZdpPasskeySettingsFeedback = null;
+  export let feedbackSequence: number | null = null;
   export let onaction: ((detail: ZdpPasskeySettingsAction, event: SubmitEvent) => void) | null = null;
 
   let editor: 'register' | 'rename' | 'revoke' | null = null;
@@ -27,6 +28,9 @@
   let mounted = false;
   let sameTask = false;
   let submitted = false;
+  let actionSequence = 0;
+  let submittedFeedback: ZdpPasskeySettingsFeedback = null;
+  let feedbackChanged = false;
   let editorElement: HTMLDivElement;
   let feedbackElement: HTMLParagraphElement;
   let returnFocus: HTMLElement | null = null;
@@ -54,7 +58,9 @@
   $: permitted = editor !== null && state.capabilities[editor];
   $: nameInvalid = editor !== 'revoke' && !validPasskeyLabel(name);
   $: passwordInvalid = Array.from(password).length < 12 || Array.from(password).length > 128;
-  $: if (submitted && !busy && feedback === 'saved' && editor) close(false);
+  $: if (submitted && feedback !== submittedFeedback) feedbackChanged = true;
+  $: if (submitted && !busy && feedback === 'saved' && editor &&
+    (feedbackSequence !== null ? feedbackSequence === actionSequence : feedbackChanged)) close(false);
   $: if (!busy && editor && (!ready || !permitted)) close(false);
   $: if (mounted && feedback && !busy) void tick().then(() => feedbackElement?.focus());
   onMount(() => { mounted = true; });
@@ -90,8 +96,10 @@
       : { action: editor, passkeyId: selectedId, currentPassword };
     // The consumer receives the immediate value; the component retains no verifier after handoff.
     password = '';
+    submittedFeedback = feedback;
+    feedbackChanged = false;
     submitted = true;
-    onaction?.(detail, event);
+    onaction?.({ ...detail, sequence: ++actionSequence }, event);
   }
   function date(value: string): string {
     const parsed = new Date(value);

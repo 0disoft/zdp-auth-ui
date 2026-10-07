@@ -31,6 +31,10 @@ await Promise.all([
       let managementFeedback = null;
       let managementCount = 0;
       let managementReady = false;
+      let correlatedFeedback = 'saved';
+      let correlatedFeedbackSequence = 0;
+      let correlatedSequence = 0;
+      let legacyFeedback = 'saved';
       $: managementState = { status: managementReady ? 'ready' : 'preparing', passkeys: [
         { passkey_id: '00000000-0000-0000-0000-000000000001', label: 'Desktop', created_at: '2026-10-02T00:00:00Z', last_used_at: null }
       ], capabilities: { register: true, rename: true, revoke: true }, reauthentication: 'password' };
@@ -88,6 +92,21 @@ await Promise.all([
       </section>
       <button data-testid="management-ready" onclick={() => managementReady = true}>Ready</button>
       <button data-testid="management-saved" onclick={() => { managementBusy = false; managementFeedback = 'saved'; }}>Saved</button>
+      <section data-testid="correlated-fixture">
+        <PasskeySettings idPrefix="correlated" locale="en" state={managementState}
+          feedback={correlatedFeedback} feedbackSequence={correlatedFeedbackSequence}
+          onaction={(detail) => { correlatedSequence = detail.sequence; }} />
+      </section>
+      <output data-testid="correlated-sequence">{correlatedSequence}</output>
+      <button data-testid="correlated-stale" onclick={() => { correlatedFeedback = 'saved'; correlatedFeedbackSequence = correlatedSequence - 1; }}>Stale</button>
+      <button data-testid="correlated-saved" onclick={() => { correlatedFeedback = 'saved'; correlatedFeedbackSequence = correlatedSequence; }}>Saved current</button>
+      <button data-testid="correlated-failed" onclick={() => { correlatedFeedback = 'failed'; correlatedFeedbackSequence = correlatedSequence; }}>Failed current</button>
+      <section data-testid="legacy-management-fixture">
+        <PasskeySettings idPrefix="legacy" locale="en" state={managementState} feedback={legacyFeedback}
+          onaction={() => {}} />
+      </section>
+      <button data-testid="legacy-failed" onclick={() => { legacyFeedback = 'failed'; }}>Legacy failed</button>
+      <button data-testid="legacy-saved" onclick={() => { legacyFeedback = 'saved'; }}>Legacy saved</button>
     </main>`
   )
 ]);
@@ -241,6 +260,38 @@ try {
   await management.locator('form').evaluate(form => form.requestSubmit());
   assert.equal(await page.locator('body').getAttribute('data-management-action'), 'revoke');
   assert.equal(await management.locator('input[name="current_password"]').inputValue(), '');
+
+  const correlated = page.getByTestId('correlated-fixture');
+  await correlated.getByRole('button', { name: 'Rename', exact: true }).click();
+  await correlated.locator('input[name="label"]').fill('Updated desktop');
+  await correlated.locator('form').evaluate(form => form.requestSubmit());
+  assert.equal(await page.getByTestId('correlated-sequence').textContent(), '1');
+  assert.equal(await correlated.locator('form').count(), 1, 'Old saved feedback must not close a delayed request.');
+  await page.getByTestId('correlated-stale').click();
+  assert.equal(await correlated.locator('form').count(), 1, 'A previous request sequence must not close the editor.');
+  await page.getByTestId('correlated-saved').click();
+  await correlated.locator('form').waitFor({ state: 'detached' });
+
+  await correlated.getByRole('button', { name: 'Rename', exact: true }).click();
+  await correlated.locator('form').evaluate(form => form.requestSubmit());
+  assert.equal(await page.getByTestId('correlated-sequence').textContent(), '2');
+  assert.equal(await correlated.locator('form').count(), 1, 'Unchanged saved feedback from request 1 must not close request 2.');
+  await page.getByTestId('correlated-failed').click();
+  assert.equal(await correlated.locator('form').count(), 1, 'Failed requests leave the editor open.');
+  await correlated.locator('form').evaluate(form => form.requestSubmit());
+  assert.equal(await page.getByTestId('correlated-sequence').textContent(), '3');
+  await page.getByTestId('correlated-stale').click();
+  assert.equal(await correlated.locator('form').count(), 1, 'Late success from request 2 must not close retry 3.');
+  await page.getByTestId('correlated-saved').click();
+  await correlated.locator('form').waitFor({ state: 'detached' });
+
+  const legacy = page.getByTestId('legacy-management-fixture');
+  await legacy.getByRole('button', { name: 'Rename', exact: true }).click();
+  await legacy.locator('form').evaluate(form => form.requestSubmit());
+  assert.equal(await legacy.locator('form').count(), 1, 'Legacy consumers must also ignore preexisting success.');
+  await page.getByTestId('legacy-failed').click();
+  await page.getByTestId('legacy-saved').click();
+  await legacy.locator('form').waitFor({ state: 'detached' });
 
   console.log('AuthShell controlled busy-state browser check passed.');
 } finally {

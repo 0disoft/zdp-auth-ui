@@ -522,9 +522,10 @@ export interface ZdpPasskeySettingsState {
   readonly reauthentication: 'password' | 'passkey';
 }
 export type ZdpPasskeySettingsAction =
-  | { readonly action: 'register'; readonly label: string; readonly preference?: ZdpPasskeyRegistrationPreference; readonly currentPassword?: string }
+  ({ readonly action: 'register'; readonly label: string; readonly preference?: ZdpPasskeyRegistrationPreference; readonly currentPassword?: string }
   | { readonly action: 'rename'; readonly passkeyId: string; readonly label: string }
-  | { readonly action: 'revoke'; readonly passkeyId: string; readonly currentPassword?: string };
+  | { readonly action: 'revoke'; readonly passkeyId: string; readonly currentPassword?: string })
+  & { readonly sequence?: number };
 export declare function isZdpPasskeyAuthenticatorProvider(value: unknown): value is ZdpPasskeyAuthenticatorProvider;
 export declare function isZdpPasskeyAuthenticatorStorage(value: unknown): value is ZdpPasskeyAuthenticatorStorage;
 export declare function isZdpPasskeyRegistrationPreference(value: unknown): value is ZdpPasskeyRegistrationPreference;
@@ -535,6 +536,7 @@ export interface PasskeySettingsProps {
   readonly state?: ZdpPasskeySettingsState;
   readonly busy?: boolean;
   readonly feedback?: ZdpPasskeySettingsFeedback;
+  readonly feedbackSequence?: number | null;
   readonly onaction?: ((detail: ZdpPasskeySettingsAction, event: SubmitEvent) => void) | null;
 }
 export declare const PasskeySettings: Component<PasskeySettingsProps>;

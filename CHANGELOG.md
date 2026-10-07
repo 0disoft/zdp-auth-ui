@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- No unreleased changes.
+- 패스키 설정의 성공 응답을 요청 sequence와 연결하고, 이전 성공 상태가 다음 편집기를 닫지 않도록 수정했다.
 
 ## 0.9.1
 

@@ -25,7 +25,10 @@ const passkeyStateWithAuthenticator: ZdpPasskeySettingsState = { status: 'ready'
     authenticator: { provider: 'bitwarden', storage: 'synced', backed_up: true } }],
   capabilities: { register: true, rename: true, revoke: true }, reauthentication: 'passkey' };
 const passkeyProps: PasskeySettingsProps = { state: passkeyState, busy: false,
+  feedbackSequence: 1,
   onaction: detail => {
+    const sequence: number | undefined = detail.sequence;
+    void sequence;
     if (detail.action === 'register') void [detail.currentPassword, detail.preference];
   } };
 void [PasskeySettings, passkeyProps, passkeyStateWithAuthenticator,

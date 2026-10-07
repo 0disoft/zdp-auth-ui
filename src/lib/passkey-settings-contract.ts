@@ -37,10 +37,11 @@ export interface ZdpPasskeySettingsState {
 }
 
 export type ZdpPasskeySettingsAction =
-  | { readonly action: 'register'; readonly label: string;
+  ({ readonly action: 'register'; readonly label: string;
       readonly preference?: ZdpPasskeyRegistrationPreference; readonly currentPassword?: string }
   | { readonly action: 'rename'; readonly passkeyId: string; readonly label: string }
-  | { readonly action: 'revoke'; readonly passkeyId: string; readonly currentPassword?: string };
+  | { readonly action: 'revoke'; readonly passkeyId: string; readonly currentPassword?: string })
+  & { readonly sequence?: number };
 
 export type ZdpPasskeySettingsFeedback = 'saved' | 'failed' | 'unconfirmed' | 'expired' | 'rate_limited' | null;
 
