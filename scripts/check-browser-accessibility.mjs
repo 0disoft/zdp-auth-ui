@@ -486,6 +486,13 @@ try {
     const staleStatus = clockFixture.getByRole('alert').getByText('This request is out of date. Start again from the desktop product.', { exact: true });
     await staleStatus.waitFor();
     assert.equal(await clockFixture.getByRole('button').count(), 0, 'Click-time expiry must remove decision controls.');
+    const replacementFixture = clockPage.getByTestId('product-link-replacement');
+    await replacementFixture.getByRole('button', { name: 'Refresh link request', exact: true }).click();
+    const replacementApprove = replacementFixture.getByRole('button', { name: 'Approve connection', exact: true });
+    await replacementApprove.waitFor();
+    await replacementApprove.click();
+    assert.equal(await replacementFixture.getByTestId('replacement-decision-count').textContent(), '1',
+      'A fresh request on an existing component must immediately use the current clock.');
     assert.deepEqual(clockPageErrors, []);
   } finally {
     await clockPage.close();

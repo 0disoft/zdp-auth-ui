@@ -58,7 +58,8 @@
     decisionFocusRequested = false;
   }
   $: if (mounted) {
-    if (now === null) {
+    if (enabled && now === null) {
+      clockNow = new Date();
       scheduleDeadlineRefresh(request.issuedAt, request.expiresAt, trust.maxRequestAgeMs);
     } else {
       clearDeadlineRefresh();
@@ -67,9 +68,6 @@
 
   onMount(() => {
     mounted = true;
-    if (now === null) {
-      clockNow = new Date();
-    }
 
     return () => {
       clearDeadlineRefresh();

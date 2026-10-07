@@ -32,6 +32,17 @@
   let denyBusy = false;
   let completionCount = 0;
   let clockShiftDecisionCount = 0;
+  let replacementRequest = createProductLinkRequest('plc_replacement_fixture_012345');
+  let replacementDecisionCount = 0;
+
+  function replaceProductLinkRequest(): void {
+    const issuedAt = new Date();
+    replacementRequest = {
+      ...createProductLinkRequest('plc_replacement_fixture_new'),
+      issuedAt: issuedAt.toISOString(),
+      expiresAt: new Date(issuedAt.getTime() + 600_000).toISOString()
+    };
+  }
 
   const fixtureNow = new Date('2026-07-15T04:05:00.000Z');
   const loginHandoff: ZdpAuthHandoffResult = buildZdpAuthHandoffUrl({
@@ -293,6 +304,16 @@
       ondecision={() => { clockShiftDecisionCount += 1; }}
     />
     <output data-testid="clock-shift-decision-count">{clockShiftDecisionCount}</output>
+  </section>
+
+  <section data-testid="product-link-replacement">
+    <ProductLinkApproval
+      id="product-link-replacement" enabled locale="en"
+      request={replacementRequest} trust={createTrust(replacementRequest.challengeRef)}
+      ondecision={() => { replacementDecisionCount += 1; }}
+    />
+    <button type="button" onclick={replaceProductLinkRequest}>Refresh link request</button>
+    <output data-testid="replacement-decision-count">{replacementDecisionCount}</output>
   </section>
 
   <section data-testid="product-link-unsafe">
