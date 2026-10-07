@@ -180,6 +180,8 @@
                   <Label forId={`${idPrefix}-name`}>{copy.name}</Label>
                   <Input id={`${idPrefix}-name`} name="label" bind:value={name} required
                     oninput={() => (nameEdited = true)}
+                    invalid={touched && nameInvalid}
+                    errorMessageId={touched && nameInvalid ? `${idPrefix}-name-error` : null}
                     describedBy={touched && nameInvalid ? `${idPrefix}-name-error` : null} />
                   {#if touched && nameInvalid}<p id={`${idPrefix}-name-error`} role="alert">{copy.invalidName}</p>{/if}
                 </Field>

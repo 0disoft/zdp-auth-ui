@@ -264,6 +264,14 @@ try {
   await management.locator('form').waitFor({ state: 'detached' });
   await management.getByRole('button', { name: 'Rename', exact: true }).click();
   assert.equal(await management.locator('input[name="label"]').inputValue(), 'Desktop', 'A prior success must not close the next editor.');
+  const managementName = management.locator('input[name="label"]');
+  await managementName.fill('x'.repeat(81));
+  await management.locator('form').evaluate(form => form.requestSubmit());
+  assert.equal(await managementName.getAttribute('aria-invalid'), 'true', 'An invalid passkey label must mark its input.');
+  assert.equal(await managementName.getAttribute('aria-errormessage'), 'passkey-settings-name-error');
+  assert.ok((await managementName.getAttribute('aria-describedby')).split(/\s+/).includes('passkey-settings-name-error'));
+  await managementName.fill('Desktop');
+  assert.notEqual(await managementName.getAttribute('aria-invalid'), 'true', 'Correcting the label must clear its invalid state.');
   await management.getByRole('button', { name: 'Cancel', exact: true }).click();
   assert.equal(await management.getByRole('button', { name: 'Rename', exact: true }).evaluate(button => button === document.activeElement), true);
   await management.getByRole('button', { name: 'Remove', exact: true }).click();
