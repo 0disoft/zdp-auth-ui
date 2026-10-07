@@ -24,6 +24,7 @@
   let deadlineTimer: ReturnType<typeof setTimeout> | null = null;
   let clockNow = new Date();
   let decisionFocusRequested = false;
+  let sameTaskDecisionHandled = false;
   let previousDisposition: ZdpProductLinkDisposition | null = null;
   let sectionElement: HTMLElement;
   let statusElement: HTMLParagraphElement;
@@ -75,7 +76,7 @@
   });
 
   function handleDecision(decision: ZdpProductLinkDecision, event: MouseEvent): void {
-    if (!enabled || busy || !validation.actionable) {
+    if (!enabled || busy || sameTaskDecisionHandled || !validation.actionable) {
       return;
     }
 
@@ -85,6 +86,8 @@
       return;
     }
 
+    sameTaskDecisionHandled = true;
+    queueMicrotask(() => { sameTaskDecisionHandled = false; });
     decisionFocusRequested = true;
     ondecision?.({ challengeRef: request.challengeRef, decision }, event);
   }

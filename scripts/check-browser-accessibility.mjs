@@ -490,9 +490,17 @@ try {
     await replacementFixture.getByRole('button', { name: 'Refresh link request', exact: true }).click();
     const replacementApprove = replacementFixture.getByRole('button', { name: 'Approve connection', exact: true });
     await replacementApprove.waitFor();
-    await replacementApprove.click();
+    await replacementApprove.evaluate((button) => {
+      const deny = [...button.closest('section').querySelectorAll('button')].find((candidate) => candidate.textContent.trim() === 'Deny');
+      button.click();
+      button.click();
+      deny.click();
+    });
     assert.equal(await replacementFixture.getByTestId('replacement-decision-count').textContent(), '1',
-      'A fresh request on an existing component must immediately use the current clock.');
+      'Repeated approve and deny clicks in one task must emit one decision before busy propagates.');
+    await replacementApprove.click();
+    assert.equal(await replacementFixture.getByTestId('replacement-decision-count').textContent(), '2',
+      'A later retry must remain available when the consumer does not mark the request busy.');
     assert.deepEqual(clockPageErrors, []);
   } finally {
     await clockPage.close();
