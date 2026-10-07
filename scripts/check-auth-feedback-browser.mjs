@@ -9,8 +9,8 @@ import { createServer } from 'vite';
 
 const root = process.cwd();
 const [contractDeclaration, indexDeclaration, feedbackContract] = await Promise.all([
-  readFile(join(root, 'dist', 'contract.d.ts'), 'utf8'),
-  readFile(join(root, 'dist', 'index.d.ts'), 'utf8'),
+  readFile(join(root, 'dist/types/auth-contract.d.ts'), 'utf8'),
+  readFile(join(root, 'dist/types/components/AuthShell.svelte.d.ts'), 'utf8'),
   import(pathToFileURL(join(root, 'dist', 'contract.js')).href)
 ]);
 
@@ -20,7 +20,7 @@ assert.match(
   'The published contract declaration must expose the closed typed feedback value.'
 );
 assert.ok(
-  indexDeclaration.includes('readonly feedback?: ZdpAuthFeedback | null;'),
+  indexDeclaration.includes('feedback?: ZdpAuthFeedback | null;'),
   'The published AuthShell declaration must expose its typed feedback prop.'
 );
 assert.deepEqual(

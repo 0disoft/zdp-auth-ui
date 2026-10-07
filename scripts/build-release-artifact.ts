@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { appendFile, cp, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { appendFile, cp, mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -145,17 +145,27 @@ async function checkPackedConsumer(tarball: string, checkDirectory: string): Pro
   const archive = await readFile(tarball);
   const consumerRoot = join(checkDirectory, 'consumer');
   const packageRoot = join(consumerRoot, 'node_modules', 'zdp-auth-ui');
+  const declarations = (await readdir(join(root, 'dist/types'), { recursive: true }))
+    .filter(file => file.endsWith('.d.ts')).map(file => `dist/types/${file.replaceAll('\\', '/')}`);
   for (const entry of [
     'package.json',
     'dist/index.d.ts',
     'dist/contract.d.ts',
     'dist/i18n.js',
     'dist/i18n.d.ts',
-    'dist/styles.css'
+    'dist/styles.css',
+    ...declarations
   ]) {
     const output = join(packageRoot, entry);
     await mkdir(dirname(output), { recursive: true });
     await writeFile(output, readTarEntry(archive, `package/${entry}`));
+  }
+
+  // The packed declarations must resolve real peer types instead of silently becoming any.
+  for (const dependency of ['svelte', '@simplewebauthn/browser', 'zdp-design-system']) {
+    const destination = join(consumerRoot, 'node_modules', dependency);
+    await mkdir(dirname(destination), { recursive: true });
+    await symlink(join(root, 'node_modules', dependency), destination, process.platform === 'win32' ? 'junction' : 'dir');
   }
 
   const runtimeConsumer = join(consumerRoot, 'consumer.mjs');

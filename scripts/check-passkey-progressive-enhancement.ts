@@ -14,7 +14,10 @@ import {
 const [loginIdFieldSource, publicEntrySource, packageSurfaceSource] = await Promise.all([
   readFile(new URL('../src/lib/components/LoginIdField.svelte', import.meta.url), 'utf8'),
   readFile(new URL('../src/lib/index.ts', import.meta.url), 'utf8'),
-  readFile(new URL('./build-package-surface.ts', import.meta.url), 'utf8')
+  Promise.all([
+    readFile(new URL('../dist/types/passkey.d.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../dist/types/components/LoginIdField.svelte.d.ts', import.meta.url), 'utf8')
+  ]).then(parts => parts.join('\n'))
 ]);
 assert.ok(
   loginIdFieldSource.includes(
@@ -43,7 +46,7 @@ for (const requiredExport of [
 for (const requiredDeclaration of [
   'export declare function detectPasskeySupport()',
   'export declare class ZdpPasskeyCeremonyError extends Error',
-  "readonly autocomplete?: 'username' | 'username webauthn';",
+  'autocomplete?: "username" | "username webauthn";',
   'ceremonyOptions?: ZdpPasskeyAuthenticationOptions',
   'export declare function cancelPasskeyCeremony(): void;'
 ]) {
