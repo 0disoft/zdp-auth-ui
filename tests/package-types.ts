@@ -19,6 +19,14 @@ const signupShellProps: AuthShellProps = { mode: 'signup', availability: 'prepar
 void [japaneseTitle, signupTitles, confirmationLabels, mismatchMessages, activeLocale, busyShellProps, signupShellProps];
 const passkeyState: ZdpPasskeySettingsState = { status: 'ready', passkeys: [],
   capabilities: { register: true, rename: false, revoke: true }, reauthentication: 'password' };
+const passkeyStateWithAuthenticator: ZdpPasskeySettingsState = { status: 'ready',
+  passkeys: [{ passkey_id: 'key-1', label: 'Desktop', created_at: '2026-01-01T00:00:00.000Z',
+    last_used_at: null,
+    authenticator: { provider: 'bitwarden', storage: 'synced', backed_up: true } }],
+  capabilities: { register: true, rename: true, revoke: true }, reauthentication: 'passkey' };
 const passkeyProps: PasskeySettingsProps = { state: passkeyState, busy: false,
-  onaction: detail => { if (detail.action === 'register') void detail.currentPassword; } };
-void [PasskeySettings, passkeyProps, getPasskeySettingsMessages('ko').removeHelp, validPasskeyLabel('Desktop')];
+  onaction: detail => {
+    if (detail.action === 'register') void [detail.currentPassword, detail.preference];
+  } };
+void [PasskeySettings, passkeyProps, passkeyStateWithAuthenticator,
+  getPasskeySettingsMessages('ko').removeHelp, validPasskeyLabel('Desktop')];

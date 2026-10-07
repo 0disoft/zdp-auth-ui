@@ -8,3 +8,4 @@
 - Credential storage and session issue stay in `zdp-core-platform`.
 - Provider buttons do not contain secrets or callback payloads.
 - Native fallback with password fields uses POST only.
+- Authenticator metadata and the registration preference are display hints from the server; they must not claim a storage, extension-bypass, consent, or authorization guarantee.

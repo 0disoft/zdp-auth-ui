@@ -496,7 +496,25 @@ export declare function startPasskeyAuthentication(
   ceremonyOptions?: ZdpPasskeyAuthenticationOptions
 ): Promise<AuthenticationResponseJSON>;
 export declare function cancelPasskeyCeremony(): void;
-export interface ZdpManagedPasskey { readonly passkey_id: string; readonly label: string; readonly created_at: string; readonly last_used_at: string | null; }
+export declare const zdpPasskeyAuthenticatorProviders: readonly ["windows_hello", "google_password_manager", "bitwarden", "apple_passwords", "unknown"];
+export type ZdpPasskeyAuthenticatorProvider = (typeof zdpPasskeyAuthenticatorProviders)[number];
+export declare const zdpPasskeyAuthenticatorStorages: readonly ["synced", "device_bound"];
+export type ZdpPasskeyAuthenticatorStorage = (typeof zdpPasskeyAuthenticatorStorages)[number];
+export interface ZdpPasskeyAuthenticator {
+  readonly provider: ZdpPasskeyAuthenticatorProvider;
+  readonly storage: ZdpPasskeyAuthenticatorStorage;
+  readonly backed_up: boolean;
+}
+export interface ZdpManagedPasskey {
+  readonly passkey_id: string;
+  readonly label: string;
+  readonly created_at: string;
+  readonly last_used_at: string | null;
+  readonly authenticator?: ZdpPasskeyAuthenticator;
+}
+export declare const zdpPasskeyRegistrationPreferences: readonly ["device", "manager", "security_key", "phone"];
+export type ZdpPasskeyRegistrationPreference = (typeof zdpPasskeyRegistrationPreferences)[number];
+export declare const zdpPasskeyRegistrationPreferenceDefault: ZdpPasskeyRegistrationPreference;
 export interface ZdpPasskeySettingsState {
   readonly status: 'ready' | 'preparing' | 'unavailable';
   readonly passkeys: readonly ZdpManagedPasskey[];
@@ -504,9 +522,12 @@ export interface ZdpPasskeySettingsState {
   readonly reauthentication: 'password' | 'passkey';
 }
 export type ZdpPasskeySettingsAction =
-  | { readonly action: 'register'; readonly label: string; readonly currentPassword?: string }
+  | { readonly action: 'register'; readonly label: string; readonly preference?: ZdpPasskeyRegistrationPreference; readonly currentPassword?: string }
   | { readonly action: 'rename'; readonly passkeyId: string; readonly label: string }
   | { readonly action: 'revoke'; readonly passkeyId: string; readonly currentPassword?: string };
+export declare function isZdpPasskeyAuthenticatorProvider(value: unknown): value is ZdpPasskeyAuthenticatorProvider;
+export declare function isZdpPasskeyAuthenticatorStorage(value: unknown): value is ZdpPasskeyAuthenticatorStorage;
+export declare function isZdpPasskeyRegistrationPreference(value: unknown): value is ZdpPasskeyRegistrationPreference;
 export type ZdpPasskeySettingsFeedback = 'saved' | 'failed' | 'unconfirmed' | 'expired' | 'rate_limited' | null;
 export interface PasskeySettingsProps {
   readonly locale?: string;
@@ -517,8 +538,9 @@ export interface PasskeySettingsProps {
   readonly onaction?: ((detail: ZdpPasskeySettingsAction, event: SubmitEvent) => void) | null;
 }
 export declare const PasskeySettings: Component<PasskeySettingsProps>;
-export type ZdpPasskeySettingsMessages = Readonly<Record<'title' | 'description' | 'add' | 'rename' | 'remove' | 'name' | 'save' | 'cancel' | 'confirmRemove' | 'reauthPassword' | 'reauthPasskey' | 'removeHelp' | 'empty' | 'preparing' | 'unavailable' | 'created' | 'lastUsed' | 'neverUsed' | 'invalidName' | 'currentPassword' | 'saved' | 'failed' | 'unconfirmed' | 'expired' | 'rate_limited' | 'waiting' | 'invalidPassword', string>>;
+export type ZdpPasskeySettingsMessages = Readonly<Record<'title' | 'description' | 'add' | 'rename' | 'remove' | 'name' | 'save' | 'cancel' | 'confirmRemove' | 'reauthPassword' | 'reauthPasskey' | 'removeHelp' | 'empty' | 'preparing' | 'unavailable' | 'created' | 'lastUsed' | 'neverUsed' | 'invalidName' | 'currentPassword' | 'saved' | 'failed' | 'unconfirmed' | 'expired' | 'rate_limited' | 'waiting' | 'invalidPassword' | 'providerWindowsHello' | 'providerGooglePasswordManager' | 'providerBitwarden' | 'providerApplePasswords' | 'providerUnknown' | 'storageSynced' | 'storageDeviceBound' | 'backedUp' | 'notBackedUp' | 'preferenceLabel' | 'preferenceHelp' | 'preferenceDevice' | 'preferenceManager' | 'preferenceSecurityKey' | 'preferencePhone' | 'defaultNameDevice' | 'defaultNameManager' | 'defaultNameSecurityKey' | 'defaultNamePhone' | 'storageUnknown', string>>;
 export declare function getPasskeySettingsMessages(locale: string): ZdpPasskeySettingsMessages;
+export declare function getPasskeyRegistrationDefaultLabel(locale: string, preference: ZdpPasskeyRegistrationPreference): string;
 export declare function validPasskeyLabel(value: string): boolean;
 `;
 

@@ -1,9 +1,12 @@
 <script lang="ts">
-  import { Button, Field, Input, Label, Surface } from 'zdp-design-system';
+  import { Badge, Button, Field, HelpText, Input, Label, Select, Surface } from 'zdp-design-system';
   import { onMount, tick } from 'svelte';
   import PasswordField from './PasswordField.svelte';
-  import { getPasskeySettingsMessages } from '../passkey-settings-messages';
-  import { validPasskeyLabel, type ZdpPasskeySettingsAction, type ZdpPasskeySettingsFeedback,
+  import { getPasskeyRegistrationDefaultLabel, getPasskeySettingsMessages } from '../passkey-settings-messages';
+  import { isZdpPasskeyAuthenticatorProvider, isZdpPasskeyAuthenticatorStorage,
+    isZdpPasskeyRegistrationPreference, validPasskeyLabel, zdpPasskeyRegistrationPreferenceDefault,
+    zdpPasskeyRegistrationPreferences, type ZdpPasskeyAuthenticator,
+    type ZdpPasskeySettingsAction, type ZdpPasskeySettingsFeedback,
     type ZdpPasskeySettingsState } from '../passkey-settings-contract';
 
   export let locale = 'en';
@@ -17,6 +20,8 @@
   let editor: 'register' | 'rename' | 'revoke' | null = null;
   let selectedId = '';
   let name = '';
+  let nameEdited = false;
+  let preferenceValue: string = zdpPasskeyRegistrationPreferenceDefault;
   let password = '';
   let touched = false;
   let mounted = false;
@@ -25,7 +30,25 @@
   let editorElement: HTMLDivElement;
   let feedbackElement: HTMLParagraphElement;
   let returnFocus: HTMLElement | null = null;
+  const providerLabels = {
+    windows_hello: 'providerWindowsHello',
+    google_password_manager: 'providerGooglePasswordManager',
+    bitwarden: 'providerBitwarden',
+    apple_passwords: 'providerApplePasswords',
+    unknown: 'providerUnknown'
+  } as const;
+  const preferenceLabels = {
+    device: 'preferenceDevice',
+    manager: 'preferenceManager',
+    security_key: 'preferenceSecurityKey',
+    phone: 'preferencePhone'
+  } as const;
   $: copy = getPasskeySettingsMessages(locale);
+  $: preference = isZdpPasskeyRegistrationPreference(preferenceValue)
+    ? preferenceValue : zdpPasskeyRegistrationPreferenceDefault;
+  $: suggestedName = editor === 'register'
+    ? getPasskeyRegistrationDefaultLabel(locale, preference) : '';
+  $: if (editor === 'register' && !nameEdited) name = suggestedName;
   $: ready = state.status === 'ready';
   $: locked = busy || !ready || !onaction || feedback === 'unconfirmed';
   $: permitted = editor !== null && state.capabilities[editor];
@@ -40,12 +63,15 @@
     if (locked || !action || !state.capabilities[action]) return;
     returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     editor = action; selectedId = id; name = label; password = ''; touched = false; submitted = false;
+    nameEdited = action !== 'register';
+    preferenceValue = zdpPasskeyRegistrationPreferenceDefault;
     await tick();
     editorElement?.querySelector<HTMLInputElement>('input')?.focus();
   }
   function close(restoreFocus = true) {
     if (busy) return;
     editor = null; selectedId = ''; name = ''; password = ''; touched = false; submitted = false;
+    nameEdited = false; preferenceValue = zdpPasskeyRegistrationPreferenceDefault;
     if (restoreFocus) returnFocus?.focus();
   }
   function submit(event: SubmitEvent) {
@@ -59,7 +85,7 @@
     queueMicrotask(() => { sameTask = false; });
     const currentPassword = state.reauthentication === 'password' ? password : undefined;
     const detail: ZdpPasskeySettingsAction = editor === 'register'
-      ? { action: editor, label: name.trim(), currentPassword }
+      ? { action: editor, label: name.trim(), preference, currentPassword }
       : editor === 'rename' ? { action: editor, passkeyId: selectedId, label: name.trim() }
       : { action: editor, passkeyId: selectedId, currentPassword };
     // The consumer receives the immediate value; the component retains no verifier after handoff.
@@ -72,6 +98,16 @@
     if (Number.isNaN(parsed.getTime())) return copy.unavailable;
     try { return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(parsed); }
     catch { return new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(parsed); }
+  }
+  function providerLabel(authenticator: ZdpPasskeyAuthenticator): string {
+    const provider = authenticator.provider;
+    return isZdpPasskeyAuthenticatorProvider(provider)
+      ? copy[providerLabels[provider]] : copy.providerUnknown;
+  }
+  function storageLabel(authenticator: ZdpPasskeyAuthenticator): string {
+    const storage = !isZdpPasskeyAuthenticatorStorage(authenticator.storage) ? copy.storageUnknown
+      : authenticator.storage === 'synced' ? copy.storageSynced : copy.storageDeviceBound;
+    return `${storage} · ${authenticator.backed_up ? copy.backedUp : copy.notBackedUp}`;
   }
 </script>
 
@@ -92,7 +128,18 @@
       <ul>
         {#each state.passkeys as key (key.passkey_id)}
           <li>
-            <div><strong>{key.label}</strong><p>{copy.created}: {date(key.created_at)} · {copy.lastUsed}: {key.last_used_at ? date(key.last_used_at) : copy.neverUsed}</p></div>
+            <div>
+              <div class="zdp-passkey-settings__identity">
+                <strong>{key.label}</strong>
+                {#if key.authenticator}
+                  <Badge tone="neutral" size="sm">{providerLabel(key.authenticator)}</Badge>
+                {/if}
+              </div>
+              <p>{copy.created}: {date(key.created_at)} · {copy.lastUsed}: {key.last_used_at ? date(key.last_used_at) : copy.neverUsed}</p>
+              {#if key.authenticator}
+                <p>{storageLabel(key.authenticator)}</p>
+              {/if}
+            </div>
             <div class="zdp-passkey-settings__actions">
               {#if state.capabilities.rename}<Button type="button" variant="secondary" disabled={locked} onclick={() => open('rename', key.passkey_id, key.label)}>{copy.rename}</Button>{/if}
               {#if state.capabilities.revoke}<Button type="button" variant="secondary" disabled={locked} onclick={() => open('revoke', key.passkey_id, key.label)}>{copy.remove}</Button>{/if}
@@ -106,9 +153,22 @@
             <fieldset disabled={locked}>
               <legend>{editor === 'register' ? copy.add : editor === 'rename' ? copy.rename : `${copy.remove}: ${name}`}</legend>
               {#if editor === 'revoke'}<p>{copy.removeHelp}</p>{:else}
+                {#if editor === 'register'}
+                  <Field>
+                    <Label forId={`${idPrefix}-preference`}>{copy.preferenceLabel}</Label>
+                    <Select id={`${idPrefix}-preference`} name="preference" bind:value={preferenceValue}
+                      describedBy={`${idPrefix}-preference-help`} disabled={locked}>
+                      {#each zdpPasskeyRegistrationPreferences as option (option)}
+                        <option value={option}>{copy[preferenceLabels[option]]}</option>
+                      {/each}
+                    </Select>
+                    <HelpText id={`${idPrefix}-preference-help`}>{copy.preferenceHelp}</HelpText>
+                  </Field>
+                {/if}
                 <Field invalid={touched && nameInvalid}>
                   <Label forId={`${idPrefix}-name`}>{copy.name}</Label>
                   <Input id={`${idPrefix}-name`} name="label" bind:value={name} required
+                    oninput={() => (nameEdited = true)}
                     describedBy={touched && nameInvalid ? `${idPrefix}-name-error` : null} />
                   {#if touched && nameInvalid}<p id={`${idPrefix}-name-error`} role="alert">{copy.invalidName}</p>{/if}
                 </Field>
@@ -141,6 +201,7 @@
   h2, p { margin: 0; overflow-wrap: anywhere; }
   h2 { font-size: var(--zdp-type-section-title-size); color: var(--zdp-color-ink-strong); }
   header > div, li > div:first-child { display: grid; gap: var(--zdp-space-2); min-width: 0; }
+  .zdp-passkey-settings__identity { display: flex; align-items: center; gap: var(--zdp-space-2); flex-wrap: wrap; min-width: 0; }
   p { color: var(--zdp-color-ink-muted); }
   ul { list-style: none; padding: 0; margin: 0; display: grid; }
   li { padding-block: var(--zdp-space-4); border-top: var(--zdp-control-border-width) solid var(--zdp-color-line-subtle); }
