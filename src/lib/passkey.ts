@@ -68,6 +68,8 @@ export class ZdpPasskeyCeremonyError extends Error {
 
 const minimumCeremonyTimeoutMs = 1_000;
 const maximumCeremonyTimeoutMs = 600_000;
+const capabilityProbeTimeoutMs = 1_000;
+let activeCeremony: { readonly controller: AbortController; readonly ceremony: ZdpPasskeyCeremonyKind } | null = null;
 
 /*
  * mf:anchor zdp.auth-ui.passkey-browser-ceremony
@@ -104,7 +106,7 @@ export async function startPasskeyRegistration(
   return runPasskeyCeremony(
     'registration',
     timeoutMs,
-    () => startRegistration({ optionsJSON: options })
+    (assertActive) => { assertActive(); return startRegistration({ optionsJSON: options }); }
   );
 }
 
@@ -117,8 +119,10 @@ export async function startPasskeyAuthentication(
   const mediation = ceremonyOptions.mediation ?? 'modal';
   const useBrowserAutofill = mediation === 'conditional';
 
+  return runPasskeyCeremony('authentication', timeoutMs, async (assertActive) => {
   if (useBrowserAutofill) {
     const conditionalUi = await safeCapabilityProbe(browserSupportsWebAuthnAutofill);
+    assertActive();
     if (!conditionalUi) {
       throw new ZdpPasskeyCeremonyError(
         'authentication',
@@ -135,27 +139,32 @@ export async function startPasskeyAuthentication(
     }
   }
 
-  return runPasskeyCeremony(
-    'authentication',
-    timeoutMs,
-    () => startAuthentication({
+  assertActive();
+  return startAuthentication({
       optionsJSON: options,
       useBrowserAutofill,
       verifyBrowserAutofillInput: ceremonyOptions.verifyBrowserAutofillInput
-    })
-  );
+    });
+  });
 }
 
 export function cancelPasskeyCeremony(): void {
+  if (activeCeremony) {
+    activeCeremony.controller.abort(new ZdpPasskeyCeremonyError(activeCeremony.ceremony, 'cancelled'));
+    activeCeremony = null;
+  }
   WebAuthnAbortService.cancelCeremony();
 }
 
 async function safeCapabilityProbe(probe: () => Promise<boolean>): Promise<boolean> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    return await probe();
+    return await Promise.race([probe(), new Promise<boolean>(resolve => {
+      timer = setTimeout(() => resolve(false), capabilityProbeTimeoutMs);
+    })]);
   } catch {
     return false;
-  }
+  } finally { clearTimeout(timer); }
 }
 
 function ensurePasskeySupported(ceremony: ZdpPasskeyCeremonyKind): void {
@@ -191,26 +200,40 @@ function hasBrowserAutofillInput(): boolean {
 async function runPasskeyCeremony<Response>(
   ceremony: ZdpPasskeyCeremonyKind,
   timeoutMs: number | null,
-  start: () => Promise<Response>
+  start: (assertActive: () => void) => Promise<Response>
 ): Promise<Response> {
+  cancelPasskeyCeremony();
+  const current = { controller: new AbortController(), ceremony };
+  activeCeremony = current;
+  const assertActive = () => {
+    if (current.controller.signal.aborted) throw current.controller.signal.reason;
+  };
   let timedOut = false;
   let timeout: ReturnType<typeof setTimeout> | null = null;
+  let rejectCancellation!: () => void;
+  const cancelled = new Promise<never>((_, reject) => {
+    rejectCancellation = () => reject(current.controller.signal.reason);
+    current.controller.signal.addEventListener('abort', rejectCancellation, { once: true });
+  });
 
   if (timeoutMs !== null) {
     timeout = setTimeout(() => {
       timedOut = true;
-      WebAuthnAbortService.cancelCeremony();
+      current.controller.abort(new ZdpPasskeyCeremonyError(ceremony, 'timed-out'));
+      if (activeCeremony === current) WebAuthnAbortService.cancelCeremony();
     }, timeoutMs);
   }
 
   try {
-    return await start();
+    return await Promise.race([start(assertActive), cancelled]);
   } catch (error) {
     throw normalizePasskeyError(ceremony, error, timedOut);
   } finally {
     if (timeout !== null) {
       clearTimeout(timeout);
     }
+    current.controller.signal.removeEventListener('abort', rejectCancellation);
+    if (activeCeremony === current) activeCeremony = null;
   }
 }
 

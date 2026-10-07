@@ -119,14 +119,16 @@ let hasAutofillInput = false;
 let credentialGet: CredentialGet = async () => createAuthenticationCredential();
 let capturedRequest: CredentialRequestOptions | null = null;
 const getCapturedRequest = (): CredentialRequestOptions | null => capturedRequest;
+let conditionalProbe: () => Promise<boolean> = async () => true;
+let platformProbe: () => Promise<boolean> = async () => true;
 
 class TestPublicKeyCredential {
   static async isConditionalMediationAvailable(): Promise<boolean> {
-    return true;
+    return conditionalProbe();
   }
 
   static async isUserVerifyingPlatformAuthenticatorAvailable(): Promise<boolean> {
-    return true;
+    return platformProbe();
   }
 }
 
@@ -230,6 +232,41 @@ try {
       return true;
     },
     'Caller-bounded timeout must cancel the browser ceremony and retain timeout classification.'
+  );
+  // Cancelling or superseding a pending capability probe must prevent a late prompt.
+  let finishProbe!: (value: boolean) => void;
+  conditionalProbe = () => new Promise(resolve => { finishProbe = resolve; });
+  capturedRequest = null;
+  credentialGet = async () => createAuthenticationCredential();
+  const preparing = startPasskeyAuthentication(options, { mediation: 'conditional' });
+  cancelPasskeyCeremony();
+  await assert.rejects(preparing, (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'cancelled');
+  finishProbe(true);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(getCapturedRequest(), null, 'A cancelled preparation must never call credentials.get.');
+
+  const superseded = startPasskeyAuthentication(options, { mediation: 'conditional' });
+  const supersededCheck = assert.rejects(superseded, (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'cancelled');
+  const replacement = await startPasskeyAuthentication(options);
+  const replacementRequest = getCapturedRequest();
+  assert.equal(replacement.id, 'credential-id');
+  finishProbe(true);
+  await supersededCheck;
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(getCapturedRequest(), replacementRequest, 'An older probe must not supersede a newer ceremony.');
+
+  conditionalProbe = platformProbe = () => new Promise(() => {});
+  assert.deepEqual(await detectPasskeySupport(), { supported: true, conditionalUi: false, platformAuthenticator: false });
+  await assert.rejects(
+    startPasskeyAuthentication(options, { mediation: 'conditional', timeoutMs: 1_000 }),
+    (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'timed-out',
+    'The caller deadline must also cover conditional capability preparation.'
+  );
+  credentialGet = () => new Promise(() => {});
+  await assert.rejects(
+    startPasskeyAuthentication(options, { timeoutMs: 1_000 }),
+    (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'timed-out',
+    'A browser transport ignoring abort must still settle the public helper.'
   );
 } finally {
   cancelPasskeyCeremony();
