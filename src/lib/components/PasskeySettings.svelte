@@ -131,14 +131,10 @@
             <div>
               <div class="zdp-passkey-settings__identity">
                 <strong>{key.label}</strong>
-                {#if key.authenticator}
-                  <Badge tone="neutral" size="sm">{providerLabel(key.authenticator)}</Badge>
-                {/if}
+                <Badge tone="neutral" size="sm">{key.authenticator ? providerLabel(key.authenticator) : copy.providerUnknown}</Badge>
               </div>
               <p>{copy.created}: {date(key.created_at)} · {copy.lastUsed}: {key.last_used_at ? date(key.last_used_at) : copy.neverUsed}</p>
-              {#if key.authenticator}
-                <p>{storageLabel(key.authenticator)}</p>
-              {/if}
+              <p>{key.authenticator ? storageLabel(key.authenticator) : copy.storageUnknown}</p>
             </div>
             <div class="zdp-passkey-settings__actions">
               {#if state.capabilities.rename}<Button type="button" variant="secondary" disabled={locked} onclick={() => open('rename', key.passkey_id, key.label)}>{copy.rename}</Button>{/if}

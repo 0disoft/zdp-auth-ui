@@ -100,8 +100,8 @@ for (const requiredText of [
   'copy.storageSynced',
   'copy.storageUnknown',
   'copy.notBackedUp',
-  '{providerLabel(key.authenticator)}',
-  '{storageLabel(key.authenticator)}'
+  '{key.authenticator ? providerLabel(key.authenticator) : copy.providerUnknown}',
+  '{key.authenticator ? storageLabel(key.authenticator) : copy.storageUnknown}'
 ]) {
   assert.ok(componentSource.includes(requiredText),
     `PasskeySettings must render the shared passkey management contract: ${requiredText}.`);
