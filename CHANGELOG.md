@@ -4,6 +4,11 @@
 
 - No unreleased changes.
 
+## 0.9.1
+
+- 패스키 공급자 버튼에 사용자와 열쇠 아이콘을 적용했다.
+- 패스키 등록 방식 선택과 authenticator metadata 타입을 공개 패키지에 제공하고, 기본 키 이름은 기기 메타데이터를 포함하지 않도록 정리했다.
+
 ## 0.9.0
 
 - Add a shared passkey management surface with a safe metadata list, inline add/rename/revoke editors and server-selected reauthentication prompts.
