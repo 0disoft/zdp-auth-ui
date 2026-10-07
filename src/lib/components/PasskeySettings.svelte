@@ -54,15 +54,22 @@
     ? getPasskeyRegistrationDefaultLabel(locale, preference) : '';
   $: if (editor === 'register' && !nameEdited) name = suggestedName;
   $: ready = state.status === 'ready';
-  $: locked = busy || !ready || !onaction || feedback === 'unconfirmed';
+  $: currentFeedback = feedbackSequence === null || feedbackSequence === actionSequence ? feedback : null;
+  $: locked = busy || !ready || !onaction || currentFeedback === 'unconfirmed';
   $: permitted = editor !== null && state.capabilities[editor];
   $: nameInvalid = editor !== 'revoke' && !validPasskeyLabel(name);
   $: passwordInvalid = Array.from(password).length < 12 || Array.from(password).length > 128;
-  $: if (submitted && feedback !== submittedFeedback) feedbackChanged = true;
-  $: if (submitted && !busy && feedback === 'saved' && editor &&
+  $: if (submitted && currentFeedback !== submittedFeedback) feedbackChanged = true;
+  $: if (submitted && !busy && currentFeedback === 'saved' && editor &&
     (feedbackSequence !== null ? feedbackSequence === actionSequence : feedbackChanged)) close(false);
   $: if (!busy && editor && (!ready || !permitted)) close(false);
-  $: if (mounted && feedback && !busy) void tick().then(() => feedbackElement?.focus());
+  $: if (mounted && currentFeedback && !busy) {
+    const expectedSequence = actionSequence;
+    const expectedFeedback = currentFeedback;
+    void tick().then(() => {
+      if (!busy && expectedSequence === actionSequence && currentFeedback === expectedFeedback) feedbackElement?.focus();
+    });
+  }
   onMount(() => { mounted = true; });
 
   async function open(action: typeof editor, id = '', label = '') {
@@ -96,7 +103,7 @@
       : { action: editor, passkeyId: selectedId, currentPassword };
     // The consumer receives the immediate value; the component retains no verifier after handoff.
     password = '';
-    submittedFeedback = feedback;
+    submittedFeedback = currentFeedback;
     feedbackChanged = false;
     submitted = true;
     onaction?.({ ...detail, sequence: ++actionSequence }, event);
@@ -195,7 +202,7 @@
       {/if}
     {/if}
     {#if busy}<p role="status" aria-live="polite">{copy.waiting}</p>
-    {:else if feedback}<p bind:this={feedbackElement} role={feedback === 'saved' ? 'status' : 'alert'} tabindex="-1">{copy[feedback]}</p>{/if}
+    {:else if currentFeedback}<p bind:this={feedbackElement} role={currentFeedback === 'saved' ? 'status' : 'alert'} tabindex="-1">{copy[currentFeedback]}</p>{/if}
   </section>
 </Surface>
 

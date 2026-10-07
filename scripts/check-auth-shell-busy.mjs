@@ -99,6 +99,8 @@ await Promise.all([
       </section>
       <output data-testid="correlated-sequence">{correlatedSequence}</output>
       <button data-testid="correlated-stale" onclick={() => { correlatedFeedback = 'saved'; correlatedFeedbackSequence = correlatedSequence - 1; }}>Stale</button>
+      <button data-testid="correlated-stale-unconfirmed" onclick={() => { correlatedFeedback = 'unconfirmed'; correlatedFeedbackSequence = correlatedSequence - 1; }}>Stale unconfirmed</button>
+      <button data-testid="correlated-stale-failed" onclick={() => { correlatedFeedback = 'failed'; correlatedFeedbackSequence = correlatedSequence - 1; }}>Stale failed</button>
       <button data-testid="correlated-saved" onclick={() => { correlatedFeedback = 'saved'; correlatedFeedbackSequence = correlatedSequence; }}>Saved current</button>
       <button data-testid="correlated-failed" onclick={() => { correlatedFeedback = 'failed'; correlatedFeedbackSequence = correlatedSequence; }}>Failed current</button>
       <section data-testid="legacy-management-fixture">
@@ -269,6 +271,12 @@ try {
   assert.equal(await correlated.locator('form').count(), 1, 'Old saved feedback must not close a delayed request.');
   await page.getByTestId('correlated-stale').click();
   assert.equal(await correlated.locator('form').count(), 1, 'A previous request sequence must not close the editor.');
+  await page.getByTestId('correlated-stale-unconfirmed').click();
+  assert.equal(await correlated.getByRole('button', { name: 'Cancel', exact: true }).isEnabled(), true, 'Stale uncertainty must not lock the current editor.');
+  assert.equal(await correlated.getByRole('alert').count(), 0, 'Stale uncertainty must not render as current feedback.');
+  await page.getByTestId('correlated-stale-failed').click();
+  assert.equal(await correlated.getByRole('alert').count(), 0, 'Stale failures must not render as current feedback.');
+  assert.equal(await page.getByTestId('correlated-stale-failed').evaluate(button => button === document.activeElement), true, 'Stale failures must not steal focus.');
   await page.getByTestId('correlated-saved').click();
   await correlated.locator('form').waitFor({ state: 'detached' });
 
