@@ -188,8 +188,8 @@
                 <p>{state.reauthentication === 'passkey' ? copy.reauthPasskey : copy.reauthPassword}</p>
                 {#if state.reauthentication === 'password'}
                   <PasswordField id={`${idPrefix}-password`} name="current_password" {locale} bind:value={password}
-                    label={copy.currentPassword} autocomplete="current-password" required disabled={locked} />
-                  {#if touched && passwordInvalid}<p role="alert">{copy.invalidPassword}</p>{/if}
+                    label={copy.currentPassword} autocomplete="current-password" required disabled={locked}
+                    errorText={touched && passwordInvalid ? copy.invalidPassword : null} />
                 {/if}
               {/if}
               <div class="zdp-passkey-settings__actions">

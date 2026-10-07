@@ -246,7 +246,16 @@ try {
   await page.getByTestId('management-ready').click();
   await management.getByRole('button', { name: 'Add', exact: true }).click();
   await management.locator('input[name="label"]').fill('Phone');
+  const managementPassword = management.locator('input[name="current_password"]');
+  await managementPassword.fill('short');
+  await management.locator('form').evaluate(form => form.requestSubmit());
+  assert.equal(await managementPassword.getAttribute('aria-invalid'), 'true', 'Invalid reauthentication must mark the password field.');
+  const passwordErrorId = 'passkey-settings-password-error';
+  assert.ok((await managementPassword.getAttribute('aria-describedby')).split(/\s+/).includes(passwordErrorId),
+    'Reauthentication errors must be connected to their input.');
+  assert.ok((await management.locator(`[id="${passwordErrorId}"]`).textContent()).length > 0);
   await management.locator('input[name="current_password"]').fill('fixture-password-only');
+  assert.notEqual(await managementPassword.getAttribute('aria-invalid'), 'true', 'Correcting the password must clear its invalid state.');
   await management.locator('form').evaluate(form => { form.requestSubmit(); form.requestSubmit(); });
   assert.equal(await page.locator('body').getAttribute('data-management-count'), '1', 'Duplicate management submits must hand off once.');
   assert.equal(await management.locator('input[name="current_password"]').inputValue(), '', 'Password must clear at handoff.');
