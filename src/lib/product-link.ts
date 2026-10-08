@@ -132,7 +132,7 @@ function isValidTrustPolicy(trust: ZdpProductLinkTrustPolicy): boolean {
     && isSafeVerificationPath(trust.verificationPath)
     && Array.isArray(trust.allowedVerificationOrigins)
     && trust.allowedVerificationOrigins.length > 0
-    && trust.allowedVerificationOrigins.every(isCanonicalHttpsOrigin);
+    && Array.from(trust.allowedVerificationOrigins).every(isCanonicalHttpsOrigin);
 }
 
 function isValidRequestShape(request: ZdpProductLinkRequest): boolean {
@@ -149,12 +149,12 @@ function isValidRequestShape(request: ZdpProductLinkRequest): boolean {
     && Array.isArray(request.requestedItems)
     && request.requestedItems.length > 0
     && request.requestedItems.length <= maximumRequestedItems
-    && request.requestedItems.every(isValidRequestedItem)
+    && Array.from(request.requestedItems).every(isValidRequestedItem)
     && new Set(request.requestedItems.map((item) => item.ref)).size === request.requestedItems.length
     && Array.isArray(request.consentImplications)
     && request.consentImplications.length > 0
     && request.consentImplications.length <= maximumConsentImplications
-    && request.consentImplications.every((item) => isBoundedText(item, detailTextMaxLength));
+    && Array.from(request.consentImplications).every((item) => isBoundedText(item, detailTextMaxLength));
 }
 
 function isValidRequestedItem(item: ZdpProductLinkRequestedItem): boolean {
