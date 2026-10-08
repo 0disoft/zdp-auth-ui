@@ -114,6 +114,7 @@ export async function startPasskeyAuthentication(
   options: PublicKeyCredentialRequestOptionsJSON,
   ceremonyOptions: ZdpPasskeyAuthenticationOptions = {}
 ): Promise<AuthenticationResponseJSON> {
+  ceremonyOptions = { ...ceremonyOptions };
   ensurePasskeySupported('authentication');
   const timeoutMs = validateTimeout('authentication', ceremonyOptions.timeoutMs);
   const mediation = ceremonyOptions.mediation ?? 'modal';

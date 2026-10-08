@@ -264,6 +264,21 @@ try {
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(getCapturedRequest(), replacementRequest, 'An older probe must not supersede a newer ceremony.');
 
+  hasAutofillInput = false;
+  capturedRequest = null;
+  const preparationOptions = { mediation: 'conditional' as const, verifyBrowserAutofillInput: true };
+  const capturedPreparation = startPasskeyAuthentication(options, preparationOptions);
+  preparationOptions.verifyBrowserAutofillInput = false;
+  const capturedPreparationCheck = assert.rejects(capturedPreparation,
+    (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'conditional-input-missing',
+    'Changing caller options during a capability probe must not disable the requested input check.');
+  const finishCapturedProbe = finishProbe;
+  conditionalProbe = async () => true;
+  finishCapturedProbe(true);
+  await capturedPreparationCheck;
+  assert.equal(getCapturedRequest(), null);
+  hasAutofillInput = true;
+
   conditionalProbe = platformProbe = () => new Promise(() => {});
   assert.deepEqual(await detectPasskeySupport(), { supported: true, conditionalUi: false, platformAuthenticator: false });
   await assert.rejects(
