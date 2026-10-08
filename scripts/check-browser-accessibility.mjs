@@ -273,6 +273,21 @@ try {
   );
   assert.equal(await confirmation.inputValue(), '', 'Clearing the password must also clear confirmation.');
 
+  await page.getByTestId('replace-signup-contract').click();
+  assert.equal(await signupTerms.isChecked(), true);
+  assert.equal(await signupAge.isChecked(), true);
+  await page.getByTestId('change-signup-terms').click();
+  assert.equal(await signupTerms.isChecked(), false, 'New terms require fresh acceptance.');
+  assert.equal(await signupAge.isChecked(), true);
+  await signupTerms.check();
+  await page.getByTestId('change-signup-age-policy').click();
+  assert.equal(await signupAge.isChecked(), false, 'New age policy requires fresh confirmation.');
+  assert.equal(await signupTerms.isChecked(), true);
+  await signupAge.check();
+  await page.getByTestId('change-signup-minimum-age').click();
+  assert.equal(await signupFixture.getByRole('checkbox', { name: 'I confirm I am at least 18 years old.', exact: true }).isChecked(),
+    false, 'New minimum age requires fresh confirmation.');
+
   await password.fill('valid-browser-fixture-password');
   await submit.click();
   assert.equal(

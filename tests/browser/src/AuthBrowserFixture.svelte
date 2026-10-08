@@ -72,7 +72,7 @@
   if (signupContractResult.outcome !== 'created') {
     throw new Error('Browser signup fixture contract must be valid.');
   }
-  const signupContract = signupContractResult.contract;
+  let signupContract = signupContractResult.contract;
 
   function createProductLinkRequest(challengeRef: string): ZdpProductLinkRequest {
     return {
@@ -259,6 +259,10 @@
   </section>
   <output data-testid="signup-submit-count">{signupSubmitCount}</output>
   <output data-testid="signup-submitted-fields">{signupSubmittedFields}</output>
+  <button type="button" data-testid="change-signup-terms" onclick={() => signupContract = { ...signupContract, termsConsentRef: 'policy://terms/2026-10-08' }}>Change terms</button>
+  <button type="button" data-testid="change-signup-age-policy" onclick={() => signupContract = { ...signupContract, agePolicyRef: 'account-minimum-age-14-v2' }}>Change age policy</button>
+  <button type="button" data-testid="change-signup-minimum-age" onclick={() => signupContract = { ...signupContract, minimumAgeYears: 18 }}>Change minimum age</button>
+  <button type="button" data-testid="replace-signup-contract" onclick={() => signupContract = { ...signupContract }}>Replace equivalent contract</button>
 
   <nav data-testid="auth-handoff-fixture" aria-label="Melamed account access">
     {#if loginHandoff.outcome === 'created'}

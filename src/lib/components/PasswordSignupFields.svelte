@@ -19,6 +19,19 @@
 
   let confirmation = '';
   let confirmationTouched = false;
+  let acceptedTermsRef = contract.termsConsentRef;
+  let confirmedAgePolicyRef = contract.agePolicyRef;
+  let confirmedMinimumAge = contract.minimumAgeYears;
+
+  $: if (contract.termsConsentRef !== acceptedTermsRef) {
+    termsAccepted = false;
+    acceptedTermsRef = contract.termsConsentRef;
+  }
+  $: if (contract.agePolicyRef !== confirmedAgePolicyRef || contract.minimumAgeYears !== confirmedMinimumAge) {
+    minimumAgeConfirmed = false;
+    confirmedAgePolicyRef = contract.agePolicyRef;
+    confirmedMinimumAge = contract.minimumAgeYears;
+  }
 
   // Consumers clear the credential after handoff; clear its local confirmation too.
   $: if (!password) {
