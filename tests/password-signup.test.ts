@@ -2,6 +2,13 @@ import { expect, test } from 'bun:test';
 import { createZdpPasswordSignupContract } from '../src/lib/password-signup';
 import { getAuthMessages, zdpAuthTargetLocales } from '../src/lib/i18n';
 
+test('rejects non-object signup requests without throwing', () => {
+  for (const request of [null, undefined, 42, true, 'policy://terms/v1', []]) {
+    expect(createZdpPasswordSignupContract(request as unknown as Parameters<typeof createZdpPasswordSignupContract>[0]))
+      .toEqual({ outcome: 'rejected', reason: 'invalid-terms-consent-ref' });
+  }
+});
+
 test('rejects malformed terms references through the result contract without throwing', () => {
   for (const termsConsentRef of [undefined, null, 42, true, {}, [], '']) {
     expect(createZdpPasswordSignupContract({ termsConsentRef: termsConsentRef as string,
