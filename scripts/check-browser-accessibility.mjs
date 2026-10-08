@@ -240,7 +240,7 @@ try {
   await signupPassword.fill('valid-browser-signup-password');
   assert.equal(await confirmation.evaluate((element) => element.validity.valid), true);
   assert.deepEqual(await signupFixture.locator('form').evaluate((form) => [...new FormData(form).keys()].sort()),
-    ['locale', 'login_id', 'password', 'terms_accepted', 'terms_consent_ref'],
+    ['age_policy_ref', 'locale', 'login_id', 'password', 'terms_accepted', 'terms_consent_ref'],
     'Confirmation must never become a transmitted form field.');
   await signupTerms.uncheck();
   await signupSubmit.click();
@@ -250,6 +250,11 @@ try {
     'Signup must focus required terms acceptance before submission.'
   );
   await signupTerms.check();
+  const signupAge = signupFixture.getByRole('checkbox', { name: 'I confirm I am at least 14 years old.', exact: true });
+  await signupSubmit.click();
+  assert.equal(await page.getByTestId('signup-submit-count').textContent(), '0', 'Missing minimum age confirmation must block submission.');
+  assert.equal(await signupAge.evaluate((element) => document.activeElement === element), true);
+  await signupAge.check();
   await signupSubmit.click();
   assert.equal(
     await page.getByTestId('signup-submit-count').textContent(),
@@ -258,7 +263,7 @@ try {
   );
   assert.equal(
     await page.getByTestId('signup-submitted-fields').textContent(),
-    'browser_user|password-present|true|policy://terms/2026-08-01|en',
+    'browser_user|password-present|true|account-minimum-age-14-v1|true|policy://terms/2026-08-01|en',
     'Signup must expose the Core-aligned login, password, terms, and locale field names to the consumer.'
   );
   assert.equal(

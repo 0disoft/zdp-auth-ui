@@ -5,23 +5,29 @@ export const zdpPasswordSignupFieldNames = Object.freeze({
   password: 'password',
   termsAccepted: 'terms_accepted',
   termsConsentRef: 'terms_consent_ref',
+  minimumAgeConfirmed: 'minimum_age_confirmed',
+  agePolicyRef: 'age_policy_ref',
   locale: 'locale'
 } as const);
 
 export interface ZdpPasswordSignupContractRequest {
   readonly termsConsentRef: string;
+  readonly minimumAgeYears: number;
+  readonly agePolicyRef: string;
   readonly locale: ZdpAuthLocale | string;
 }
 
 export interface ZdpPasswordSignupContract {
   readonly termsConsentRef: string;
+  readonly minimumAgeYears: number;
+  readonly agePolicyRef: string;
   readonly locale: ZdpAuthLocale;
   readonly fieldNames: typeof zdpPasswordSignupFieldNames;
 }
 
 export type ZdpPasswordSignupContractResult =
   | { readonly outcome: 'created'; readonly contract: ZdpPasswordSignupContract }
-  | { readonly outcome: 'rejected'; readonly reason: 'invalid-terms-consent-ref' | 'unsupported-locale' };
+  | { readonly outcome: 'rejected'; readonly reason: 'invalid-terms-consent-ref' | 'invalid-age-policy' | 'unsupported-locale' };
 
 export function createZdpPasswordSignupContract(
   request: ZdpPasswordSignupContractRequest
@@ -30,6 +36,10 @@ export function createZdpPasswordSignupContract(
   if (!isSafeReference(termsConsentRef, 256)) {
     return { outcome: 'rejected', reason: 'invalid-terms-consent-ref' };
   }
+  if (!Number.isSafeInteger(request.minimumAgeYears) || request.minimumAgeYears < 1 || request.minimumAgeYears > 150 ||
+    typeof request.agePolicyRef !== 'string' || !isSafeReference(request.agePolicyRef, 256)) {
+    return { outcome: 'rejected', reason: 'invalid-age-policy' };
+  }
   if (!(zdpAuthTargetLocales as readonly string[]).includes(request.locale)) {
     return { outcome: 'rejected', reason: 'unsupported-locale' };
   }
@@ -37,6 +47,8 @@ export function createZdpPasswordSignupContract(
     outcome: 'created',
     contract: {
       termsConsentRef,
+      minimumAgeYears: request.minimumAgeYears,
+      agePolicyRef: request.agePolicyRef,
       locale: request.locale as ZdpAuthLocale,
       fieldNames: zdpPasswordSignupFieldNames
     }

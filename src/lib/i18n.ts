@@ -32,6 +32,7 @@ export interface ZdpAuthMessages {
     readonly passwordConfirmation: string;
     readonly name: string;
     readonly termsAcceptance: string;
+    readonly minimumAgeConfirmation: string;
   };
   readonly actions: {
     readonly login: string;
@@ -146,6 +147,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
       recovery: '가입한 이메일로 복구 안내를 보냅니다.'
     },
     fields: {
+      minimumAgeConfirmation: "저는 최소 {minimumAge}세 이상임을 확인합니다.",
       loginId: '아이디',
       email: '이메일',
       password: '비밀번호',
@@ -241,6 +243,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
       recovery: 'We will send recovery instructions to your email.'
     },
     fields: {
+      minimumAgeConfirmation: "I confirm I am at least {minimumAge} years old.",
       loginId: 'Login ID',
       email: 'Email',
       password: 'Password',
@@ -324,6 +327,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
     }
   },
   zh: localizedAuthMessages({
+    minimumAgeConfirmation: "我确认我已年满 {minimumAge} 岁。",
     title: ['登录', '创建账户', '恢复账户'],
     summary: ['使用您的 8ailors 账户继续。', '创建您的 8ailors 账户。', '我们会将恢复说明发送到您的电子邮箱。'],
     fields: ['登录 ID', '电子邮箱', '密码', '姓名', '我同意必需的使用条款。', '确认密码'],
@@ -334,6 +338,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
     feedback: ['账户已创建。请登录以继续。', '请检查您输入的信息。', '此页面已过期。请刷新后重试。', '暂时无法创建账户。请稍后重试。', '请检查您的登录 ID 和密码。', '暂时无法登录。请稍后重试。', '两次输入的密码不一致。']
   }),
   es: localizedAuthMessages({
+    minimumAgeConfirmation: "Confirmo que tengo al menos {minimumAge} años.",
     title: ['Iniciar sesión', 'Crear cuenta', 'Recuperar cuenta'],
     summary: ['Continúa con tu cuenta de 8ailors.', 'Crea tu cuenta de 8ailors.', 'Enviaremos las instrucciones de recuperación a tu correo electrónico.'],
     fields: ['ID de acceso', 'Correo electrónico', 'Contraseña', 'Nombre', 'Acepto los términos obligatorios.', 'Confirmar contraseña'],
@@ -344,6 +349,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
     feedback: ['Cuenta creada. Inicia sesión para continuar.', 'Revisa la información introducida.', 'La página ha caducado. Actualízala e inténtalo de nuevo.', 'No se puede crear la cuenta temporalmente. Inténtalo más tarde.', 'Revisa tu ID de acceso y contraseña.', 'No se puede iniciar sesión temporalmente. Inténtalo más tarde.', 'Las contraseñas no coinciden.']
   }),
   fr: localizedAuthMessages({
+    minimumAgeConfirmation: "Je confirme avoir au moins {minimumAge} ans.",
     title: ['Se connecter', 'Créer un compte', 'Récupérer le compte'],
     summary: ['Continuez avec votre compte 8ailors.', 'Créez votre compte 8ailors.', 'Nous enverrons les instructions de récupération à votre adresse e-mail.'],
     fields: ['Identifiant', 'Adresse e-mail', 'Mot de passe', 'Nom', "J’accepte les conditions obligatoires.", 'Confirmer le mot de passe'],
@@ -354,6 +360,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
     feedback: ['Compte créé. Connectez-vous pour continuer.', 'Vérifiez les informations saisies.', 'Cette page a expiré. Actualisez-la et réessayez.', 'La création de compte est temporairement indisponible. Réessayez plus tard.', 'Vérifiez votre identifiant et votre mot de passe.', 'La connexion est temporairement indisponible. Réessayez plus tard.', 'Les mots de passe ne correspondent pas.']
   }),
   hi: localizedAuthMessages({
+    minimumAgeConfirmation: "मैं पुष्टि करता/करती हूँ कि मेरी आयु कम से कम {minimumAge} वर्ष है।",
     title: ['साइन इन करें', 'खाता बनाएँ', 'खाता पुनर्प्राप्त करें'],
     summary: ['अपने 8ailors खाते से आगे बढ़ें।', 'अपना 8ailors खाता बनाएँ।', 'हम पुनर्प्राप्ति निर्देश आपके ईमेल पर भेजेंगे।'],
     fields: ['लॉगिन आईडी', 'ईमेल', 'पासवर्ड', 'नाम', 'मैं आवश्यक शर्तों से सहमत हूँ।', 'पासवर्ड की पुष्टि करें'],
@@ -364,6 +371,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
     feedback: ['खाता बन गया। आगे बढ़ने के लिए साइन इन करें।', 'दर्ज की गई जानकारी जाँचें।', 'यह पेज समाप्त हो गया है। रीफ़्रेश करके फिर प्रयास करें।', 'अभी खाता नहीं बनाया जा सकता। थोड़ी देर बाद प्रयास करें।', 'अपनी लॉगिन आईडी और पासवर्ड जाँचें।', 'अभी साइन इन नहीं किया जा सकता। थोड़ी देर बाद प्रयास करें।', 'पासवर्ड मेल नहीं खा रहे हैं।']
   }),
   ja: localizedAuthMessages({
+    minimumAgeConfirmation: "私は{minimumAge}歳以上であることを確認します。",
     title: ['ログイン', 'アカウントを作成', 'アカウントを復旧'],
     summary: ['8ailors アカウントで続行します。', '8ailors アカウントを作成します。', '復旧手順をメールでお送りします。'],
     fields: ['ログイン ID', 'メールアドレス', 'パスワード', '名前', '必須の利用規約に同意します。', 'パスワード確認'],
@@ -374,6 +382,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
     feedback: ['アカウントを作成しました。ログインしてください。', '入力内容を確認してください。', 'ページの有効期限が切れました。更新してもう一度お試しください。', '現在アカウントを作成できません。しばらくしてからお試しください。', 'ログイン ID またはパスワードを確認してください。', '現在ログインできません。しばらくしてからお試しください。', 'パスワードが一致しません。']
   }),
   vi: localizedAuthMessages({
+    minimumAgeConfirmation: "Tôi xác nhận mình đã đủ {minimumAge} tuổi.",
     title: ['Đăng nhập', 'Tạo tài khoản', 'Khôi phục tài khoản'],
     summary: ['Tiếp tục bằng tài khoản 8ailors của bạn.', 'Tạo tài khoản 8ailors của bạn.', 'Chúng tôi sẽ gửi hướng dẫn khôi phục đến email của bạn.'],
     fields: ['ID đăng nhập', 'Email', 'Mật khẩu', 'Tên', 'Tôi đồng ý với các điều khoản bắt buộc.', 'Xác nhận mật khẩu'],
@@ -384,6 +393,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
     feedback: ['Đã tạo tài khoản. Hãy đăng nhập để tiếp tục.', 'Hãy kiểm tra thông tin đã nhập.', 'Trang này đã hết hạn. Hãy tải lại rồi thử lại.', 'Tạm thời không thể tạo tài khoản. Hãy thử lại sau.', 'Hãy kiểm tra ID đăng nhập và mật khẩu.', 'Tạm thời không thể đăng nhập. Hãy thử lại sau.', 'Mật khẩu không khớp.']
   }),
   ru: localizedAuthMessages({
+    minimumAgeConfirmation: "Я подтверждаю, что мне не менее {minimumAge} лет.",
     title: ['Войти', 'Создать аккаунт', 'Восстановить аккаунт'],
     summary: ['Продолжите с аккаунтом 8ailors.', 'Создайте аккаунт 8ailors.', 'Мы отправим инструкции по восстановлению на вашу электронную почту.'],
     fields: ['Логин', 'Электронная почта', 'Пароль', 'Имя', 'Я принимаю обязательные условия.', 'Подтверждение пароля'],
@@ -394,6 +404,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
     feedback: ['Аккаунт создан. Войдите, чтобы продолжить.', 'Проверьте введённые данные.', 'Срок действия страницы истёк. Обновите её и повторите попытку.', 'Создание аккаунта временно недоступно. Повторите попытку позже.', 'Проверьте логин и пароль.', 'Вход временно недоступен. Повторите попытку позже.', 'Пароли не совпадают.']
   }),
   id: localizedAuthMessages({
+    minimumAgeConfirmation: "Saya mengonfirmasi bahwa saya berusia minimal {minimumAge} tahun.",
     title: ['Masuk', 'Buat akun', 'Pulihkan akun'],
     summary: ['Lanjutkan dengan akun 8ailors Anda.', 'Buat akun 8ailors Anda.', 'Kami akan mengirim petunjuk pemulihan ke email Anda.'],
     fields: ['ID masuk', 'Email', 'Kata sandi', 'Nama', 'Saya menyetujui ketentuan wajib.', 'Konfirmasi kata sandi'],
@@ -404,6 +415,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
     feedback: ['Akun berhasil dibuat. Masuk untuk melanjutkan.', 'Periksa informasi yang Anda masukkan.', 'Halaman ini telah kedaluwarsa. Muat ulang lalu coba lagi.', 'Pembuatan akun sementara tidak tersedia. Coba lagi nanti.', 'Periksa ID masuk dan kata sandi Anda.', 'Proses masuk sementara tidak tersedia. Coba lagi nanti.', 'Kata sandi tidak cocok.']
   }),
   ms: localizedAuthMessages({
+    minimumAgeConfirmation: "Saya mengesahkan bahawa saya berumur sekurang-kurangnya {minimumAge} tahun.",
     title: ['Log masuk', 'Cipta akaun', 'Pulihkan akaun'],
     summary: ['Teruskan dengan akaun 8ailors anda.', 'Cipta akaun 8ailors anda.', 'Kami akan menghantar arahan pemulihan ke e-mel anda.'],
     fields: ['ID log masuk', 'E-mel', 'Kata laluan', 'Nama', 'Saya bersetuju dengan terma wajib.', 'Pengesahan kata laluan'],
@@ -414,6 +426,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
     feedback: ['Akaun berjaya dicipta. Log masuk untuk meneruskan.', 'Semak maklumat yang anda masukkan.', 'Halaman ini telah tamat tempoh. Muat semula dan cuba lagi.', 'Penciptaan akaun tidak tersedia buat sementara waktu. Cuba lagi kemudian.', 'Semak ID log masuk dan kata laluan anda.', 'Log masuk tidak tersedia buat sementara waktu. Cuba lagi kemudian.', 'Kata laluan tidak sepadan.']
   }),
   th: localizedAuthMessages({
+    minimumAgeConfirmation: "ฉันยืนยันว่าฉันมีอายุอย่างน้อย {minimumAge} ปี",
     title: ['เข้าสู่ระบบ', 'สร้างบัญชี', 'กู้คืนบัญชี'],
     summary: ['ดำเนินการต่อด้วยบัญชี 8ailors ของคุณ', 'สร้างบัญชี 8ailors ของคุณ', 'เราจะส่งคำแนะนำการกู้คืนไปยังอีเมลของคุณ'],
     fields: ['รหัสเข้าสู่ระบบ', 'อีเมล', 'รหัสผ่าน', 'ชื่อ', 'ฉันยอมรับข้อกำหนดที่จำเป็น', 'ยืนยันรหัสผ่าน'],
@@ -426,6 +439,7 @@ export const zdpAuthMessages: Record<ZdpAuthLocale, ZdpAuthMessages> = {
 };
 
 interface LocalizedAuthCopy {
+  readonly minimumAgeConfirmation: string;
   readonly title: readonly [string, string, string];
   readonly summary: readonly [string, string, string];
   readonly fields: readonly [string, string, string, string, string, string];
@@ -446,7 +460,8 @@ function localizedAuthMessages(copy: LocalizedAuthCopy): ZdpAuthMessages {
     fields: {
       loginId: copy.fields[0], email: copy.fields[1], password: copy.fields[2],
       name: copy.fields[3], termsAcceptance: copy.fields[4],
-      passwordConfirmation: copy.fields[5]
+      passwordConfirmation: copy.fields[5],
+      minimumAgeConfirmation: copy.minimumAgeConfirmation
     },
     actions: {
       login: copy.actions[0], signup: copy.actions[1], recovery: copy.actions[2],

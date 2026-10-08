@@ -65,6 +65,8 @@
   });
   const signupContractResult = createZdpPasswordSignupContract({
     termsConsentRef: 'policy://terms/2026-08-01',
+    minimumAgeYears: 14,
+    agePolicyRef: 'account-minimum-age-14-v1',
     locale: 'en'
   });
   if (signupContractResult.outcome !== 'created') {
@@ -237,6 +239,8 @@
         signupSubmittedFields = [
           data.get('login_id'),
           data.has('password') ? 'password-present' : 'password-missing',
+          data.get('minimum_age_confirmed'),
+          data.get('age_policy_ref'),
           data.get('terms_accepted'),
           data.get('terms_consent_ref'),
           data.get('locale')

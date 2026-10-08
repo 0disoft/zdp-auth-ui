@@ -12,6 +12,7 @@
   export let loginId = '';
   export let password = '';
   export let termsAccepted = false;
+  export let minimumAgeConfirmed = false;
   export let disabled = false;
   export let loginIdError: string | null = null;
   export let passwordError: string | null = null;
@@ -93,6 +94,17 @@
       <Link href={termsHref} target="_blank" rel="noopener noreferrer">{messages.links.terms}</Link>
     {/if}
   </div>
+  <Checkbox
+    id={`${idPrefix}-minimum-age-confirmed`}
+    name={contract.fieldNames.minimumAgeConfirmed}
+    value="true"
+    bind:checked={minimumAgeConfirmed}
+    required
+    {disabled}
+  >
+    {messages.fields.minimumAgeConfirmation.replace('{minimumAge}', String(contract.minimumAgeYears))}
+  </Checkbox>
+  <input type="hidden" name={contract.fieldNames.agePolicyRef} value={contract.agePolicyRef} autocomplete="off" />
   <input
     type="hidden"
     name={contract.fieldNames.termsConsentRef}

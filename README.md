@@ -13,7 +13,7 @@ ZDP의 공통 인증 UI 패키지다.
 - passkey browser ceremony helper boundary
 - feature-gated desktop product-link approval and denial UI
 - static product용 login/signup handoff URL helper
-- `login_id + password + 필수 약관 동의`를 위한 portable signup field contract
+- `login_id + password + 필수 약관 동의 + 최소 연령 확인`을 위한 portable signup field contract
 - AuthShell availability gate (`available`/`preparing`) — 계정 서비스가 준비 중일 때 제출, provider, 모드 변경을 막고 준비 중 카피를 노출
 - AuthShell controlled busy state — 인증 요청 중 submit, provider, 모드 변경, slotted form control을 잠그고 대기 상태를 노출
 - dist 기반 public package export와 소비 계약 검사
@@ -64,6 +64,8 @@ en, zh, es, fr, hi, ko, ja, vi, ru, id, ms, th
   const messages = getAuthMessages('ko');
   const signupResult = createZdpPasswordSignupContract({
     termsConsentRef: 'policy://terms/2026-08-01',
+    minimumAgeYears: 14,
+    agePolicyRef: 'account-minimum-age-14-v1',
     locale: 'ko'
   });
 </script>
