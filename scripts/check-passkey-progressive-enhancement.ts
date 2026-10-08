@@ -279,6 +279,24 @@ try {
   assert.equal(getCapturedRequest(), null);
   hasAutofillInput = true;
 
+  conditionalProbe = () => new Promise(resolve => { finishProbe = resolve; });
+  const mutableRequestOptions: PublicKeyCredentialRequestOptionsJSON = {
+    challenge: 'AA', rpId: 'localhost', extensions: { appid: 'https://original.example.test' }
+  };
+  const preparingSnapshot = startPasskeyAuthentication(mutableRequestOptions, { mediation: 'conditional' });
+  mutableRequestOptions.challenge = 'AQ';
+  mutableRequestOptions.rpId = 'changed.example.test';
+  mutableRequestOptions.extensions!.appid = 'https://changed.example.test';
+  const finishSnapshotProbe = finishProbe;
+  conditionalProbe = async () => true;
+  finishSnapshotProbe(true);
+  await preparingSnapshot;
+  const capturedPublicKey = getCapturedRequest()?.publicKey;
+  assert.deepEqual(new Uint8Array(capturedPublicKey!.challenge as ArrayBuffer), new Uint8Array([0]));
+  assert.equal(capturedPublicKey?.rpId, 'localhost');
+  assert.equal(capturedPublicKey?.extensions?.appid, 'https://original.example.test',
+    'Browser preparation must preserve the original challenge and nested extensions.');
+
   conditionalProbe = platformProbe = () => new Promise(() => {});
   assert.deepEqual(await detectPasskeySupport(), { supported: true, conditionalUi: false, platformAuthenticator: false });
   await assert.rejects(

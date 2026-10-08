@@ -124,6 +124,8 @@ export async function startPasskeyAuthentication(
   const useBrowserAutofill = mediation === 'conditional';
 
   return runPasskeyCeremony('authentication', timeoutMs, async (assertActive) => {
+  // Capture server-issued ceremony data before awaiting browser capability probes.
+  const requestOptions = structuredClone(options);
   if (useBrowserAutofill) {
     const conditionalUi = await safeCapabilityProbe(browserSupportsWebAuthnAutofill);
     assertActive();
@@ -145,7 +147,7 @@ export async function startPasskeyAuthentication(
 
   assertActive();
   return startAuthentication({
-      optionsJSON: options,
+      optionsJSON: requestOptions,
       useBrowserAutofill,
       verifyBrowserAutofillInput: ceremonyOptions.verifyBrowserAutofillInput
     });
