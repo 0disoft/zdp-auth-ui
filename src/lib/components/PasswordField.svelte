@@ -26,7 +26,10 @@
 
   function hideOnFormReset(node: HTMLDivElement) {
     const input = node.querySelector('input');
-    const roots = new Set<EventTarget>([node.ownerDocument, node.getRootNode(), ...(input?.form ? [input.form] : [])]);
+    const roots = new Set<EventTarget>();
+    let active = true;
+    let observedTree: Node | null = null;
+    let observer: MutationObserver | null = null;
     const handled = new WeakSet<Event>();
     const timers = new Set<ReturnType<typeof setTimeout>>();
     const onReset = (event: Event) => {
@@ -39,8 +42,34 @@
       }, 0);
       timers.add(timer);
     };
-    for (const root of roots) root.addEventListener('reset', onReset, true);
+    function refreshOwnership() {
+      if (!active) return;
+      const tree = node.getRootNode();
+      const nextRoots = new Set<EventTarget>([node.ownerDocument, tree, ...(input?.form ? [input.form] : [])]);
+      for (const root of roots) {
+        if (!nextRoots.has(root)) {
+          root.removeEventListener('reset', onReset, true);
+          roots.delete(root);
+        }
+      }
+      for (const root of nextRoots) {
+        if (!roots.has(root)) {
+          root.addEventListener('reset', onReset, true);
+          roots.add(root);
+        }
+      }
+      if (tree !== observedTree) {
+        observer?.disconnect();
+        observedTree = tree;
+        const Observer = node.ownerDocument.defaultView?.MutationObserver;
+        observer = Observer ? new Observer(refreshOwnership) : null;
+        observer?.observe(tree, { childList: true, subtree: true, attributes: true, attributeFilter: ['form', 'id'] });
+      }
+    }
+    refreshOwnership();
     return { destroy() {
+      active = false;
+      observer?.disconnect();
       for (const root of roots) root.removeEventListener('reset', onReset, true);
       for (const timer of timers) clearTimeout(timer);
     } };

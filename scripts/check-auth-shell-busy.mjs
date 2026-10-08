@@ -105,6 +105,10 @@ await Promise.all([
       <button data-testid="correlated-stale-failed" onclick={() => { correlatedFeedback = 'failed'; correlatedFeedbackSequence = correlatedSequence - 1; }}>Stale failed</button>
       <button data-testid="correlated-saved" onclick={() => { correlatedFeedback = 'saved'; correlatedFeedbackSequence = correlatedSequence; }}>Saved current</button>
       <button data-testid="correlated-failed" onclick={() => { correlatedFeedback = 'failed'; correlatedFeedbackSequence = correlatedSequence; }}>Failed current</button>
+      <form data-testid="password-reset-fixture">
+        <PasswordField id="reset-visible-password" name="reset_password" locale="en" value="fixture-password-only" />
+      </form>
+      <div id="password-reset-shadow-host"></div>
       <section data-testid="legacy-management-fixture">
         <PasskeySettings idPrefix="legacy" locale="en" state={managementState} feedback={legacyFeedback}
           onaction={() => {}} />
@@ -327,6 +331,25 @@ try {
   assert.equal(await correlated.locator('input[name="current_password"]').count(), 0,
     'Removing the edited credential from a server snapshot must close the editor and discard its verifier.');
   assert.equal(await page.getByTestId('correlated-sequence').textContent(), '3', 'Snapshot refresh must not dispatch a stale credential action.');
+
+  const resetPassword = page.getByTestId('password-reset-fixture');
+  await resetPassword.getByRole('button', { name: 'Show password', exact: true }).click();
+  assert.equal(await resetPassword.locator('input').getAttribute('type'), 'text');
+  await resetPassword.evaluate(form => {
+    const target = document.querySelector('#password-reset-shadow-host').attachShadow({ mode: 'open' });
+    const newForm = document.createElement('form');
+    newForm.append(form.querySelector('.zdp-auth-password-field__control'));
+    target.append(newForm);
+  });
+  await page.locator('#password-reset-shadow-host input').evaluate(async input => {
+    input.form.addEventListener('reset', event => event.preventDefault(), { once: true });
+    input.form.reset();
+    await new Promise(resolve => setTimeout(resolve, 10));
+  });
+  assert.equal(await page.locator('#password-reset-shadow-host input').getAttribute('type'), 'text', 'Cancelling a relocated form reset must preserve visibility.');
+  await page.locator('#password-reset-shadow-host input').evaluate(input => input.form.reset());
+  await page.waitForFunction(() => document.querySelector('#password-reset-shadow-host').shadowRoot.querySelector('input').type === 'password');
+  assert.equal(await page.locator('#password-reset-shadow-host input').inputValue(), 'fixture-password-only');
 
   console.log('AuthShell controlled busy-state browser check passed.');
 } finally {
