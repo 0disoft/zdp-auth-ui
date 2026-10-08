@@ -57,12 +57,13 @@
   $: currentFeedback = feedbackSequence === null || feedbackSequence === actionSequence ? feedback : null;
   $: locked = busy || !ready || !onaction || currentFeedback === 'unconfirmed';
   $: permitted = editor !== null && state.capabilities[editor];
+  $: selectedExists = editor === 'register' || state.passkeys.some(key => key.passkey_id === selectedId);
   $: nameInvalid = editor !== 'revoke' && !validPasskeyLabel(name);
   $: passwordInvalid = Array.from(password).length < 12 || Array.from(password).length > 128;
   $: if (submitted && currentFeedback !== submittedFeedback) feedbackChanged = true;
   $: if (submitted && !busy && currentFeedback === 'saved' && editor &&
     (feedbackSequence !== null ? feedbackSequence === actionSequence : feedbackChanged)) close(false);
-  $: if (!busy && editor && (!ready || !permitted)) close(false);
+  $: if (!busy && editor && (!ready || !permitted || !selectedExists)) close(false);
   $: if (mounted && currentFeedback && !busy) {
     const expectedSequence = actionSequence;
     const expectedFeedback = currentFeedback;
@@ -89,7 +90,7 @@
   }
   function submit(event: SubmitEvent) {
     event.preventDefault();
-    if (locked || !editor || !permitted || sameTask) return;
+    if (locked || !editor || !permitted || !selectedExists || sameTask) return;
     touched = true;
     if (nameInvalid && editor !== 'revoke') return;
     if (editor !== 'rename' && state.reauthentication === 'password' &&

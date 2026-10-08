@@ -31,11 +31,12 @@ await Promise.all([
       let managementFeedback = null;
       let managementCount = 0;
       let managementReady = false;
+      let managementKeysRemoved = false;
       let correlatedFeedback = 'saved';
       let correlatedFeedbackSequence = 0;
       let correlatedSequence = 0;
       let legacyFeedback = 'saved';
-      $: managementState = { status: managementReady ? 'ready' : 'preparing', passkeys: [
+      $: managementState = { status: managementReady ? 'ready' : 'preparing', passkeys: managementKeysRemoved ? [] : [
         { passkey_id: '00000000-0000-0000-0000-000000000001', label: 'Desktop', created_at: '2026-10-02T00:00:00Z', last_used_at: null }
       ], capabilities: { register: true, rename: true, revoke: true }, reauthentication: 'password' };
 
@@ -92,6 +93,7 @@ await Promise.all([
       </section>
       <button data-testid="management-ready" onclick={() => managementReady = true}>Ready</button>
       <button data-testid="management-saved" onclick={() => { managementBusy = false; managementFeedback = 'saved'; }}>Saved</button>
+      <button data-testid="management-remove-keys" onclick={() => { managementKeysRemoved = true; }}>Remove keys from server snapshot</button>
       <section data-testid="correlated-fixture">
         <PasskeySettings idPrefix="correlated" locale="en" state={managementState}
           feedback={correlatedFeedback} feedbackSequence={correlatedFeedbackSequence}
@@ -317,6 +319,14 @@ try {
   await page.getByTestId('legacy-failed').click();
   await page.getByTestId('legacy-saved').click();
   await legacy.locator('form').waitFor({ state: 'detached' });
+
+  await correlated.getByRole('button', { name: 'Remove', exact: true }).click();
+  await correlated.locator('input[name="current_password"]').fill('fixture-password-only');
+  await page.getByTestId('management-remove-keys').click();
+  await correlated.locator('form').waitFor({ state: 'detached' });
+  assert.equal(await correlated.locator('input[name="current_password"]').count(), 0,
+    'Removing the edited credential from a server snapshot must close the editor and discard its verifier.');
+  assert.equal(await page.getByTestId('correlated-sequence').textContent(), '3', 'Snapshot refresh must not dispatch a stale credential action.');
 
   console.log('AuthShell controlled busy-state browser check passed.');
 } finally {
