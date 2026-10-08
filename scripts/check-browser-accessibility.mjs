@@ -274,13 +274,23 @@ try {
   assert.equal(await confirmation.inputValue(), '', 'Clearing the password must also clear confirmation.');
 
   await page.getByTestId('replace-signup-contract').click();
+  const resetFixture = page.getByTestId('signup-policy-reset');
+  const resetTerms = resetFixture.locator('#reset-signup-terms-accepted');
+  const resetAge = resetFixture.locator('#reset-signup-minimum-age-confirmed');
+  assert.equal(await resetTerms.isChecked(), true);
+  assert.equal(await resetAge.isChecked(), true);
   assert.equal(await signupTerms.isChecked(), true);
   assert.equal(await signupAge.isChecked(), true);
   await page.getByTestId('change-signup-terms').click();
+  await resetFixture.getByRole('button', { name: 'Reset signup confirmation' }).click();
+  assert.equal(await resetTerms.isChecked(), false, 'Reset must not restore acceptance of old terms.');
+  assert.equal(await resetAge.isChecked(), true, 'Unchanged age policy keeps its original default.');
   assert.equal(await signupTerms.isChecked(), false, 'New terms require fresh acceptance.');
   assert.equal(await signupAge.isChecked(), true);
   await signupTerms.check();
   await page.getByTestId('change-signup-age-policy').click();
+  await resetFixture.getByRole('button', { name: 'Reset signup confirmation' }).click();
+  assert.equal(await resetAge.isChecked(), false, 'Reset must not restore confirmation of the old age policy.');
   assert.equal(await signupAge.isChecked(), false, 'New age policy requires fresh confirmation.');
   assert.equal(await signupTerms.isChecked(), true);
   await signupAge.check();

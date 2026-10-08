@@ -93,6 +93,7 @@
     />
   </div>
   <div class="zdp-auth-signup-terms">
+    {#key contract.termsConsentRef}
     <Checkbox
       id={`${idPrefix}-terms-accepted`}
       name={contract.fieldNames.termsAccepted}
@@ -103,10 +104,12 @@
     >
       {messages.fields.termsAcceptance}
     </Checkbox>
+    {/key}
     {#if termsHref}
       <Link href={termsHref} target="_blank" rel="noopener noreferrer">{messages.links.terms}</Link>
     {/if}
   </div>
+  {#key JSON.stringify([contract.agePolicyRef, contract.minimumAgeYears])}
   <Checkbox
     id={`${idPrefix}-minimum-age-confirmed`}
     name={contract.fieldNames.minimumAgeConfirmed}
@@ -117,6 +120,7 @@
   >
     {messages.fields.minimumAgeConfirmation.replace('{minimumAge}', String(contract.minimumAgeYears))}
   </Checkbox>
+  {/key}
   <input type="hidden" name={contract.fieldNames.agePolicyRef} value={contract.agePolicyRef} autocomplete="off" />
   <input
     type="hidden"

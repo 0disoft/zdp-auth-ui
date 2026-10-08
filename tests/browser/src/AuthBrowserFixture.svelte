@@ -25,6 +25,8 @@
   let signupLoginId = '';
   let signupPassword = '';
   let signupTermsAccepted = false;
+  let resetTermsAccepted = true;
+  let resetAgeConfirmed = true;
   let signupSubmittedFields = '';
   let approveRequest = createProductLinkRequest('plc_approve_fixture_0123456789');
   let denyRequest = createProductLinkRequest('plc_deny_fixture_012345678901');
@@ -263,6 +265,11 @@
   <button type="button" data-testid="change-signup-age-policy" onclick={() => signupContract = { ...signupContract, agePolicyRef: 'account-minimum-age-14-v2' }}>Change age policy</button>
   <button type="button" data-testid="change-signup-minimum-age" onclick={() => signupContract = { ...signupContract, minimumAgeYears: 18 }}>Change minimum age</button>
   <button type="button" data-testid="replace-signup-contract" onclick={() => signupContract = { ...signupContract }}>Replace equivalent contract</button>
+  <form data-testid="signup-policy-reset">
+    <PasswordSignupFields idPrefix="reset-signup" contract={signupContract}
+      bind:termsAccepted={resetTermsAccepted} bind:minimumAgeConfirmed={resetAgeConfirmed} />
+    <button type="reset">Reset signup confirmation</button>
+  </form>
 
   <nav data-testid="auth-handoff-fixture" aria-label="Melamed account access">
     {#if loginHandoff.outcome === 'created'}
