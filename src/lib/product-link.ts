@@ -85,26 +85,26 @@ export function validateProductLinkRequest(
   now: Date = new Date()
 ): ZdpProductLinkValidation {
   if (!isValidTrustPolicy(trust) || !isValidRequestShape(request)) {
-    return invalidValidation;
+    return invalidValidation();
   }
 
   if (request.challengeRef !== trust.expectedChallengeRef) {
-    return invalidValidation;
+    return invalidValidation();
   }
 
   if (!isTrustedVerificationUri(request.verificationUri, trust)) {
-    return invalidValidation;
+    return invalidValidation();
   }
 
   const nowMs = now.getTime();
   const issuedAtMs = Date.parse(request.issuedAt);
   const expiresAtMs = Date.parse(request.expiresAt);
   if (!Number.isFinite(nowMs) || !Number.isFinite(issuedAtMs) || !Number.isFinite(expiresAtMs)) {
-    return invalidValidation;
+    return invalidValidation();
   }
 
   if (expiresAtMs <= issuedAtMs || expiresAtMs - issuedAtMs > maximumChallengeTtlMs) {
-    return invalidValidation;
+    return invalidValidation();
   }
 
   if (expiresAtMs <= nowMs || request.state === 'expired') {
@@ -267,7 +267,6 @@ function isBoundedText(value: string, maxLength: number): boolean {
   return trimmed.length > 0 && trimmed.length <= maxLength && !/[\u0000-\u001f\u007f]/.test(trimmed);
 }
 
-const invalidValidation: ZdpProductLinkValidation = {
-  disposition: 'invalid',
-  actionable: false
-};
+function invalidValidation(): ZdpProductLinkValidation {
+  return { disposition: 'invalid', actionable: false };
+}
