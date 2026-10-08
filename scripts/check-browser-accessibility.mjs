@@ -484,6 +484,9 @@ try {
 
   for (const [testId, role, status] of [
     ['product-link-unsafe', 'alert', 'This connection request is not trusted. Start again from the desktop product.'],
+    ['product-link-missing-request', 'alert', 'This connection request is not trusted. Start again from the desktop product.'],
+    ['product-link-missing-trust', 'alert', 'This connection request is not trusted. Start again from the desktop product.'],
+    ['product-link-disabled-missing-request', 'alert', 'Desktop product connection is not available yet.'],
     ['product-link-stale', 'alert', 'This request is out of date. Start again from the desktop product.'],
     ['product-link-expired', 'alert', 'This request expired. Start again from the desktop product.'],
     ['product-link-consumed', 'status', 'This request was already used. Check the desktop product for its status.'],

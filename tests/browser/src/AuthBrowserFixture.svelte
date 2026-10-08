@@ -353,6 +353,22 @@
     />
   </section>
 
+  <section data-testid="product-link-missing-request">
+    <ProductLinkApproval id="product-link-missing-request" enabled locale="en"
+      request={null as unknown as ZdpProductLinkRequest}
+      trust={createTrust('plc_missing_fixture')} />
+  </section>
+  <section data-testid="product-link-missing-trust">
+    <ProductLinkApproval id="product-link-missing-trust" enabled locale="en"
+      request={createProductLinkRequest('plc_missing_trust_fixture')}
+      trust={null as unknown as ZdpProductLinkTrustPolicy} />
+  </section>
+  <section data-testid="product-link-disabled-missing-request">
+    <ProductLinkApproval id="product-link-disabled-missing-request" locale="en"
+      request={null as unknown as ZdpProductLinkRequest}
+      trust={createTrust('plc_disabled_missing_fixture')} />
+  </section>
+
   <section data-testid="product-link-stale">
     <ProductLinkApproval
       id="product-link-stale"

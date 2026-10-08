@@ -39,7 +39,9 @@
   $: statusMessage = enabled
     ? messages.productLink.status[validation.disposition]
     : messages.productLink.status.disabled;
-  $: formattedExpiry = formatExpiry(request.expiresAt, locale);
+  $: formattedExpiry = validation.disposition === 'invalid'
+    ? messages.productLink.status.invalid
+    : formatExpiry(request.expiresAt, locale);
   $: {
     const nextDisposition = validation.disposition;
     if (
@@ -61,7 +63,7 @@
   $: if (mounted) {
     if (enabled && now === null) {
       clockNow = new Date();
-      scheduleDeadlineRefresh(request.issuedAt, request.expiresAt, trust.maxRequestAgeMs);
+      scheduleDeadlineRefresh(request?.issuedAt ?? '', request?.expiresAt ?? '', trust?.maxRequestAgeMs ?? 0);
     } else {
       clearDeadlineRefresh();
     }
