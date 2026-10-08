@@ -54,6 +54,7 @@
     ? getPasskeyRegistrationDefaultLabel(locale, preference) : '';
   $: if (editor === 'register' && !nameEdited) name = suggestedName;
   $: ready = state.status === 'ready';
+  $: if (state.reauthentication !== 'password') password = '';
   $: currentFeedback = feedbackSequence === null || feedbackSequence === actionSequence ? feedback : null;
   $: locked = busy || !ready || !onaction || currentFeedback === 'unconfirmed';
   $: permitted = editor !== null && state.capabilities[editor];

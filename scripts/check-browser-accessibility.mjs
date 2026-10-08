@@ -156,6 +156,15 @@ try {
   );
 
   const passwordResetFixture = page.getByTestId('password-reset-fixture');
+  const passkeyReauth = page.getByTestId('passkey-reauth-fixture');
+  await passkeyReauth.locator('header button').click();
+  const reauthPassword = passkeyReauth.locator('#reauth-settings-password');
+  await reauthPassword.fill('fixture-current-password');
+  await passkeyReauth.getByTestId('use-passkey').click();
+  await reauthPassword.waitFor({ state: 'detached' });
+  await passkeyReauth.getByTestId('use-password').click();
+  await reauthPassword.waitFor();
+  assert.equal(await reauthPassword.inputValue(), '', 'Switching reauthentication methods must discard the previous password.');
   assert.equal(
     await page.getByTestId('literal-account-brand-fixture').locator('.zdp-auth-shell__summary').textContent(),
     'Continue with your ZDP $& $$ account.',
