@@ -486,6 +486,15 @@ function localizedAuthMessages(copy: LocalizedAuthCopy): ZdpAuthMessages {
   };
 }
 
+function freezeMessages(value: object): void {
+  for (const child of Object.values(value)) {
+    if (child !== null && typeof child === 'object' && !Object.isFrozen(child)) freezeMessages(child);
+  }
+  Object.freeze(value);
+}
+
+freezeMessages(zdpAuthMessages);
+
 export function isActiveAuthLocale(locale: string): locale is ZdpAuthActiveLocale {
   return (zdpAuthActiveLocales as readonly string[]).includes(locale);
 }

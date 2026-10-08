@@ -64,6 +64,13 @@ function renderLocaleModule(locale: ZdpAuthLocale, messages: ZdpAuthMessages): s
   return [
     `export const locale = ${JSON.stringify(locale)};`,
     `export const messages = ${serializeJavaScript(messages)};`,
+    'function freezeMessages(value) {',
+    '  for (const child of Object.values(value)) {',
+    "    if (child !== null && typeof child === 'object' && !Object.isFrozen(child)) freezeMessages(child);",
+    '  }',
+    '  Object.freeze(value);',
+    '}',
+    'freezeMessages(messages);',
     'export default messages;',
     ''
   ].join('\n');
