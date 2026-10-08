@@ -27,6 +27,7 @@
   let signupLoginId = '';
   let signupPassword = '';
   let signupTermsAccepted = false;
+  let signupTermsHref = '/terms';
   let resetTermsAccepted = true;
   let resetAgeConfirmed = true;
   let signupSubmittedFields = '';
@@ -241,7 +242,7 @@
     <AuthShell
       locale="en"
       mode="signup"
-      termsHref="/terms"
+      termsHref={signupTermsHref}
       privacyHref="/privacy"
       onsubmit={({ form }) => {
         signupSubmitCount += 1;
@@ -269,7 +270,10 @@
   </section>
   <output data-testid="signup-submit-count">{signupSubmitCount}</output>
   <output data-testid="signup-submitted-fields">{signupSubmittedFields}</output>
-  <button type="button" data-testid="change-signup-terms" onclick={() => signupContract = { ...signupContract, termsConsentRef: 'policy://terms/2026-10-08' }}>Change terms</button>
+  <button type="button" data-testid="change-signup-terms" onclick={() => {
+    signupContract = { ...signupContract, termsConsentRef: 'policy://terms/2026-10-08' };
+    signupTermsHref = '/terms-updated';
+  }}>Change terms</button>
   <button type="button" data-testid="change-signup-age-policy" onclick={() => signupContract = { ...signupContract, agePolicyRef: 'account-minimum-age-14-v2' }}>Change age policy</button>
   <button type="button" data-testid="change-signup-minimum-age" onclick={() => signupContract = { ...signupContract, minimumAgeYears: 18 }}>Change minimum age</button>
   <button type="button" data-testid="replace-signup-contract" onclick={() => signupContract = { ...signupContract }}>Replace equivalent contract</button>

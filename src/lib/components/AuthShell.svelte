@@ -8,6 +8,7 @@
     Surface
   } from 'zdp-design-system';
   import { onMount, setContext, tick } from 'svelte';
+  import { writable } from 'svelte/store';
   import {
     isZdpAuthFeedbackCode,
     isZdpAuthFeedbackErrorCode,
@@ -89,7 +90,9 @@
   $: if (mounted && !submitting && pendingFocusKey && pendingFocusKey === visibleErrorKey) {
     void focusFeedback(pendingFocusKey);
   }
-  setContext<TermsLinkContext>(termsLinkContextKey, () => termsHref?.trim() || null);
+  const termsLinkContext = writable(termsHref?.trim() || null);
+  setContext<TermsLinkContext>(termsLinkContextKey, termsLinkContext);
+  $: termsLinkContext.set(termsHref?.trim() || null);
 
   onMount(() => {
     previousFeedbackKey = feedbackKey;

@@ -302,6 +302,8 @@ try {
   assert.equal(await signupTerms.isChecked(), true);
   assert.equal(await signupAge.isChecked(), true);
   await page.getByTestId('change-signup-terms').click();
+  assert.equal(await signupTermsLink.getAttribute('href'), '/terms-updated',
+    'Updating the consumer terms URL must reach the link beside the consent checkbox.');
   await resetFixture.getByRole('button', { name: 'Reset signup confirmation' }).click();
   assert.equal(await resetTerms.isChecked(), false, 'Reset must not restore acceptance of old terms.');
   assert.equal(await resetAge.isChecked(), true, 'Unchanged age policy keeps its original default.');

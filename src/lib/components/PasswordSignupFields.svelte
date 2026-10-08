@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Checkbox, Link, Stack } from 'zdp-design-system';
   import { getContext } from 'svelte';
+  import { readable } from 'svelte/store';
   import { getAuthMessages } from '../i18n';
   import type { ZdpPasswordSignupContract } from '../password-signup';
   import LoginIdField from './LoginIdField.svelte';
@@ -56,8 +57,8 @@
   }
 
   $: messages = getAuthMessages(contract.locale);
-  const termsHrefContext = getContext<TermsLinkContext | undefined>(termsLinkContextKey);
-  $: termsHref = termsHrefContext?.() ?? null;
+  const termsHrefContext = getContext<TermsLinkContext | undefined>(termsLinkContextKey) ?? readable(null);
+  $: termsHref = $termsHrefContext;
 </script>
 
 <Stack gap="md">
