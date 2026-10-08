@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.9.2
+
+- Design System 0.64.1과 Vite·Playwright 갱신을 반영했다.
+
 - 공개 타입을 TypeScript·Svelte 소스에서 생성하도록 바꿔 수작업 선언 복제를 제거하고, 압축 패키지의 선언과 실제 peer 타입을 함께 검사한다.
 
 - 패스키 설정의 잠금·오류 표시·포커스에도 요청 sequence를 적용해 이전 응답이 현재 작업에 영향을 주지 않도록 했다.
