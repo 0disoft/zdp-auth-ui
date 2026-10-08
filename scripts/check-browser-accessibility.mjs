@@ -156,6 +156,11 @@ try {
   );
 
   const passwordResetFixture = page.getByTestId('password-reset-fixture');
+  assert.equal(
+    await page.getByTestId('literal-account-brand-fixture').locator('.zdp-auth-shell__summary').textContent(),
+    'Continue with your ZDP $& $$ account.',
+    'Account brands must be inserted literally without interpreting replacement tokens.'
+  );
   const resetPasswordInput = passwordResetFixture.getByLabel('Password', { exact: true });
   await passwordResetFixture.getByRole('button', { name: 'Show password', exact: true }).click();
   assert.equal(await resetPasswordInput.getAttribute('type'), 'text');

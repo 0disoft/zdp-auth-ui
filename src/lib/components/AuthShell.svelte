@@ -62,7 +62,7 @@
   $: messages = getAuthMessages(locale);
   $: normalizedAccountBrand = normalizeAccountBrand(accountBrand);
   $: title = messages.title[mode];
-  $: summary = messages.summary[mode].replace(messages.brand, normalizedAccountBrand ?? messages.brand);
+  $: summary = messages.summary[mode].replace(messages.brand, () => normalizedAccountBrand ?? messages.brand);
   $: primaryAction = messages.actions[mode];
   $: preparing = availability === 'preparing';
   $: submitting = busy && !preparing;

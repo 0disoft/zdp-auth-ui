@@ -193,6 +193,10 @@
     <AuthShell locale="en" mode="login" availability="preparing" accountBrand={'ZDP\u202e'} />
   </section>
 
+  <section data-testid="literal-account-brand-fixture">
+    <AuthShell locale="en" mode="login" availability="preparing" accountBrand={'ZDP $& $$'} />
+  </section>
+
   <DistAuthShellFixture />
 
   <section data-testid="auth-preparing-fixture">
