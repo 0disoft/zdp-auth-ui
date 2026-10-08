@@ -32,6 +32,9 @@ export type ZdpPasswordSignupContractResult =
 export function createZdpPasswordSignupContract(
   request: ZdpPasswordSignupContractRequest
 ): ZdpPasswordSignupContractResult {
+  if (typeof request.termsConsentRef !== 'string') {
+    return { outcome: 'rejected', reason: 'invalid-terms-consent-ref' };
+  }
   const termsConsentRef = request.termsConsentRef.trim();
   if (!isSafeReference(termsConsentRef, 256)) {
     return { outcome: 'rejected', reason: 'invalid-terms-consent-ref' };
