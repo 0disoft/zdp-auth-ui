@@ -18,6 +18,8 @@
   import { createZdpPasswordSignupContract } from '../../../src/lib/password-signup';
 
   let password = '';
+  let resetPassword = 'initial-fixture-password';
+  let cancelPasswordReset = false;
   let submitCount = 0;
   let preparingSubmitCount = 0;
   let preparingPassword = '';
@@ -141,6 +143,12 @@
 </script>
 
 <main>
+  <form data-testid="password-reset-fixture" onreset={(event) => { if (cancelPasswordReset) event.preventDefault(); }}>
+    <PasswordField id="reset-password" name="password" bind:value={resetPassword} locale="en" />
+    <button type="reset">Reset password field</button>
+    <button type="button" onclick={() => resetPassword = ''}>Clear password field</button>
+    <button type="button" onclick={() => cancelPasswordReset = true}>Cancel password resets</button>
+  </form>
   <section data-testid="login-fixture">
     <AuthShell
       locale="en"

@@ -155,6 +155,26 @@ try {
     'An account brand with bidi control characters must fall back to the locale catalog default.'
   );
 
+  const passwordResetFixture = page.getByTestId('password-reset-fixture');
+  const resetPasswordInput = passwordResetFixture.getByLabel('Password', { exact: true });
+  await passwordResetFixture.getByRole('button', { name: 'Show password', exact: true }).click();
+  assert.equal(await resetPasswordInput.getAttribute('type'), 'text');
+  await resetPasswordInput.fill('changed-fixture-password');
+  await passwordResetFixture.getByRole('button', { name: 'Reset password field', exact: true }).click();
+  await page.waitForFunction(() => document.getElementById('reset-password')?.getAttribute('type') === 'password');
+  assert.equal(await resetPasswordInput.inputValue(), 'initial-fixture-password');
+  await passwordResetFixture.getByRole('button', { name: 'Show password', exact: true }).click();
+  await passwordResetFixture.getByRole('button', { name: 'Clear password field', exact: true }).click();
+  assert.equal(await resetPasswordInput.getAttribute('type'), 'password', 'Clearing a credential must hide subsequent input.');
+  await resetPasswordInput.fill('kept-fixture-password');
+  await passwordResetFixture.getByRole('button', { name: 'Show password', exact: true }).click();
+  await passwordResetFixture.getByRole('button', { name: 'Cancel password resets', exact: true }).click();
+  await passwordResetFixture.getByRole('button', { name: 'Reset password field', exact: true }).click();
+  // Wait past the reset action task, including when the reset was cancelled.
+  await resetPasswordInput.evaluate(() => new Promise(resolve => setTimeout(resolve, 0)));
+  assert.equal(await resetPasswordInput.getAttribute('type'), 'text');
+  assert.equal(await resetPasswordInput.inputValue(), 'kept-fixture-password');
+
   const signupFixture = page.getByTestId('signup-fixture');
   assert.equal(
     await signupFixture.getByRole('link', { name: 'I forgot my password', exact: true }).count(),

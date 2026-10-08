@@ -22,6 +22,29 @@
   export let disabled = false;
 
   let visible = false;
+  $: if (value === '') visible = false;
+
+  function hideOnFormReset(node: HTMLDivElement) {
+    const input = node.querySelector('input');
+    const roots = new Set<EventTarget>([node.ownerDocument, node.getRootNode(), ...(input?.form ? [input.form] : [])]);
+    const handled = new WeakSet<Event>();
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+    const onReset = (event: Event) => {
+      const form = input?.form;
+      if (!form || event.target !== form || handled.has(event)) return;
+      handled.add(event);
+      const timer = setTimeout(() => {
+        timers.delete(timer);
+        if (!event.defaultPrevented && input?.isConnected && input.form === form) visible = false;
+      }, 0);
+      timers.add(timer);
+    };
+    for (const root of roots) root.addEventListener('reset', onReset, true);
+    return { destroy() {
+      for (const root of roots) root.removeEventListener('reset', onReset, true);
+      for (const timer of timers) clearTimeout(timer);
+    } };
+  }
 
   $: messages = getAuthMessages(locale);
   $: labelText = label ?? messages.fields.password;
@@ -33,7 +56,7 @@
 
 <Field required={required} invalid={Boolean(errorText)}>
   <Label forId={id}>{labelText}</Label>
-  <div class="zdp-auth-password-field__control">
+  <div class="zdp-auth-password-field__control" use:hideOnFormReset>
     <Input
       {id}
       {name}
