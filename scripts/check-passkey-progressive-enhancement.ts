@@ -211,6 +211,15 @@ try {
   );
 
   credentialGet = waitForAbort;
+  await assert.rejects(
+    () => startPasskeyAuthentication(options, { mediation: 'invalid' as 'modal' }),
+    (error: unknown) => {
+      assert.ok(error instanceof ZdpPasskeyCeremonyError);
+      assert.equal(error.reason, 'invalid-options');
+      return true;
+    },
+    'Invalid mediation must fail before cancelling or starting a browser ceremony.'
+  );
   const cancelledCeremony = startPasskeyAuthentication(options);
   await Promise.resolve();
   cancelPasskeyCeremony();

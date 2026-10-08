@@ -117,6 +117,9 @@ export async function startPasskeyAuthentication(
   ensurePasskeySupported('authentication');
   const timeoutMs = validateTimeout('authentication', ceremonyOptions.timeoutMs);
   const mediation = ceremonyOptions.mediation ?? 'modal';
+  if (!(zdpPasskeyAuthenticationMediationModes as readonly string[]).includes(mediation)) {
+    throw new ZdpPasskeyCeremonyError('authentication', 'invalid-options');
+  }
   const useBrowserAutofill = mediation === 'conditional';
 
   return runPasskeyCeremony('authentication', timeoutMs, async (assertActive) => {
