@@ -122,7 +122,7 @@
     "auth-handoff:check": "bun scripts/generate-auth-handoff-registry.ts --check",
     "build": "vite build && vite build --config vite.server.config.ts && bun scripts/preserve-server-component-identity.ts && bun scripts/build-package-surface.ts && bun scripts/check-ssr-package-surface.ts",
     "build:bundle": "vite build && vite build --config vite.server.config.ts",
-    "browser:check": "node scripts/check-browser-accessibility.mjs && node scripts/check-auth-shell-busy.mjs && node scripts/check-auth-feedback-browser.mjs",
+    "browser:check": "node scripts/check-browser-accessibility.mjs && node scripts/check-auth-shell-busy.mjs && node scripts/check-auth-feedback-browser.mjs && node scripts/check-product-link-clock-browser.mjs",
     "check": "svelte-check --tsconfig ./tsconfig.json && bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-passkey-progressive-enhancement.ts && bun scripts/check-passkey-settings.ts && bun scripts/check-auth-ui.ts && bun scripts/check-package-types.ts && bun run --conditions development scripts/check-dev-ssr-consumer.mjs && bun run release:check",
     "release:artifact:check": "bun scripts/build-release-artifact.ts --check",
     "release:check": "bun scripts/check-release-workflow.ts && bun run release:artifact:check",

@@ -23,6 +23,10 @@
   let mounted = false;
   let deadlineTimer: ReturnType<typeof setTimeout> | null = null;
   let clockNow = new Date();
+  let clockScope: string | null = null;
+  let clockWallOrigin = 0;
+  let clockElapsedOrigin = 0;
+  let clockHighWater = 0;
   let decisionFocusRequested = false;
   let sameTaskDecisionHandled = false;
   let previousDisposition: ZdpProductLinkDisposition | null = null;
@@ -62,7 +66,7 @@
   }
   $: if (mounted) {
     if (enabled && now === null) {
-      clockNow = new Date();
+      clockNow = readClock();
       scheduleDeadlineRefresh(request?.issuedAt ?? '', request?.expiresAt ?? '', trust?.maxRequestAgeMs ?? 0);
     } else {
       clearDeadlineRefresh();
@@ -82,7 +86,7 @@
       return;
     }
 
-    const decisionNow = now ?? new Date();
+    const decisionNow = now ?? readClock();
     if (!validateProductLinkRequest(request, trust, decisionNow).actionable) {
       if (now === null) clockNow = decisionNow;
       return;
@@ -137,11 +141,26 @@
     }
 
     const deadlineMs = Math.min(expiresAtMs, issuedAtMs + maxRequestAgeMs);
-    const delayMs = Math.max(0, deadlineMs - Date.now() + 1);
+    const delayMs = Math.max(0, deadlineMs - readClock().getTime() + 1);
     deadlineTimer = setTimeout(() => {
-      clockNow = new Date();
+      clockNow = readClock();
       deadlineTimer = null;
     }, delayMs);
+  }
+
+  function readClock(): Date {
+    const scope = request?.challengeRef ?? '';
+    const wall = Date.now(), elapsed = performance.now();
+    if (clockScope !== scope) {
+      clockScope = scope;
+      clockWallOrigin = wall;
+      clockElapsedOrigin = elapsed;
+      clockHighWater = wall;
+    }
+    // Preserve elapsed lifetime and already observed expiry across clock changes
+    // and snapshot refreshes. A newly issued challenge starts its own clock.
+    clockHighWater = Math.max(clockHighWater, wall, clockWallOrigin + Math.max(0, elapsed - clockElapsedOrigin));
+    return new Date(clockHighWater);
   }
 
   function clearDeadlineRefresh(): void {

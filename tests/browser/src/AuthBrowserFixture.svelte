@@ -6,6 +6,7 @@
   import ProductLinkApproval from '../../../src/lib/components/ProductLinkApproval.svelte';
   import DistAuthShellFixture from './DistAuthShellFixture.svelte';
   import PasskeyReauthFixture from './PasskeyReauthFixture.svelte';
+  import ProductLinkClockFixture from './ProductLinkClockFixture.svelte';
   import {
     buildZdpAuthHandoffUrl,
     type ZdpAuthHandoffResult
@@ -432,5 +433,6 @@
     />
   </section>
 
+  <ProductLinkClockFixture />
   <output data-testid="completion-count">{completionCount}</output>
 </main>
