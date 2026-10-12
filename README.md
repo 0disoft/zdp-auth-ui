@@ -168,10 +168,19 @@ if (handoff.outcome === 'created') {
 
 이 컴포넌트는 core API를 직접 호출하지 않는다. consuming app이 기존 인증 session과 API client로 complete 요청을 소유하며, core product-link runtime 승격 전에는 feature flag를 켜지 않는다.
 
+`now`를 제공하지 않는 기본 로컬 clock(`now === null`)은 `challengeRef`별 시작 wall time과
+`performance.now()`의 경과 시간을 사용하고, 관측한 최대 시각을 유지한다. 만료 timer,
+snapshot 갱신과 클릭 직전 검사가 같은 clock을 사용하므로 시스템 시각이 뒤로 가거나 같은
+challenge의 snapshot을 복제해도 만료된 승인 버튼이 다시 열리지 않는다. 다른 새 challenge는
+자기 clock을 시작한다. 소비 앱이 `now: Date`를 제공하면 기존처럼 그 값을 그대로 사용하며
+이 로컬 clock 보호는 적용하지 않는다. 화면 표시와 결정 callback만 제어하며 Core의 인증·권한·
+만료 판단과 기본 비활성 feature gate는 유지한다. 검사는
+`node scripts/check-product-link-clock-browser.mjs`로 실행한다.
+
 ## rodi-site-template-svelte에서 반영한 후보
 
 - `@simplewebauthn/browser`: passkey 브라우저 ceremony helper 후보로 도입했다. 서버 검증과 credential 저장은 이 저장소가 소유하지 않는다.
-- `zdp-design-system`: 인증 화면의 시각 기준이며 npm package range `^0.63.0`로 소비한다.
+- `zdp-design-system`: 인증 화면의 시각 기준이며 npm package range `^0.64.1`로 소비한다.
 
 `better-auth`, `drizzle-orm`, `@libsql/client`, server captcha, cookie consent, sitemap, markdown renderer는 인증 UI 패키지에 넣지 않는다.
 
