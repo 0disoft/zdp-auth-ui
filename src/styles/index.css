@@ -1,4 +1,4 @@
-@import "zdp-design-system/styles.css";
+@import "zdp-design-system/foundation.css";
 
 .zdp-auth-ui {
   color: var(--zdp-color-ink-normal);

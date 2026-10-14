@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.9.4
+
+- Use shared foundation CSS without loading a remote font stylesheet. Consumers own font delivery.
+- Keep the browser and SSR authentication surfaces on Design System 0.65.0.
+
 ## 0.9.3
 
 - Adopt Design System 0.65.0 for shared authentication components and styles.
