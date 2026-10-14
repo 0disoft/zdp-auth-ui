@@ -1,6 +1,6 @@
 {
   "name": "zdp-auth-ui",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "private": false,
   "license": "MIT",
   "type": "module",
@@ -130,7 +130,7 @@
   },
   "dependencies": {
     "@simplewebauthn/browser": "^14.0.0",
-    "zdp-design-system": "^0.64.1"
+    "zdp-design-system": "^0.65.0"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.3.1",

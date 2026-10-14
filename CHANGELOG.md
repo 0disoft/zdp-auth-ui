@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.9.3
+
+- Adopt Design System 0.65.0 for shared authentication components and styles.
+- Preserve product-link review expiry across clock rollback with a monotonic clock.
+
 ## 0.9.2
 
 - Design System 0.64.1과 Vite·Playwright 갱신을 반영했다.
