@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Field, Input, Label } from 'zdp-design-system';
   import AuthShell from '../../../src/lib/components/AuthShell.svelte';
   import LoginIdField from '../../../src/lib/components/LoginIdField.svelte';
   import PasswordField from '../../../src/lib/components/PasswordField.svelte';
@@ -188,6 +189,15 @@
     <AuthShell locale="ja" mode="login" accountBrand="ZDP">
       <LoginIdField id="browser-ja-login-id" locale="ja" />
       <PasswordField id="browser-ja-password" name="password" locale="ja" />
+    </AuthShell>
+  </section>
+
+  <section data-testid="recovery-form-fixture">
+    <AuthShell locale="en" mode="recovery" onsubmit={() => {}}>
+      <Field required>
+        <Label forId="browser-recovery-email">Email address</Label>
+        <Input id="browser-recovery-email" name="email" type="email" autocomplete="email" required />
+      </Field>
     </AuthShell>
   </section>
 

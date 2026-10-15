@@ -16,7 +16,7 @@
 
   $: messages = getAuthMessages(locale);
   $: labelText = label ?? messages.fields.loginId;
-  $: helpId = helpText ? `${id}-help` : null;
+  $: helpId = helpText && !errorText ? `${id}-help` : null;
   $: errorId = errorText ? `${id}-error` : null;
   $: describedByIds = [describedBy, helpId, errorId].flat().filter(Boolean) as string[];
 </script>

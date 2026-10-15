@@ -77,7 +77,7 @@
 
   $: messages = getAuthMessages(locale);
   $: labelText = label ?? messages.fields.password;
-  $: helpId = helpText ? `${id}-help` : null;
+  $: helpId = helpText && !errorText ? `${id}-help` : null;
   $: errorId = errorText ? `${id}-error` : null;
   $: describedByIds = [describedBy, helpId, errorId].flat().filter(Boolean) as string[];
   $: toggleLabel = visible ? messages.actions.hidePassword : messages.actions.showPassword;
@@ -104,6 +104,7 @@
       type="button"
       disabled={disabled}
       ariaPressed={visible}
+      ariaControls={id}
       ariaLabel={toggleLabel}
       onclick={() => (visible = !visible)}
     >
@@ -175,20 +176,25 @@
 
 <style>
   .zdp-auth-password-field__control {
-    align-items: stretch;
-    display: grid;
-    gap: var(--zdp-space-2);
-    grid-template-columns: minmax(0, 1fr) auto;
+    position: relative;
+    min-inline-size: 0;
+  }
+
+  .zdp-auth-password-field__control :global(.zdp-input) {
+    padding-inline-end: calc(var(--zdp-control-icon-md) + var(--zdp-space-3));
   }
 
   .zdp-auth-password-field__control :global(.zdp-icon-button) {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: 0;
     block-size: 100%;
     min-block-size: var(--zdp-control-height-md);
   }
 
   .zdp-auth-password-field__toggle-icon {
     display: block;
-    height: 100%;
-    width: 100%;
+    height: 1.125rem;
+    width: 1.125rem;
   }
 </style>

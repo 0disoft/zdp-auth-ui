@@ -74,6 +74,7 @@ try {
     const inputRect = input.getBoundingClientRect();
     const toggleRect = toggle.getBoundingClientRect();
     return {
+      contained: toggleRect.left >= inputRect.left && toggleRect.right <= inputRect.right + 1,
       inputHeight: inputRect.height,
       inputCenter: inputRect.top + inputRect.height / 2,
       toggleHeight: toggleRect.height,
@@ -81,6 +82,8 @@ try {
     };
   });
   assert.ok(passwordGeometry, 'The password field must render one adjacent visibility button.');
+  assert.equal(passwordGeometry.contained, true, 'The reveal button must stay inside the password input.');
+  assert.equal(await passwordToggle.getAttribute('aria-controls'), 'browser-password');
   assert.ok(
     Math.abs(passwordGeometry.inputHeight - passwordGeometry.toggleHeight) < 0.5 &&
       Math.abs(passwordGeometry.inputCenter - passwordGeometry.toggleCenter) < 0.5,
@@ -190,6 +193,7 @@ try {
   assert.equal(await resetPasswordInput.inputValue(), 'kept-fixture-password');
 
   const signupFixture = page.getByTestId('signup-fixture');
+  assert.equal(await signupFixture.locator('[aria-invalid="true"]').count(), 0, 'Empty signup fields must not show validation errors before interaction.');
   assert.equal(
     await signupFixture.getByRole('link', { name: 'I forgot my password', exact: true }).count(),
     0,
@@ -254,6 +258,8 @@ try {
   );
   await signupPassword.fill('valid-browser-signup-password');
   const confirmation = signupFixture.getByLabel('Confirm password', { exact: true });
+  await confirmation.focus(); await confirmation.blur();
+  assert.equal(await signupFixture.getByText('Passwords do not match.', { exact: true }).count(), 0, 'Empty confirmation must not show a mismatch error.');
   await signupSubmit.click();
   assert.equal(await confirmation.evaluate((element) => document.activeElement === element), true,
     'Signup must require password confirmation.');
@@ -343,6 +349,26 @@ try {
   );
 
   const preparingFixture = page.getByTestId('auth-preparing-fixture');
+  const recovery = page.getByTestId('recovery-form-fixture');
+  const recoveryEmail = recovery.getByLabel('Email address', { exact: true });
+  await recoveryEmail.focus(); await recoveryEmail.blur();
+  assert.equal(await recovery.locator('[role="alert"], [aria-invalid="true"]').count(), 0, 'Empty recovery form must not show errors before submit.');
+  await recovery.getByRole('button', { name: 'Send recovery email', exact: true }).click();
+  assert.equal(await recoveryEmail.evaluate(input => input.validity.valueMissing), true);
+  await recoveryEmail.fill('not-an-email');
+  assert.equal(await recoveryEmail.evaluate(input => input.validity.typeMismatch), true);
+  await recoveryEmail.fill('member@example.test');
+  assert.equal(await recoveryEmail.evaluate(input => input.validity.valid), true);
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const fixture of [loginFixture, signupFixture, recovery]) {
+    const bounds = await fixture.locator('form').boundingBox();
+    assert.ok(bounds && bounds.width <= 390, 'Auth forms must fit a narrow screen.');
+    for (const control of await fixture.locator('.zdp-auth-password-field__control').all()) {
+      const input = await control.locator('input').boundingBox(), toggle = await control.locator('button').boundingBox();
+      assert.ok(input && toggle && toggle.x >= input.x && toggle.x + toggle.width <= input.x + input.width + 1, 'Mobile reveal button must stay inside the input.');
+    }
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
   assert.equal(
     await preparingFixture.locator('form').getAttribute('data-availability'),
     'preparing',
