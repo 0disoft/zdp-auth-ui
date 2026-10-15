@@ -311,7 +311,7 @@
 
 <style>
   .zdp-auth-shell {
-    --zdp-type-body-small-size: var(--zdp-font-size-md);
+    --zdp-type-body-small-size: var(--zdp-font-size-sm);
     --zdp-type-control-size: var(--zdp-font-size-md);
     --zdp-type-label-size: var(--zdp-font-size-sm);
 
@@ -350,8 +350,9 @@
   }
 
   .zdp-auth-shell__summary {
-    font-size: var(--zdp-type-body-size);
-    line-height: var(--zdp-type-body-line-height);
+    color: var(--zdp-color-ink-muted);
+    font-size: var(--zdp-type-body-small-size);
+    line-height: var(--zdp-type-body-small-line-height);
   }
 
   .zdp-auth-shell__providers {
@@ -382,11 +383,19 @@
     overflow-wrap: var(--zdp-i18n-overflow-wrap);
   }
 
+  .zdp-auth-shell__controls > :global(.zdp-stack) > :global(.zdp-inline--justify-between) {
+    justify-content: flex-start;
+  }
+
   .zdp-auth-shell__links {
     align-items: center;
     display: flex;
     flex-wrap: wrap;
     gap: var(--zdp-space-3);
     min-width: 0;
+  }
+
+  .zdp-auth-shell__links:not(:has(a)) {
+    display: none;
   }
 </style>

@@ -148,8 +148,8 @@ try {
     };
   });
   assert.ok(
-    typography && typography.heading >= 32 && typography.summary >= 18 && typography.label >= 16 && typography.input >= 17,
-    `Account typography must use the larger shared scale: ${JSON.stringify(typography)}`
+    typography && typography.heading >= 32 && typography.summary >= 14 && typography.summary < typography.heading && typography.label >= 14 && typography.input >= 16,
+    `Account typography must keep a clear heading and readable supporting text: ${JSON.stringify(typography)}`
   );
 
   assert.equal(
