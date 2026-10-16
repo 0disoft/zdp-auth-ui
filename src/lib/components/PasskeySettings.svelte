@@ -301,7 +301,7 @@
   .zdp-passkey-settings--directory { gap:0; }
   .zdp-passkey-settings--directory li { display:grid; grid-template-columns:minmax(0,42%) minmax(0,1fr) auto; gap:1.5rem; min-block-size:5rem; padding-block:1rem; box-sizing:border-box; }
   .zdp-passkey-settings--directory li:last-child { border-bottom:var(--zdp-control-border-width) solid var(--zdp-color-line-subtle); }
-  li > .zdp-passkey-settings__directory-name { display:flex; align-items:center; gap:1.25rem; }
+  .zdp-passkey-settings--directory li > .zdp-passkey-settings__directory-name { display:flex; align-items:center; gap:1.25rem; }
   .zdp-passkey-settings__directory-name > div { display:grid; gap:0.25rem; min-inline-size:0; }
   .zdp-passkey-settings__directory-name strong { font-size:1rem; font-weight:500; overflow-wrap:anywhere; }
   .zdp-passkey-settings__directory-name small,.zdp-passkey-settings__last-used { font-size:0.875rem; color:var(--zdp-color-ink-muted); }
