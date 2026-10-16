@@ -31,7 +31,7 @@ const messages = {
   },
   "providers": {
     "groupLabel": "选择登录方式",
-    "passkey": "Passkey",
+    "passkey": "通行密钥",
     "google": "Google",
     "github": "GitHub",
     "email": "电子邮箱"
@@ -63,36 +63,36 @@ const messages = {
     "passwordMismatch": "两次输入的密码不一致。"
   },
   "productLink": {
-    "title": "Connect desktop product",
-    "summary": "Review the product and what it is asking to use.",
+    "title": "连接桌面产品",
+    "summary": "请确认要连接的产品及其请求使用的内容。",
     "fields": {
-      "product": "Requesting product",
-      "account": "Account",
-      "workspace": "Workspace",
-      "expires": "Request expires"
+      "product": "发起请求的产品",
+      "account": "账户",
+      "workspace": "工作区",
+      "expires": "请求有效期"
     },
-    "requestedTitle": "Requested access",
+    "requestedTitle": "请求的访问权限",
     "itemKinds": {
-      "scope": "Scope",
-      "capability": "Capability"
+      "scope": "范围",
+      "capability": "功能"
     },
-    "consentTitle": "If you approve",
-    "consentBoundary": "This approval does not sync product data.",
-    "noWorkspace": "Personal account",
+    "consentTitle": "批准后",
+    "consentBoundary": "批准此请求不会同步产品数据。",
+    "noWorkspace": "个人账户",
     "actions": {
-      "approve": "Approve connection",
-      "deny": "Deny"
+      "approve": "批准连接",
+      "deny": "拒绝"
     },
     "status": {
-      "ready": "You can approve or deny this request.",
-      "submitting": "Sending your decision.",
-      "approved": "Connection approved.",
-      "denied": "Connection denied.",
-      "expired": "This request expired. Start again from the desktop product.",
-      "consumed": "This request was already used. Check the desktop product for its status.",
-      "stale": "This request is out of date. Start again from the desktop product.",
-      "invalid": "This connection request is not trusted. Start again from the desktop product.",
-      "disabled": "Desktop product connection is not available yet."
+      "ready": "您可以批准或拒绝此请求。",
+      "submitting": "正在发送您的决定。",
+      "approved": "已批准连接。",
+      "denied": "已拒绝连接。",
+      "expired": "此请求已过期。请在桌面产品中重新发起。",
+      "consumed": "此请求已被处理。请在桌面产品中查看状态。",
+      "stale": "请求信息已过期。请在桌面产品中重新发起。",
+      "invalid": "无法信任此连接请求。请在桌面产品中重新开始。",
+      "disabled": "桌面产品连接暂不可用。"
     }
   }
 } satisfies ZdpAuthMessages;

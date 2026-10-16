@@ -31,7 +31,7 @@ const messages = {
   },
   "providers": {
     "groupLabel": "ログイン方法を選択",
-    "passkey": "Passkey",
+    "passkey": "パスキー",
     "google": "Google",
     "github": "GitHub",
     "email": "メールアドレス"
@@ -63,36 +63,36 @@ const messages = {
     "passwordMismatch": "パスワードが一致しません。"
   },
   "productLink": {
-    "title": "Connect desktop product",
-    "summary": "Review the product and what it is asking to use.",
+    "title": "デスクトップ製品を接続",
+    "summary": "接続する製品と、許可を求めている内容を確認してください。",
     "fields": {
-      "product": "Requesting product",
-      "account": "Account",
-      "workspace": "Workspace",
-      "expires": "Request expires"
+      "product": "要求元の製品",
+      "account": "アカウント",
+      "workspace": "ワークスペース",
+      "expires": "要求の有効期限"
     },
-    "requestedTitle": "Requested access",
+    "requestedTitle": "要求されたアクセス",
     "itemKinds": {
-      "scope": "Scope",
-      "capability": "Capability"
+      "scope": "範囲",
+      "capability": "機能"
     },
-    "consentTitle": "If you approve",
-    "consentBoundary": "This approval does not sync product data.",
-    "noWorkspace": "Personal account",
+    "consentTitle": "承認すると",
+    "consentBoundary": "この承認では製品データは同期されません。",
+    "noWorkspace": "個人アカウント",
     "actions": {
-      "approve": "Approve connection",
-      "deny": "Deny"
+      "approve": "接続を承認",
+      "deny": "拒否"
     },
     "status": {
-      "ready": "You can approve or deny this request.",
-      "submitting": "Sending your decision.",
-      "approved": "Connection approved.",
-      "denied": "Connection denied.",
-      "expired": "This request expired. Start again from the desktop product.",
-      "consumed": "This request was already used. Check the desktop product for its status.",
-      "stale": "This request is out of date. Start again from the desktop product.",
-      "invalid": "This connection request is not trusted. Start again from the desktop product.",
-      "disabled": "Desktop product connection is not available yet."
+      "ready": "この要求を承認または拒否できます。",
+      "submitting": "決定を送信しています。",
+      "approved": "接続を承認しました。",
+      "denied": "接続を拒否しました。",
+      "expired": "この要求は期限切れです。デスクトップ製品からやり直してください。",
+      "consumed": "この要求はすでに処理済みです。デスクトップ製品で状態を確認してください。",
+      "stale": "要求の情報が古くなっています。デスクトップ製品からやり直してください。",
+      "invalid": "この接続要求は信頼できません。デスクトップ製品からやり直してください。",
+      "disabled": "デスクトップ製品の接続はまだ利用できません。"
     }
   }
 } satisfies ZdpAuthMessages;

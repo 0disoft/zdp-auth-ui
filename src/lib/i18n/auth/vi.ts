@@ -31,7 +31,7 @@ const messages = {
   },
   "providers": {
     "groupLabel": "Chọn cách đăng nhập",
-    "passkey": "Passkey",
+    "passkey": "Khóa truy cập (Passkey)",
     "google": "Google",
     "github": "GitHub",
     "email": "Email"
@@ -63,36 +63,36 @@ const messages = {
     "passwordMismatch": "Mật khẩu không khớp."
   },
   "productLink": {
-    "title": "Connect desktop product",
-    "summary": "Review the product and what it is asking to use.",
+    "title": "Kết nối sản phẩm máy tính",
+    "summary": "Xem lại sản phẩm và nội dung mà sản phẩm yêu cầu sử dụng.",
     "fields": {
-      "product": "Requesting product",
-      "account": "Account",
-      "workspace": "Workspace",
-      "expires": "Request expires"
+      "product": "Sản phẩm yêu cầu",
+      "account": "Tài khoản",
+      "workspace": "Không gian làm việc",
+      "expires": "Hạn của yêu cầu"
     },
-    "requestedTitle": "Requested access",
+    "requestedTitle": "Quyền truy cập được yêu cầu",
     "itemKinds": {
-      "scope": "Scope",
-      "capability": "Capability"
+      "scope": "Phạm vi",
+      "capability": "Khả năng"
     },
-    "consentTitle": "If you approve",
-    "consentBoundary": "This approval does not sync product data.",
-    "noWorkspace": "Personal account",
+    "consentTitle": "Nếu bạn chấp thuận",
+    "consentBoundary": "Chấp thuận lần này không đồng bộ dữ liệu sản phẩm.",
+    "noWorkspace": "Tài khoản cá nhân",
     "actions": {
-      "approve": "Approve connection",
-      "deny": "Deny"
+      "approve": "Chấp thuận kết nối",
+      "deny": "Từ chối"
     },
     "status": {
-      "ready": "You can approve or deny this request.",
-      "submitting": "Sending your decision.",
-      "approved": "Connection approved.",
-      "denied": "Connection denied.",
-      "expired": "This request expired. Start again from the desktop product.",
-      "consumed": "This request was already used. Check the desktop product for its status.",
-      "stale": "This request is out of date. Start again from the desktop product.",
-      "invalid": "This connection request is not trusted. Start again from the desktop product.",
-      "disabled": "Desktop product connection is not available yet."
+      "ready": "Bạn có thể chấp thuận hoặc từ chối yêu cầu này.",
+      "submitting": "Đang gửi quyết định của bạn.",
+      "approved": "Đã chấp thuận kết nối.",
+      "denied": "Đã từ chối kết nối.",
+      "expired": "Yêu cầu này đã hết hạn. Hãy bắt đầu lại từ sản phẩm máy tính.",
+      "consumed": "Yêu cầu này đã được xử lý. Hãy xem trạng thái trong sản phẩm máy tính.",
+      "stale": "Thông tin yêu cầu đã cũ. Hãy bắt đầu lại từ sản phẩm máy tính.",
+      "invalid": "Không thể tin cậy yêu cầu kết nối này. Hãy bắt đầu lại từ sản phẩm máy tính.",
+      "disabled": "Kết nối sản phẩm máy tính chưa khả dụng."
     }
   }
 } satisfies ZdpAuthMessages;

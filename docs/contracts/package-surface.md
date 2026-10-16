@@ -44,10 +44,10 @@ The `./components` entry selects `dist/components.js` for browser builds and `di
 
 The synchronous `./i18n` export remains compatible and contains all locale catalogs. Consumers that need one fixed catalog should import `zdp-auth-ui/i18n/<locale>`. Consumers that select locale at runtime should import `loadAuthLocale` from `zdp-auth-ui/i18n/loader`; unsupported values fall back to English.
 
-`src/lib/i18n.ts` remains the only auth translation source, and `src/lib/passkey-settings-messages.ts` the only passkey management source. The browser build serializes each catalog and emits the lazy loader, so isolated entries cannot drift into a second manually maintained message catalog.
+Auth translation still has a single authoring place: `src/lib/i18n/auth/<locale>.ts` and `src/lib/i18n/passkey-settings/<locale>.ts` hold the explicit key objects, `src/lib/i18n/schema.ts` holds the shared readonly types and locale lists, and `src/lib/i18n.ts` and `src/lib/passkey-settings-messages.ts` stay the single assembly and freeze point behind the compatibility surfaces' synchronous APIs. The browser build serializes each catalog and emits the lazy loader, so isolated entries cannot drift into a second manually maintained message catalog, and a rebuilt `dist/i18n/<locale>` entry carries the current translated copy.
 
 The SSR build compiles the design-system Svelte source while keeping the consuming application's Svelte runtime external. The clean consumer fixture proves package-root imports, message-keyed provider labels, password field overrides, callback wiring, and disabled-by-default product-link consumption without compiling source files from this repository.
 
-The new subpath and APIs are additive and have a minor version impact. Required message props apply only to the new `./components` entry; existing root props keep their optionality. This local work does not bump the version or publish the package.
+The new subpath and APIs are additive and have a minor version impact. Required message props apply only to the new `./components` entry; existing root props keep their optionality. Splitting the catalogs from positional arrays into explicit key objects preserves public exports and generated locale entrypoint shapes. This local work does not bump the version or publish the package.
 
 When packaged files, export entries, build scripts, examples, package metadata, locale entrypoints, or declarations change, evaluate package version impact and verify with the package build, check, and pack dry-run intents.

@@ -31,7 +31,7 @@ const messages = {
   },
   "providers": {
     "groupLabel": "Elige cómo iniciar sesión",
-    "passkey": "Passkey",
+    "passkey": "Clave de acceso",
     "google": "Google",
     "github": "GitHub",
     "email": "Correo electrónico"
@@ -63,36 +63,36 @@ const messages = {
     "passwordMismatch": "Las contraseñas no coinciden."
   },
   "productLink": {
-    "title": "Connect desktop product",
-    "summary": "Review the product and what it is asking to use.",
+    "title": "Conectar el producto de escritorio",
+    "summary": "Revisa el producto y lo que solicita usar.",
     "fields": {
-      "product": "Requesting product",
-      "account": "Account",
-      "workspace": "Workspace",
-      "expires": "Request expires"
+      "product": "Producto solicitante",
+      "account": "Cuenta",
+      "workspace": "Espacio de trabajo",
+      "expires": "Caducidad de la solicitud"
     },
-    "requestedTitle": "Requested access",
+    "requestedTitle": "Acceso solicitado",
     "itemKinds": {
-      "scope": "Scope",
-      "capability": "Capability"
+      "scope": "Ámbito",
+      "capability": "Capacidad"
     },
-    "consentTitle": "If you approve",
-    "consentBoundary": "This approval does not sync product data.",
-    "noWorkspace": "Personal account",
+    "consentTitle": "Si lo apruebas",
+    "consentBoundary": "Esta aprobación no sincroniza los datos del producto.",
+    "noWorkspace": "Cuenta personal",
     "actions": {
-      "approve": "Approve connection",
-      "deny": "Deny"
+      "approve": "Aprobar la conexión",
+      "deny": "Rechazar"
     },
     "status": {
-      "ready": "You can approve or deny this request.",
-      "submitting": "Sending your decision.",
-      "approved": "Connection approved.",
-      "denied": "Connection denied.",
-      "expired": "This request expired. Start again from the desktop product.",
-      "consumed": "This request was already used. Check the desktop product for its status.",
-      "stale": "This request is out of date. Start again from the desktop product.",
-      "invalid": "This connection request is not trusted. Start again from the desktop product.",
-      "disabled": "Desktop product connection is not available yet."
+      "ready": "Puedes aprobar o rechazar esta solicitud.",
+      "submitting": "Enviando tu decisión.",
+      "approved": "Conexión aprobada.",
+      "denied": "Conexión rechazada.",
+      "expired": "Esta solicitud ha caducado. Iníciala de nuevo desde el producto de escritorio.",
+      "consumed": "Esta solicitud ya se usó. Consulta su estado en el producto de escritorio.",
+      "stale": "La solicitud está desactualizada. Iníciala de nuevo desde el producto de escritorio.",
+      "invalid": "No se puede confiar en esta solicitud de conexión. Iníciala de nuevo desde el producto de escritorio.",
+      "disabled": "La conexión con el producto de escritorio aún no está disponible."
     }
   }
 } satisfies ZdpAuthMessages;

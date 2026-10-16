@@ -370,6 +370,8 @@ function checkLocalizedAuthMessages(): void {
     en: 'Sign in', zh: '登录', es: 'Iniciar sesión', fr: 'Se connecter', hi: 'साइन इन करें',
     ko: '로그인', ja: 'ログイン', vi: 'Đăng nhập', ru: 'Войти', id: 'Masuk', ms: 'Log masuk', th: 'เข้าสู่ระบบ'
   };
+  const english = getAuthMessages('en');
+  const englishProductLink = messageLeaves(english.productLink);
   for (const locale of expectedLocales) {
     const messages = getAuthMessages(locale);
     if (messages.title.login !== expectedLoginTitles[locale]) {
@@ -378,7 +380,34 @@ function checkLocalizedAuthMessages(): void {
     if (!messages.fields.loginId || !messages.fields.password || !messages.actions.login) {
       failures.push(`Locale ${locale} must provide complete login field and action copy.`);
     }
+    const productLink = messageLeaves(messages.productLink);
+    if (JSON.stringify(Object.keys(productLink).sort()) !== JSON.stringify(Object.keys(englishProductLink).sort())) {
+      failures.push(`Locale ${locale} must define every product-link message key.`);
+    }
+    for (const [key, value] of Object.entries(productLink)) {
+      if (typeof value !== 'string' || !value.trim()) {
+        failures.push(`Locale ${locale} has an empty product-link message: ${key}.`);
+      } else if (locale !== 'en' && value === englishProductLink[key]) {
+        failures.push(`Locale ${locale} must translate product-link message ${key} instead of using English.`);
+      }
+    }
+    if (locale !== 'en' && messages.providers.passkey === english.providers.passkey) {
+      failures.push(`Locale ${locale} must provide its localized passkey provider label.`);
+    }
   }
+}
+
+function messageLeaves(catalog: object, prefix = ''): Record<string, unknown> {
+  const leaves: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(catalog)) {
+    const path = `${prefix}${key}`;
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      Object.assign(leaves, messageLeaves(value, `${path}.`));
+    } else {
+      leaves[path] = value;
+    }
+  }
+  return leaves;
 }
 
 function checkMessageCatalog(): void {

@@ -31,7 +31,7 @@ const messages = {
   },
   "providers": {
     "groupLabel": "เลือกวิธีเข้าสู่ระบบ",
-    "passkey": "Passkey",
+    "passkey": "พาสคีย์",
     "google": "Google",
     "github": "GitHub",
     "email": "อีเมล"
@@ -63,36 +63,36 @@ const messages = {
     "passwordMismatch": "รหัสผ่านไม่ตรงกัน"
   },
   "productLink": {
-    "title": "Connect desktop product",
-    "summary": "Review the product and what it is asking to use.",
+    "title": "เชื่อมต่อผลิตภัณฑ์เดสก์ท็อป",
+    "summary": "ตรวจดูผลิตภัณฑ์และสิ่งที่ผลิตภัณฑ์ขอใช้งาน",
     "fields": {
-      "product": "Requesting product",
-      "account": "Account",
-      "workspace": "Workspace",
-      "expires": "Request expires"
+      "product": "ผลิตภัณฑ์ที่ขอเชื่อมต่อ",
+      "account": "บัญชี",
+      "workspace": "เวิร์กสเปซ",
+      "expires": "วันหมดอายุของคำขอ"
     },
-    "requestedTitle": "Requested access",
+    "requestedTitle": "สิทธิ์การเข้าถึงที่ขอ",
     "itemKinds": {
-      "scope": "Scope",
-      "capability": "Capability"
+      "scope": "ขอบเขต",
+      "capability": "ความสามารถ"
     },
-    "consentTitle": "If you approve",
-    "consentBoundary": "This approval does not sync product data.",
-    "noWorkspace": "Personal account",
+    "consentTitle": "เมื่อคุณอนุมัติ",
+    "consentBoundary": "การอนุมัตินี้ไม่ซิงค์ข้อมูลผลิตภัณฑ์",
+    "noWorkspace": "บัญชีส่วนตัว",
     "actions": {
-      "approve": "Approve connection",
-      "deny": "Deny"
+      "approve": "อนุมัติการเชื่อมต่อ",
+      "deny": "ปฏิเสธ"
     },
     "status": {
-      "ready": "You can approve or deny this request.",
-      "submitting": "Sending your decision.",
-      "approved": "Connection approved.",
-      "denied": "Connection denied.",
-      "expired": "This request expired. Start again from the desktop product.",
-      "consumed": "This request was already used. Check the desktop product for its status.",
-      "stale": "This request is out of date. Start again from the desktop product.",
-      "invalid": "This connection request is not trusted. Start again from the desktop product.",
-      "disabled": "Desktop product connection is not available yet."
+      "ready": "คุณอนุมัติหรือปฏิเสธคำขอนี้ได้",
+      "submitting": "กำลังส่งการตัดสินใจของคุณ",
+      "approved": "อนุมัติการเชื่อมต่อแล้ว",
+      "denied": "ปฏิเสธการเชื่อมต่อแล้ว",
+      "expired": "คำขอนี้หมดอายุแล้ว โปรดเริ่มใหม่จากผลิตภัณฑ์เดสก์ท็อป",
+      "consumed": "คำขอนี้ถูกใช้ไปแล้ว โปรดตรวจสอบสถานะในผลิตภัณฑ์เดสก์ท็อป",
+      "stale": "ข้อมูลคำขอไม่เป็นปัจจุบัน โปรดเริ่มใหม่จากผลิตภัณฑ์เดสก์ท็อป",
+      "invalid": "ไม่สามารถเชื่อถือคำขอเชื่อมต่อนี้ได้ โปรดเริ่มใหม่จากผลิตภัณฑ์เดสก์ท็อป",
+      "disabled": "การเชื่อมต่อผลิตภัณฑ์เดสก์ท็อปยังใช้งานไม่ได้"
     }
   }
 } satisfies ZdpAuthMessages;

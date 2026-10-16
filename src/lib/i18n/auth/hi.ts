@@ -31,7 +31,7 @@ const messages = {
   },
   "providers": {
     "groupLabel": "साइन इन करने का तरीका चुनें",
-    "passkey": "Passkey",
+    "passkey": "पासकी",
     "google": "Google",
     "github": "GitHub",
     "email": "ईमेल"
@@ -63,36 +63,36 @@ const messages = {
     "passwordMismatch": "पासवर्ड मेल नहीं खा रहे हैं।"
   },
   "productLink": {
-    "title": "Connect desktop product",
-    "summary": "Review the product and what it is asking to use.",
+    "title": "डेस्कटॉप उत्पाद कनेक्ट करें",
+    "summary": "उत्पाद और उसके द्वारा मांगे गए उपयोग की समीक्षा करें।",
     "fields": {
-      "product": "Requesting product",
-      "account": "Account",
-      "workspace": "Workspace",
-      "expires": "Request expires"
+      "product": "अनुरोध करने वाला उत्पाद",
+      "account": "खाता",
+      "workspace": "वर्कस्पेस",
+      "expires": "अनुरोध की समय-सीमा"
     },
-    "requestedTitle": "Requested access",
+    "requestedTitle": "अनुरोधित पहुँच",
     "itemKinds": {
-      "scope": "Scope",
-      "capability": "Capability"
+      "scope": "दायरा",
+      "capability": "क्षमता"
     },
-    "consentTitle": "If you approve",
-    "consentBoundary": "This approval does not sync product data.",
-    "noWorkspace": "Personal account",
+    "consentTitle": "स्वीकृति देने पर",
+    "consentBoundary": "इस स्वीकृति से उत्पाद डेटा सिंक नहीं होता।",
+    "noWorkspace": "व्यक्तिगत खाता",
     "actions": {
-      "approve": "Approve connection",
-      "deny": "Deny"
+      "approve": "कनेक्शन स्वीकृत करें",
+      "deny": "अस्वीकार करें"
     },
     "status": {
-      "ready": "You can approve or deny this request.",
-      "submitting": "Sending your decision.",
-      "approved": "Connection approved.",
-      "denied": "Connection denied.",
-      "expired": "This request expired. Start again from the desktop product.",
-      "consumed": "This request was already used. Check the desktop product for its status.",
-      "stale": "This request is out of date. Start again from the desktop product.",
-      "invalid": "This connection request is not trusted. Start again from the desktop product.",
-      "disabled": "Desktop product connection is not available yet."
+      "ready": "आप इस अनुरोध को स्वीकार या अस्वीकार कर सकते हैं।",
+      "submitting": "आपका निर्णय भेजा जा रहा है।",
+      "approved": "कनेक्शन स्वीकृत हुआ।",
+      "denied": "कनेक्शन अस्वीकृत हुआ।",
+      "expired": "इस अनुरोध की अवधि समाप्त हो गई। डेस्कटॉप उत्पाद से फिर शुरू करें।",
+      "consumed": "यह अनुरोध पहले ही उपयोग हो चुका है। डेस्कटॉप उत्पाद में स्थिति देखें।",
+      "stale": "अनुरोध की जानकारी पुरानी हो गई है। डेस्कटॉप उत्पाद से फिर शुरू करें।",
+      "invalid": "इस कनेक्शन अनुरोध पर भरोसा नहीं किया जा सकता। डेस्कटॉप उत्पाद से फिर शुरू करें।",
+      "disabled": "डेस्कटॉप उत्पाद कनेक्शन अभी उपलब्ध नहीं है।"
     }
   }
 } satisfies ZdpAuthMessages;

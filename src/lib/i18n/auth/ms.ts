@@ -31,7 +31,7 @@ const messages = {
   },
   "providers": {
     "groupLabel": "Pilih cara log masuk",
-    "passkey": "Passkey",
+    "passkey": "Kunci laluan",
     "google": "Google",
     "github": "GitHub",
     "email": "E-mel"
@@ -63,36 +63,36 @@ const messages = {
     "passwordMismatch": "Kata laluan tidak sepadan."
   },
   "productLink": {
-    "title": "Connect desktop product",
-    "summary": "Review the product and what it is asking to use.",
+    "title": "Sambungkan produk desktop",
+    "summary": "Semak produk dan perkara yang ingin digunakan olehnya.",
     "fields": {
-      "product": "Requesting product",
-      "account": "Account",
-      "workspace": "Workspace",
-      "expires": "Request expires"
+      "product": "Produk peminta",
+      "account": "Akaun",
+      "workspace": "Ruang kerja",
+      "expires": "Tamat tempoh permintaan"
     },
-    "requestedTitle": "Requested access",
+    "requestedTitle": "Akses yang diminta",
     "itemKinds": {
-      "scope": "Scope",
-      "capability": "Capability"
+      "scope": "Skop",
+      "capability": "Keupayaan"
     },
-    "consentTitle": "If you approve",
-    "consentBoundary": "This approval does not sync product data.",
-    "noWorkspace": "Personal account",
+    "consentTitle": "Jika anda meluluskan",
+    "consentBoundary": "Kelulusan ini tidak menyegerakkan data produk.",
+    "noWorkspace": "Akaun peribadi",
     "actions": {
-      "approve": "Approve connection",
-      "deny": "Deny"
+      "approve": "Luluskan sambungan",
+      "deny": "Tolak"
     },
     "status": {
-      "ready": "You can approve or deny this request.",
-      "submitting": "Sending your decision.",
-      "approved": "Connection approved.",
-      "denied": "Connection denied.",
-      "expired": "This request expired. Start again from the desktop product.",
-      "consumed": "This request was already used. Check the desktop product for its status.",
-      "stale": "This request is out of date. Start again from the desktop product.",
-      "invalid": "This connection request is not trusted. Start again from the desktop product.",
-      "disabled": "Desktop product connection is not available yet."
+      "ready": "Anda boleh meluluskan atau menolak permintaan ini.",
+      "submitting": "Menghantar keputusan anda.",
+      "approved": "Sambungan diluluskan.",
+      "denied": "Sambungan ditolak.",
+      "expired": "Permintaan ini tamat tempoh. Mulakan semula dari produk desktop.",
+      "consumed": "Permintaan ini sudah digunakan. Semak statusnya dalam produk desktop.",
+      "stale": "Maklumat permintaan sudah lapuk. Mulakan semula dari produk desktop.",
+      "invalid": "Permintaan sambungan ini tidak boleh dipercayai. Mulakan semula dari produk desktop.",
+      "disabled": "Sambungan produk desktop belum tersedia."
     }
   }
 } satisfies ZdpAuthMessages;
