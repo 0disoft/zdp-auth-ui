@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Badge, Button, Field, HelpText, Input, Label, Select, Surface } from 'zdp-design-system';
-  import { onMount, tick } from 'svelte';
+  import { Badge, Button, Field, HelpText, Input, Label, Menu, Select, Surface } from 'zdp-design-system';
+  import { onMount, tick, type Snippet } from 'svelte';
   import type { ZdpAuthMessages } from '../i18n';
   import PasswordField from './PasswordField.svelte';
   import type { ZdpPasskeySettingsMessages } from '../passkey-settings-messages';
@@ -19,6 +19,10 @@
     busy?: boolean;
     feedback?: ZdpPasskeySettingsFeedback;
     feedbackSequence?: number | null;
+    layout?: 'default' | 'directory';
+    heading?: Snippet<[{ add: () => void; disabled: boolean; titleId: string }]>;
+    itemIcon?: Snippet;
+    actionIcon?: Snippet;
     onaction?: ((detail: ZdpPasskeySettingsAction, event: SubmitEvent) => void) | null;
   }
 
@@ -32,6 +36,10 @@
     busy = false,
     feedback = null,
     feedbackSequence = null,
+    layout = 'default',
+    heading,
+    itemIcon,
+    actionIcon,
     onaction = null
   }: Props = $props();
 
@@ -51,6 +59,7 @@
   let editorElement: HTMLDivElement | undefined = $state();
   let feedbackElement: HTMLParagraphElement | undefined = $state();
   let returnFocus: HTMLElement | null = null;
+  let menuId = $state<string | null>(null);
   const providerLabels = {
     windows_hello: 'providerWindowsHello',
     google_password_manager: 'providerGooglePasswordManager',
@@ -70,9 +79,10 @@
   } as const;
   onMount(() => { mounted = true; });
 
-  async function open(action: typeof editor, id = '', label = '') {
+  async function open(action: typeof editor, id = '', label = '', focusTarget?: HTMLElement | null) {
     if (locked || !action || !settingsState.capabilities[action]) return;
-    returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    returnFocus = focusTarget ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    menuId = null;
     editor = action; selectedId = id; enteredName = action === 'register' ? null : label;
     password = ''; touched = false; submitted = false;
     preferenceValue = zdpPasskeyRegistrationPreferenceDefault;
@@ -140,6 +150,7 @@
   });
   let currentFeedback = $derived(feedbackSequence === null || feedbackSequence === actionSequence ? feedback : null);
   let locked = $derived(busy || !ready || !onaction || currentFeedback === 'unconfirmed');
+  $effect(() => { if (locked) menuId = null; });
   let permitted = $derived(editor !== null && settingsState.capabilities[editor]);
   let selectedExists = $derived(editor === 'register' || settingsState.passkeys.some(key => key.passkey_id === selectedId));
   let nameInvalid = $derived(editor !== 'revoke' && !validPasskeyLabel(name));
@@ -166,7 +177,10 @@
 </script>
 
 <Surface padding="lg">
-  <section class="zdp-passkey-settings" aria-labelledby={`${idPrefix}-title`} aria-busy={busy}>
+  <section class="zdp-passkey-settings" class:zdp-passkey-settings--directory={layout === 'directory'} aria-labelledby={`${idPrefix}-title`} aria-busy={busy}>
+    {#if heading}
+      {@render heading({add: () => { void open('register'); }, disabled: locked || !settingsState.capabilities.register, titleId: `${idPrefix}-title`})}
+    {:else}
     <header>
       <div><h2 id={`${idPrefix}-title`}>{copy.title}</h2><p>{copy.description}</p></div>
       {#if ready && settingsState.capabilities.register}
@@ -175,6 +189,7 @@
         </Button>
       {/if}
     </header>
+    {/if}
     {#if !ready}
       <p role="status">{settingsState.status === 'preparing' ? copy.preparing : copy.unavailable}</p>
     {:else}
@@ -182,6 +197,28 @@
       <ul>
         {#each settingsState.passkeys as key (key.passkey_id)}
           <li>
+            {#if layout === 'directory'}
+              <div class="zdp-passkey-settings__directory-name">
+                {#if itemIcon}<span class="zdp-passkey-settings__icon" aria-hidden="true">{@render itemIcon()}</span>{/if}
+                <div><strong>{key.label}</strong><small>{key.authenticator ? providerLabel(key.authenticator) : copy.providerUnknown}</small></div>
+              </div>
+              <p class="zdp-passkey-settings__last-used" title={`${copy.created}: ${date(key.created_at)} · ${key.authenticator ? storageLabel(key.authenticator) : copy.storageUnknown}`}>
+                {copy.lastUsed}: {key.last_used_at ? date(key.last_used_at) : copy.neverUsed}
+              </p>
+              <div class="zdp-passkey-settings__menu" inert={locked}>
+                {#if settingsState.capabilities.rename || settingsState.capabilities.revoke}
+                  <Menu triggerLabel={`${key.label} · ${copy.title}`} idPrefix={`${idPrefix}-${key.passkey_id}`} open={menuId === key.passkey_id}
+                    onOpenChange={value => { menuId = value ? key.passkey_id : null; }}
+                    items={[
+                      ...(settingsState.capabilities.rename ? [{id:'rename',label:copy.rename,disabled:locked}] : []),
+                      ...(settingsState.capabilities.revoke ? [{id:'revoke',label:copy.remove,disabled:locked,tone:'danger' as const}] : [])
+                    ]}
+                    onSelect={(_event, item) => { if (item.id === 'rename' || item.id === 'revoke') void open(item.id, key.passkey_id, key.label, document.getElementById(`${idPrefix}-${key.passkey_id}-trigger`)); }}>
+                    <span slot="trigger">{#if actionIcon}{@render actionIcon()}{:else}{copy.title}{/if}</span>
+                  </Menu>
+                {/if}
+              </div>
+            {:else}
             <div>
               <div class="zdp-passkey-settings__identity">
                 <strong>{key.label}</strong>
@@ -194,6 +231,7 @@
               {#if settingsState.capabilities.rename}<Button type="button" variant="secondary" disabled={locked} onclick={() => open('rename', key.passkey_id, key.label)}>{copy.rename}</Button>{/if}
               {#if settingsState.capabilities.revoke}<Button type="button" variant="secondary" disabled={locked} onclick={() => open('revoke', key.passkey_id, key.label)}>{copy.remove}</Button>{/if}
             </div>
+            {/if}
           </li>
         {/each}
       </ul>
@@ -260,5 +298,20 @@
   .zdp-passkey-settings__editor { border-top: var(--zdp-control-border-width) solid var(--zdp-color-line-subtle); padding-top: var(--zdp-space-4); }
   fieldset { display: grid; gap: var(--zdp-space-3); border: 0; padding: 0; margin: 0; min-width: 0; }
   legend { margin-bottom: var(--zdp-space-3); font-weight: var(--zdp-font-weight-semibold); }
+  .zdp-passkey-settings--directory { gap:0; }
+  .zdp-passkey-settings--directory li { display:grid; grid-template-columns:minmax(0,42%) minmax(0,1fr) auto; gap:1.5rem; min-block-size:5rem; padding-block:1rem; box-sizing:border-box; }
+  .zdp-passkey-settings--directory li:last-child { border-bottom:var(--zdp-control-border-width) solid var(--zdp-color-line-subtle); }
+  li > .zdp-passkey-settings__directory-name { display:flex; align-items:center; gap:1.25rem; }
+  .zdp-passkey-settings__directory-name > div { display:grid; gap:0.25rem; min-inline-size:0; }
+  .zdp-passkey-settings__directory-name strong { font-size:1rem; font-weight:500; overflow-wrap:anywhere; }
+  .zdp-passkey-settings__directory-name small,.zdp-passkey-settings__last-used { font-size:0.875rem; color:var(--zdp-color-ink-muted); }
+  .zdp-passkey-settings__icon { display:flex; flex:0 0 1.5rem; color:var(--zdp-color-ink-normal); }
+  .zdp-passkey-settings__menu :global(.zdp-menu__trigger) { border-color:transparent; background:transparent; min-inline-size:2.75rem; min-block-size:2.75rem; padding:0.625rem; }
+  .zdp-passkey-settings__menu :global(.zdp-menu__trigger-mark) { display:none; }
+  @media (max-width:40rem) {
+    .zdp-passkey-settings--directory li { grid-template-columns:minmax(0,1fr) auto; gap:0.5rem 1rem; }
+    .zdp-passkey-settings__last-used { grid-column:1; padding-inline-start:2.75rem; }
+    .zdp-passkey-settings__menu { grid-column:2; grid-row:1 / span 2; align-self:center; }
+  }
   @media (max-width: 40rem) { li { align-items: flex-start; flex-direction: column; } li > .zdp-passkey-settings__actions { align-self: flex-end; } }
 </style>

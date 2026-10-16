@@ -91,7 +91,7 @@ for (const locale of zdpAuthTargetLocales) {
 const componentSource = await readFile(
   new URL('../src/lib/components/PasskeySettings.svelte', import.meta.url), 'utf8');
 for (const requiredText of [
-  'Badge, Button, Field, HelpText, Input, Label, Select, Surface',
+  'Badge, Button, Field, HelpText, Input, Label, Menu, Select, Surface',
   'bind:value={preferenceValue}',
   '{copy.preferenceLabel}',
   '{copy[preferenceLabels[option]]}',
