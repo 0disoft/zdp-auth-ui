@@ -270,20 +270,13 @@ function normalizePasskeyError(
     switch (error.code) {
       case 'ERROR_CEREMONY_ABORTED':
         return new ZdpPasskeyCeremonyError(ceremony, 'cancelled', error);
-      case 'ERROR_INVALID_DOMAIN':
-      case 'ERROR_INVALID_RP_ID':
       case 'ERROR_INVALID_USER_ID_LENGTH':
       case 'ERROR_MALFORMED_PUBKEYCREDPARAMS':
         return new ZdpPasskeyCeremonyError(ceremony, 'invalid-options', error);
       case 'ERROR_AUTHENTICATOR_GENERAL_ERROR':
-      case 'ERROR_AUTHENTICATOR_MISSING_DISCOVERABLE_CREDENTIAL_SUPPORT':
-      case 'ERROR_AUTHENTICATOR_MISSING_USER_VERIFICATION_SUPPORT':
       case 'ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED':
       case 'ERROR_AUTHENTICATOR_NO_SUPPORTED_PUBKEYCREDPARAMS_ALG':
-      case 'ERROR_AUTO_REGISTER_USER_VERIFICATION_FAILURE':
         return new ZdpPasskeyCeremonyError(ceremony, 'authenticator-error', error);
-      case 'ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY':
-        break;
     }
   }
 

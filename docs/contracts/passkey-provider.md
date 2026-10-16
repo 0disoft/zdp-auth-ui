@@ -6,6 +6,10 @@ Authentication may use modal or conditional mediation. Conditional mediation req
 
 Browser ceremonies expose typed errors for unsupported environments, conditional-UI rejection, missing autofill input, programmatic cancellation, caller-bounded timeout, browser denial, invalid options, security failures, and authenticator failures. A consumer that needs a deterministic timeout classification must pass `timeoutMs`; native browser dismissal and browser-owned timeout can otherwise arrive through the same `NotAllowedError` boundary.
 
+Native `navigator.credentials` failures are classified locally, without the SDK's global abort service or private helper imports. The public `ZdpPasskeyCeremonyError.reason` keeps its existing categories; when the native exception and the registration options identify a failure, the ceremony error's `cause` is a `WebAuthnError` whose `code` names the diagnostic and whose own `cause` holds the original browser exception. Those diagnostics cover duplicate registration, invalid user-ID length, missing public-key parameters, unavailable algorithms, browser abort and general authenticator errors. A registration `NotSupportedError` maps to `authenticator-error` when public-key parameters are present and to `invalid-options` when they are absent; authentication `NotSupportedError` stays `unsupported`.
+
+`SecurityError`, `NotAllowedError` and `ConstraintError` pass through as the original browser exception, without parsing message text or guessing a more specific cause. A differing RP ID can still be a valid parent domain or a related origin, so `SecurityError` alone does not prove the RP ID is invalid; validating origin and RP-ID relationships stays with the browser.
+
 The browser helper may start or cancel a consumer-triggered ceremony. It may not create server challenges, verify attestation or assertion responses, store credentials, issue sessions, persist provider payloads, or infer authentication success from a browser response.
 
 ## Ceremony cancellation and concurrency

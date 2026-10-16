@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import type { PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser';
-import { WebAuthnAbortService } from '@simplewebauthn/browser';
+import { WebAuthnAbortService, WebAuthnError, type WebAuthnErrorCode } from '@simplewebauthn/browser';
 import {
   ZdpPasskeyCeremonyError,
   cancelPasskeyCeremony,
@@ -11,6 +11,7 @@ import {
   zdpPasskeyCeremonyKinds,
   zdpPasskeyErrorReasons
 } from '../src/lib/passkey';
+import type { ZdpPasskeyErrorReason } from '../src/lib/passkey';
 
 const support = await detectPasskeySupport();
 assert.deepEqual(
@@ -250,6 +251,71 @@ try {
   assert.equal(legacyResponse.response.attestationObject, 'AQ');
   assert.equal(legacyResponse.response.publicKey, undefined);
   assert.equal(legacyResponse.response.transports, undefined);
+
+  // Exercise the public helpers through native API failures, including their
+  // diagnostic cause chain. No SDK start method participates in these tests.
+  function expectNativeError(
+    reason: ZdpPasskeyErrorReason, native: Error, code?: WebAuthnErrorCode
+  ) {
+    return (error: unknown) => {
+      assert.ok(error instanceof ZdpPasskeyCeremonyError);
+      assert.equal(error.reason, reason);
+      if (code) {
+        assert.ok(error.cause instanceof WebAuthnError);
+        assert.equal(error.cause.code, code);
+        assert.equal(error.cause.cause, native);
+      } else {
+        assert.equal(error.cause, native, 'Ambiguous errors must retain the original browser exception.');
+      }
+      return true;
+    };
+  }
+  for (const [name, reason, code] of [
+    ['AbortError', 'cancelled', 'ERROR_CEREMONY_ABORTED'],
+    ['NotAllowedError', 'not-allowed', undefined],
+    ['SecurityError', 'security-error', undefined],
+    ['ConstraintError', 'authenticator-error', undefined],
+    ['UnknownError', 'authenticator-error', 'ERROR_AUTHENTICATOR_GENERAL_ERROR'],
+    ['TypeError', 'invalid-options', undefined],
+    ['UnexpectedError', 'unknown', undefined]
+  ] as const) {
+    const native = new DOMException('브라우저의 원본 메시지', name);
+    credentialGet = credentialCreate = async () => { throw native; };
+    await assert.rejects(startPasskeyAuthentication(options), expectNativeError(reason, native, code));
+    await assert.rejects(startPasskeyRegistration(registrationOptions), expectNativeError(reason, native, code));
+  }
+  const duplicate = new DOMException('Already enrolled', 'InvalidStateError');
+  credentialGet = credentialCreate = async () => { throw duplicate; };
+  await assert.rejects(startPasskeyRegistration(registrationOptions),
+    expectNativeError('authenticator-error', duplicate, 'ERROR_AUTHENTICATOR_PREVIOUSLY_REGISTERED'));
+  await assert.rejects(startPasskeyAuthentication(options), expectNativeError('authenticator-error', duplicate));
+
+  const unsupportedAlgorithm = new DOMException('Unsupported', 'NotSupportedError');
+  credentialGet = credentialCreate = async () => { throw unsupportedAlgorithm; };
+  await assert.rejects(startPasskeyRegistration(registrationOptions), expectNativeError('authenticator-error',
+    unsupportedAlgorithm, 'ERROR_AUTHENTICATOR_NO_SUPPORTED_PUBKEYCREDPARAMS_ALG'));
+  await assert.rejects(startPasskeyRegistration({ ...registrationOptions, pubKeyCredParams: [] }),
+    expectNativeError('invalid-options', unsupportedAlgorithm, 'ERROR_MALFORMED_PUBKEYCREDPARAMS'));
+  await assert.rejects(startPasskeyAuthentication(options), expectNativeError('unsupported', unsupportedAlgorithm));
+
+  const invalidUser = new TypeError('Invalid user ID');
+  credentialCreate = async () => { throw invalidUser; };
+  for (const id of ['', Buffer.alloc(65, 1).toString('base64url')]) {
+    await assert.rejects(startPasskeyRegistration({ ...registrationOptions,
+      user: { ...registrationOptions.user, id } }),
+    expectNativeError('invalid-options', invalidUser, 'ERROR_INVALID_USER_ID_LENGTH'));
+  }
+  const security = new DOMException('Blocked', 'SecurityError');
+  credentialGet = credentialCreate = async () => { throw security; };
+  setTestGlobal('location', { hostname: 'login.example.test' });
+  for (const rpId of ['example.test', 'related.example.org']) {
+    await assert.rejects(startPasskeyAuthentication({ ...options, rpId }),
+      expectNativeError('security-error', security));
+    await assert.rejects(startPasskeyRegistration({ ...registrationOptions,
+      rp: { ...registrationOptions.rp, id: rpId } }), expectNativeError('security-error', security));
+  }
+  setTestGlobal('location', { hostname: 'localhost' });
+  credentialGet = async () => createAuthenticationCredential();
 
   await assert.rejects(
     () => startPasskeyAuthentication(options, { timeoutMs: 999 }),

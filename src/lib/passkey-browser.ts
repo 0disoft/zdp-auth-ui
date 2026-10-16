@@ -1,4 +1,5 @@
 import { base64URLStringToBuffer, bufferToBase64URLString } from '@simplewebauthn/browser';
+import { identifyPasskeyBrowserError } from './passkey-browser-errors';
 import type {
   AuthenticationResponseJSON, PublicKeyCredentialCreationOptionsJSON,
   PublicKeyCredentialRequestOptionsJSON, RegistrationResponseJSON
@@ -11,7 +12,7 @@ export async function startAuthentication(
   signal: AbortSignal,
   conditional: boolean
 ): Promise<AuthenticationResponseJSON> {
-  const credential = requirePublicKeyCredential(await navigator.credentials.get({
+  const request: CredentialRequestOptions = {
     publicKey: {
       ...options,
       challenge: base64URLStringToBuffer(options.challenge),
@@ -21,7 +22,14 @@ export async function startAuthentication(
     },
     signal,
     ...(conditional ? { mediation: 'conditional' as const } : {})
-  }));
+  };
+  let result: Credential | null;
+  try {
+    result = await navigator.credentials.get(request);
+  } catch (error) {
+    throw identifyPasskeyBrowserError(error);
+  }
+  const credential = requirePublicKeyCredential(result);
   const response = credential.response as AuthenticatorAssertionResponse;
   return {
     id: credential.id,
@@ -42,7 +50,7 @@ export async function startRegistration(
   options: PublicKeyCredentialCreationOptionsJSON,
   signal: AbortSignal
 ): Promise<RegistrationResponseJSON> {
-  const credential = requirePublicKeyCredential(await navigator.credentials.create({
+  const request: CredentialCreationOptions = {
     publicKey: {
       ...options,
       challenge: base64URLStringToBuffer(options.challenge),
@@ -51,7 +59,14 @@ export async function startRegistration(
       excludeCredentials: options.excludeCredentials?.map(credentialDescriptor)
     },
     signal
-  }));
+  };
+  let result: Credential | null;
+  try {
+    result = await navigator.credentials.create(request);
+  } catch (error) {
+    throw identifyPasskeyBrowserError(error, request.publicKey);
+  }
+  const credential = requirePublicKeyCredential(result);
   const response = credential.response as AuthenticatorAttestationResponse;
   const publicKey = optionalResponseValue(() => response.getPublicKey());
   const authenticatorData = optionalResponseValue(() => response.getAuthenticatorData());
