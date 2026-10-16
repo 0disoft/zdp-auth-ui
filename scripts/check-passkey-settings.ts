@@ -96,7 +96,6 @@ for (const requiredText of [
   '{copy.preferenceLabel}',
   '{copy[preferenceLabels[option]]}',
   '{copy.preferenceHelp}',
-  'oninput={() => (nameEdited = true)}',
   'label: name.trim(), preference, currentPassword',
   'copy.providerUnknown',
   'copy.storageSynced',

@@ -37,8 +37,8 @@
 
   let editor: 'register' | 'rename' | 'revoke' | null = $state(null);
   let selectedId = $state('');
-  let name = $state('');
-  let nameEdited = $state(false);
+  // null means an untouched suggestion; an empty string is an intentional edit.
+  let enteredName: string | null = $state(null);
   let preferenceValue: string = $state(zdpPasskeyRegistrationPreferenceDefault);
   let password = $state('');
   let touched = $state(false);
@@ -73,16 +73,16 @@
   async function open(action: typeof editor, id = '', label = '') {
     if (locked || !action || !settingsState.capabilities[action]) return;
     returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    editor = action; selectedId = id; name = label; password = ''; touched = false; submitted = false;
-    nameEdited = action !== 'register';
+    editor = action; selectedId = id; enteredName = action === 'register' ? null : label;
+    password = ''; touched = false; submitted = false;
     preferenceValue = zdpPasskeyRegistrationPreferenceDefault;
     await tick();
     editorElement?.querySelector<HTMLInputElement>('input')?.focus();
   }
   function close(restoreFocus = true) {
     if (busy) return;
-    editor = null; selectedId = ''; name = ''; password = ''; touched = false; submitted = false;
-    nameEdited = false; preferenceValue = zdpPasskeyRegistrationPreferenceDefault;
+    editor = null; selectedId = ''; enteredName = null; password = ''; touched = false; submitted = false;
+    preferenceValue = zdpPasskeyRegistrationPreferenceDefault;
     if (restoreFocus) returnFocus?.focus();
   }
   function submit(event: SubmitEvent) {
@@ -109,8 +109,10 @@
   function date(value: string): string {
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime())) return copy.unavailable;
-    try { return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(parsed); }
-    catch { return new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(parsed); }
+    return dateFormatter.format(parsed);
+  }
+  function setName(value: string) {
+    enteredName = value;
   }
   function providerLabel(authenticator: ZdpPasskeyAuthenticator): string {
     const provider = authenticator.provider;
@@ -127,8 +129,10 @@
     ? preferenceValue : zdpPasskeyRegistrationPreferenceDefault);
   let suggestedName = $derived(editor === 'register'
     ? copy[defaultNameKeys[preference]] : '');
-  $effect.pre(() => {
-    if (editor === 'register' && !nameEdited) name = suggestedName;
+  let name = $derived(enteredName ?? suggestedName);
+  let dateFormatter = $derived.by(() => {
+    try { return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }); }
+    catch { return new Intl.DateTimeFormat('en', { dateStyle: 'medium' }); }
   });
   let ready = $derived(settingsState.status === 'ready');
   $effect.pre(() => {
@@ -213,8 +217,7 @@
                 {/if}
                 <Field invalid={touched && nameInvalid}>
                   <Label forId={`${idPrefix}-name`}>{copy.name}</Label>
-                  <Input id={`${idPrefix}-name`} name="label" bind:value={name} required
-                    oninput={() => (nameEdited = true)}
+                  <Input id={`${idPrefix}-name`} name="label" bind:value={() => name, setName} required
                     invalid={touched && nameInvalid}
                     errorMessageId={touched && nameInvalid ? `${idPrefix}-name-error` : null}
                     describedBy={touched && nameInvalid ? `${idPrefix}-name-error` : null} />

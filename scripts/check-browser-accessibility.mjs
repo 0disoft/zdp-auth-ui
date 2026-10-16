@@ -38,6 +38,16 @@ try {
     timeout: 30_000
   });
   const page = await browser.newPage();
+  await page.addInitScript(() => {
+    const calls = [];
+    globalThis.__passkeyDateFormatCalls = calls;
+    Intl.DateTimeFormat = new Proxy(Intl.DateTimeFormat, {
+      construct(target, args, newTarget) {
+        if (args[1]?.dateStyle === 'medium' && !args[1]?.timeStyle) calls.push(args[0]);
+        return Reflect.construct(target, args, newTarget);
+      }
+    });
+  });
   const browserErrors = [];
   page.on('console', (message) => {
     if (message.type() === 'error') browserErrors.push(message.text());
@@ -155,7 +165,18 @@ try {
 
   const passwordResetFixture = page.getByTestId('password-reset-fixture');
   const passkeyReauth = page.getByTestId('passkey-reauth-fixture');
+  const dateFormatCalls = () => page.evaluate(() => globalThis.__passkeyDateFormatCalls.length);
+  assert.equal(await passkeyReauth.locator('li').count(), 3);
+  assert.equal(await dateFormatCalls(), 1, 'All passkey dates must share one formatter per component locale.');
+  await passkeyReauth.getByRole('button', { name: 'Refresh passkeys', exact: true }).click();
+  assert.equal(await dateFormatCalls(), 1, 'Refreshing list records must reuse the date formatter.');
   await passkeyReauth.locator('header button').click();
+  const passkeyName = passkeyReauth.locator('#reauth-settings-name');
+  const passkeyPreference = passkeyReauth.locator('#reauth-settings-preference');
+  assert.equal(await passkeyName.inputValue(), 'This device passkey');
+  await passkeyPreference.selectOption('manager');
+  assert.equal(await passkeyName.inputValue(), 'Password manager', 'An untouched name must follow the selected preference.');
+  await passkeyPreference.selectOption('device');
   const reauthPassword = passkeyReauth.locator('#reauth-settings-password');
   await reauthPassword.fill('fixture-current-password');
   await passkeyReauth.getByTestId('use-passkey').click();
@@ -167,9 +188,39 @@ try {
   await passkeyReauth.getByRole('heading', { name: '패스키·보안 키', exact: true }).waitFor();
   assert.equal(await passkeyReauth.locator('#reauth-settings-name').inputValue(), '이 기기 패스키',
     'Injected passkey copy must update the suggested registration name.');
+  assert.equal(await dateFormatCalls(), 2, 'Changing locale must create one new date formatter.');
   await passkeyReauth.getByRole('button', { name: '비밀번호 보기', exact: true }).click();
   assert.equal(await reauthPassword.getAttribute('type'), 'text',
     'The nested password field must use the injected auth catalog.');
+  await passkeyName.fill('My edited passkey');
+  await passkeyPreference.selectOption('phone');
+  await passkeyReauth.getByRole('button', { name: 'Load English', exact: true }).click();
+  await passkeyReauth.getByRole('heading', { name: 'Passkeys & security keys', exact: true }).waitFor();
+  assert.equal(await passkeyName.inputValue(), 'My edited passkey', 'Preference and locale changes must preserve edited names.');
+  await passkeyName.fill('');
+  await passkeyPreference.selectOption('manager');
+  await passkeyReauth.getByRole('button', { name: 'Load Korean', exact: true }).click();
+  await passkeyReauth.getByRole('heading', { name: '패스키·보안 키', exact: true }).waitFor();
+  assert.equal(await passkeyName.inputValue(), '', 'An intentionally cleared name must stay empty across preference and locale changes.');
+  await passkeyReauth.locator('form .zdp-passkey-settings__actions button[type="button"]').click();
+  await passkeyReauth.locator('header button').click();
+  assert.equal(await passkeyName.inputValue(), '이 기기 패스키', 'Reopening registration must restore an untouched default.');
+  await passkeyReauth.locator('form .zdp-passkey-settings__actions button[type="button"]').click();
+  await passkeyReauth.locator('li').first().getByRole('button').click();
+  assert.equal(await passkeyName.inputValue(), 'First key', 'Rename must use the saved key label instead of a registration suggestion.');
+  await passkeyReauth.locator('form .zdp-passkey-settings__actions button[type="button"]').click();
+
+  await passkeyReauth.getByRole('button', { name: 'Load English', exact: true }).click();
+  await passkeyReauth.getByRole('heading', { name: 'Passkeys & security keys', exact: true }).waitFor();
+  const englishDates = await passkeyReauth.locator('li').first().locator('p').first().textContent();
+  const beforeFallback = await dateFormatCalls();
+  await passkeyReauth.getByRole('button', { name: 'Invalid date locale', exact: true }).click();
+  assert.equal(await passkeyReauth.locator('li').first().locator('p').first().textContent(), englishDates);
+  assert.equal(await dateFormatCalls(), beforeFallback + 2, 'An invalid locale must try once, then reuse one English fallback.');
+  await passkeyReauth.getByRole('button', { name: 'Refresh passkeys', exact: true }).click();
+  assert.equal(await dateFormatCalls(), beforeFallback + 2, 'Refreshing records must also reuse the fallback formatter.');
+  assert.ok((await passkeyReauth.locator('li').last().textContent()).includes('Passkeys are unavailable. Try again later.'),
+    'An invalid stored timestamp must retain the unavailable label.');
   assert.equal(
     await page.getByTestId('literal-account-brand-fixture').locator('.zdp-auth-shell__summary').textContent(),
     'Continue with your ZDP $& $$ account.',
