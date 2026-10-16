@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import type { PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser';
+import { WebAuthnAbortService } from '@simplewebauthn/browser';
 import {
   ZdpPasskeyCeremonyError,
   cancelPasskeyCeremony,
@@ -120,6 +121,7 @@ let hasAutofillInput = false;
 let credentialGet: CredentialGet = async () => createAuthenticationCredential();
 let capturedRequest: CredentialRequestOptions | null = null;
 let capturedCreation: CredentialCreationOptions | null = null;
+let credentialCreate = (request: CredentialCreationOptions): Promise<Credential | null> => waitForAbort(request);
 const getCapturedCreation = (): CredentialCreationOptions | null => capturedCreation;
 const getCapturedRequest = (): CredentialRequestOptions | null => capturedRequest;
 let conditionalProbe: () => Promise<boolean> = async () => true;
@@ -165,7 +167,7 @@ try {
   setTestGlobal('location', { hostname: 'localhost' });
   setTestGlobal('document', {
     querySelector: () => hasAutofillInput ? {} : null,
-    querySelectorAll: () => ({ length: hasAutofillInput ? 1 : 0 })
+    querySelectorAll: () => { throw new Error('Autofill must never scan the global document outside its root.'); }
   });
   setTestGlobal('navigator', {
     credentials: {
@@ -175,7 +177,7 @@ try {
       },
       create: async (request: CredentialCreationOptions) => {
         capturedCreation = request;
-        return waitForAbort(request);
+        return credentialCreate(request);
       }
     }
   });
@@ -221,8 +223,10 @@ try {
   hasAutofillInput = true;
 
   credentialGet = waitForAbort;
+  const sdkOwnedSignal = WebAuthnAbortService.createNewAbortSignal();
   const firstOwner = new AbortController();
   const firstOwned = startPasskeyAuthentication(options, { signal: firstOwner.signal });
+  assert.equal(sdkOwnedSignal.aborted, false, 'Starting our helper must not cancel a separate SDK consumer.');
   const firstOwnedCheck = assert.rejects(firstOwned,
     (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'cancelled');
   const nextOwner = new AbortController();
@@ -230,6 +234,8 @@ try {
   const nextOwnedCheck = assert.rejects(nextOwned,
     (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'cancelled');
   const nextRequest = getCapturedRequest();
+  WebAuthnAbortService.cancelCeremony();
+  assert.equal(nextRequest?.signal?.aborted, false, 'A separate SDK consumer must not cancel our browser request.');
   firstOwner.abort();
   assert.equal(nextRequest?.signal?.aborted, false, 'An old owner must not cancel a replacement prompt.');
   const alreadyCancelled = new AbortController();
@@ -261,6 +267,35 @@ try {
     'Registration must snapshot nested server-issued options before browser transport.');
   registrationOwner.abort();
   await registrationCheck;
+
+  const byte = new Uint8Array([1]).buffer;
+  credentialCreate = async () => ({
+    id: 'registration-id', rawId: byte, type: 'public-key',
+    response: {
+      attestationObject: byte, clientDataJSON: byte,
+      getTransports: () => ['internal'], getPublicKeyAlgorithm: () => -7,
+      getPublicKey: () => byte, getAuthenticatorData: () => byte
+    },
+    getClientExtensionResults: () => ({ credProps: { rk: true } }),
+    authenticatorAttachment: 'platform'
+  } as unknown as Credential);
+  const registrationResponse = await startPasskeyRegistration(registrationOptions);
+  assert.deepEqual(registrationResponse, {
+    id: 'registration-id', rawId: 'AQ', type: 'public-key',
+    response: { attestationObject: 'AQ', clientDataJSON: 'AQ', transports: ['internal'],
+      publicKeyAlgorithm: -7, publicKey: 'AQ', authenticatorData: 'AQ' },
+    clientExtensionResults: { credProps: { rk: true } }, authenticatorAttachment: 'platform'
+  }, 'Registration must preserve the server-facing SimpleWebAuthn JSON wire format.');
+  credentialCreate = async () => ({
+    id: 'legacy-registration', rawId: byte, type: 'public-key',
+    response: { attestationObject: byte, clientDataJSON: byte,
+      getPublicKey: () => { throw new Error('Extension does not support L3 metadata'); } },
+    getClientExtensionResults: () => ({})
+  } as unknown as Credential);
+  const legacyResponse = await startPasskeyRegistration(registrationOptions);
+  assert.equal(legacyResponse.response.attestationObject, 'AQ');
+  assert.equal(legacyResponse.response.publicKey, undefined);
+  assert.equal(legacyResponse.response.transports, undefined);
 
   await assert.rejects(
     () => startPasskeyAuthentication(options, { timeoutMs: 999 }),

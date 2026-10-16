@@ -1,12 +1,10 @@
 import {
-  WebAuthnAbortService,
   WebAuthnError,
   browserSupportsWebAuthn,
   browserSupportsWebAuthnAutofill,
-  platformAuthenticatorIsAvailable,
-  startAuthentication,
-  startRegistration
+  platformAuthenticatorIsAvailable
 } from '@simplewebauthn/browser';
+import { startAuthentication, startRegistration } from './passkey-browser';
 import type {
   AuthenticationResponseJSON,
   PublicKeyCredentialCreationOptionsJSON,
@@ -111,9 +109,9 @@ export async function startPasskeyRegistration(
     'registration',
     timeoutMs,
     ceremonyOptions.signal,
-    async (assertActive) => {
+    async (assertActive, signal) => {
       assertActive();
-      return startRegistration({ optionsJSON: structuredClone(options) });
+      return startRegistration(structuredClone(options), signal);
     }
   );
 }
@@ -131,7 +129,7 @@ export async function startPasskeyAuthentication(
   }
   const useBrowserAutofill = mediation === 'conditional';
 
-  return runPasskeyCeremony('authentication', timeoutMs, ceremonyOptions.signal, async (assertActive) => {
+  return runPasskeyCeremony('authentication', timeoutMs, ceremonyOptions.signal, async (assertActive, signal) => {
     // Capture server-issued ceremony data before awaiting browser capability probes.
     const requestOptions = structuredClone(options);
     if (useBrowserAutofill) {
@@ -154,12 +152,7 @@ export async function startPasskeyAuthentication(
     }
 
     assertActive();
-    return startAuthentication({
-      optionsJSON: requestOptions,
-      useBrowserAutofill,
-      // Input validation above respects the caller's root; the SDK scans document.
-      verifyBrowserAutofillInput: false
-    });
+    return startAuthentication(requestOptions, signal, useBrowserAutofill);
   });
 }
 
@@ -168,7 +161,6 @@ export function cancelPasskeyCeremony(): void {
     activeCeremony.controller.abort(new ZdpPasskeyCeremonyError(activeCeremony.ceremony, 'cancelled'));
     activeCeremony = null;
   }
-  WebAuthnAbortService.cancelCeremony();
 }
 
 async function safeCapabilityProbe(probe: () => Promise<boolean>): Promise<boolean> {
@@ -216,7 +208,7 @@ async function runPasskeyCeremony<Response>(
   ceremony: ZdpPasskeyCeremonyKind,
   timeoutMs: number | null,
   signal: AbortSignal | undefined,
-  start: (assertActive: () => void) => Promise<Response>
+  start: (assertActive: () => void, signal: AbortSignal) => Promise<Response>
 ): Promise<Response> {
   // A cancelled caller must not replace another caller's active prompt.
   if (signal?.aborted) {
@@ -237,7 +229,6 @@ async function runPasskeyCeremony<Response>(
   });
   const cancelOwnedCeremony = () => {
     current.controller.abort(new ZdpPasskeyCeremonyError(ceremony, 'cancelled', signal?.reason));
-    if (activeCeremony === current) WebAuthnAbortService.cancelCeremony();
   };
   signal?.addEventListener('abort', cancelOwnedCeremony, { once: true });
 
@@ -245,12 +236,11 @@ async function runPasskeyCeremony<Response>(
     timeout = setTimeout(() => {
       timedOut = true;
       current.controller.abort(new ZdpPasskeyCeremonyError(ceremony, 'timed-out'));
-      if (activeCeremony === current) WebAuthnAbortService.cancelCeremony();
     }, timeoutMs);
   }
 
   try {
-    return await Promise.race([start(assertActive), cancelled]);
+    return await Promise.race([start(assertActive, current.controller.signal), cancelled]);
   } catch (error) {
     throw normalizePasskeyError(ceremony, error, timedOut);
   } finally {

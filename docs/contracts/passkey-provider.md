@@ -2,11 +2,29 @@
 
 The browser passkey helper may detect WebAuthn, conditional UI, and platform-authenticator capability without creating a challenge or reading credential material. Unsupported and failed capability probes return a fail-closed support result.
 
-Authentication may use modal or conditional mediation. Conditional mediation requires browser support and an input whose `autocomplete` value ends with `webauthn`; `LoginIdField` exposes `username webauthn` for that purpose. Consumers may disable the DOM input check only when they own an equivalent input outside the ordinary document tree.
+Authentication may use modal or conditional mediation. Conditional mediation requires browser support and an input whose `autocomplete` value ends with `webauthn`; `LoginIdField` exposes `username webauthn` for that purpose. The helper checks for that input inside `container` when one is supplied and inside `document` otherwise, so a surface that renders its login field in a shadow root supplies that root and keeps the check on. Set `verifyBrowserAutofillInput: false` only when the input sits outside every `ParentNode` root the caller can provide.
 
 Browser ceremonies expose typed errors for unsupported environments, conditional-UI rejection, missing autofill input, programmatic cancellation, caller-bounded timeout, browser denial, invalid options, security failures, and authenticator failures. A consumer that needs a deterministic timeout classification must pass `timeoutMs`; native browser dismissal and browser-owned timeout can otherwise arrive through the same `NotAllowedError` boundary.
 
 The browser helper may start or cancel a consumer-triggered ceremony. It may not create server challenges, verify attestation or assertion responses, store credentials, issue sessions, persist provider payloads, or infer authentication success from a browser response.
+
+## Ceremony cancellation and concurrency
+
+Registration and authentication both accept `ZdpPasskeyCeremonyOptions`, which carries `timeoutMs` and `signal`. Pass the caller's own `AbortController.signal`; aborting it cancels only the ceremony started by that call and reports `cancelled`. A signal that is already aborted when the call starts rejects at once with `cancelled` and leaves any in-flight prompt alone, and aborting an earlier caller's signal after a newer call begins has no effect on the newer request. An abort that lands while the helper is still awaiting a browser capability probe settles the call as `cancelled` before any prompt opens, so a late browser prompt does not surface. Both kinds clone the caller's options with `structuredClone` before the ceremony consumes them, so mutating the original object after the call cannot reach the browser request.
+
+The package maintains a single-flight policy: a new ceremony replaces the previous in-flight request, and `cancelPasskeyCeremony()` remains the explicit whole-cancel entry point for whichever ceremony is active. Per-call cancellation does not cancel another direct SDK consumer. A component that owns an `AbortController` registers teardown independently of its event handler so an unmounted surface does not leave a prompt running:
+
+```ts
+import { onDestroy } from 'svelte';
+
+const controller = new AbortController();
+onDestroy(() => controller.abort());
+
+async function handlePasskeySignIn() {
+  // options are supplied by the consuming server.
+  return await startPasskeyAuthentication(options, { signal: controller.signal });
+}
+```
 
 Provider buttons are selection UI. They do not own provider truth, provider secrets, authorization headers, callback payloads, or redirect policy.
 
