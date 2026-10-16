@@ -3,9 +3,17 @@ import type { Component } from 'svelte';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const { AuthShell } = await import(pathToFileURL(resolve('dist/index.server.js')).href) as {
+const { AuthShell, LoginIdField } = await import(pathToFileURL(resolve('dist/index.server.js')).href) as {
   AuthShell: Component<Record<string, unknown>>;
+  LoginIdField: Component<Record<string, unknown>>;
 };
+
+const { body: autofillBody } = render(LoginIdField, {
+  props: { id: 'passkey-login', name: 'login_id', autocomplete: 'username webauthn' }
+});
+if (!autofillBody.includes('autocomplete="username webauthn"')) {
+  throw new Error('LoginIdField must render the conditional passkey autocomplete attribute.');
+}
 
 const preparingMessage = '계정 서비스는 아직 준비 중입니다.';
 const recoveryLabel = '비밀번호를 잊었어요';

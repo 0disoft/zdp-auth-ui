@@ -88,8 +88,6 @@ const [
   runbook,
   service,
   ciWorkflow,
-  publicEntry,
-  passkeySource,
   bunLockSource,
   installedDesignSystemSource
 ] = await Promise.all([
@@ -99,8 +97,6 @@ const [
   readFile(join(root, 'RUNBOOK.md'), 'utf8'),
   readFile(join(root, 'service.yaml'), 'utf8'),
   readFile(join(root, '.github', 'workflows', 'ci.yml'), 'utf8'),
-  readFile(join(root, 'src', 'lib', 'index.ts'), 'utf8'),
-  readFile(join(root, 'src', 'lib', 'passkey.ts'), 'utf8'),
   readFile(join(root, 'bun.lock'), 'utf8'),
   readFile(join(root, 'node_modules', 'zdp-design-system', 'package.json'), 'utf8')
 ]);
@@ -122,8 +118,7 @@ checkMessageCatalog();
 checkServiceBoundary(service);
 checkCiWorkflow(ciWorkflow);
 checkRunbook(runbook);
-checkPublicEntry(publicEntry);
-checkPasskeyBoundary(passkeySource);
+await checkPublicEntry();
 checkBuildBoundary();
 checkSourceBoundary(sourceFiles);
 checkCleanConsumerExamples(exampleFiles);
@@ -491,44 +486,34 @@ function checkRunbook(runbook: string): void {
   }
 }
 
-function checkPublicEntry(publicEntry: string): void {
-  for (const requiredText of [
-    'export { default as AuthShell }',
-    'export { default as LoginIdField }',
-    'export { default as PasswordField }',
-    'export { default as PasswordSignupFields }',
-    'export { default as ProductLinkApproval }',
-    'export { default as ProviderButton }',
+async function checkPublicEntry(): Promise<void> {
+  const publicEntry = await import(pathToFileURL(join(root, 'dist', 'index.server.js')).href);
+  for (const requiredExport of [
+    'AuthShell',
+    'LoginIdField',
+    'PasswordField',
+    'PasswordSignupFields',
+    'ProductLinkApproval',
+    'ProviderButton',
+    'PasskeySettings',
     'zdpAuthTargetLocales',
     'zdpAuthActiveLocales',
     'zdpAuthPlannedLocales',
     'startPasskeyAuthentication',
     'startPasskeyRegistration',
+    'cancelPasskeyCeremony',
+    'detectPasskeySupport',
+    'ZdpPasskeyCeremonyError',
     'buildZdpAuthHandoffUrl',
     'zdpAuthHandoffReturnPathRegistry',
     'validateProductLinkRequest',
     'zdpProductLinkStates',
     'createZdpPasswordSignupContract',
     'zdpPasswordSignupFieldNames',
-    'zdpAuthAvailabilityStates',
-    'type ZdpAuthAvailability'
+    'zdpAuthAvailabilityStates'
   ]) {
-    if (!publicEntry.includes(requiredText)) {
-      failures.push(`src/lib/index.ts is missing public export ${requiredText}.`);
-    }
-  }
-}
-
-function checkPasskeyBoundary(passkeySource: string): void {
-  for (const requiredText of ['startAuthentication', 'startRegistration', '@simplewebauthn/browser']) {
-    if (!passkeySource.includes(requiredText)) {
-      failures.push(`src/lib/passkey.ts must keep browser passkey helper ${requiredText}.`);
-    }
-  }
-
-  for (const forbiddenText of forbiddenSourceBoundaryTexts) {
-    if (passkeySource.includes(forbiddenText)) {
-      failures.push(`src/lib/passkey.ts must not own runtime auth storage or server calls: ${forbiddenText}.`);
+    if (!Object.hasOwn(publicEntry, requiredExport) || publicEntry[requiredExport] === undefined) {
+      failures.push(`Built package is missing public export ${requiredExport}.`);
     }
   }
 }
@@ -674,26 +659,6 @@ function checkCleanConsumerExamples(exampleFiles: readonly SourceFile[]): void {
 
   if (!/<PasswordField[\s\S]*?\brequired\b[\s\S]*?\/>/.test(cleanConsumer.source)) {
     failures.push('Clean consumer example must keep a required PasswordField as native validation evidence.');
-  }
-  const signupContract = sourceFiles.find(
-    (sourceFile) => sourceFile.relativePath === 'src/lib/password-signup.ts'
-  );
-  if (!signupContract) {
-    failures.push('src/lib/password-signup.ts must be included in source boundary checks.');
-  } else {
-    for (const requiredText of [
-      "loginId: 'login_id'",
-      "password: 'password'",
-      "termsAccepted: 'terms_accepted'",
-      "termsConsentRef: 'terms_consent_ref'",
-      "locale: 'locale'",
-      "'invalid-terms-consent-ref'",
-      "'unsupported-locale'"
-    ]) {
-      if (!signupContract.source.includes(requiredText)) {
-        failures.push(`Password signup contract is missing fail-closed field text: ${requiredText}.`);
-      }
-    }
   }
 }
 

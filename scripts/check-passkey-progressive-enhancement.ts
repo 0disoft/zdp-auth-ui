@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import type { PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser';
 import { WebAuthnAbortService } from '@simplewebauthn/browser';
 import {
@@ -12,51 +11,6 @@ import {
   zdpPasskeyCeremonyKinds,
   zdpPasskeyErrorReasons
 } from '../src/lib/passkey';
-
-const [loginIdFieldSource, publicEntrySource, packageSurfaceSource] = await Promise.all([
-  readFile(new URL('../src/lib/components/LoginIdField.svelte', import.meta.url), 'utf8'),
-  readFile(new URL('../src/lib/index.ts', import.meta.url), 'utf8'),
-  Promise.all([
-    readFile(new URL('../dist/svelte/passkey.d.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../dist/svelte/components/LoginIdField.svelte.d.ts', import.meta.url), 'utf8')
-  ]).then(parts => parts.join('\n'))
-]);
-assert.ok(
-  loginIdFieldSource.includes(
-    "autocomplete?: 'username' | 'username webauthn';"
-  ),
-  'LoginIdField must keep an explicit conditional-UI autocomplete contract.'
-);
-assert.ok(
-  loginIdFieldSource.includes('{autocomplete}'),
-  'LoginIdField must forward its autocomplete contract to the design-system input.'
-);
-
-for (const requiredExport of [
-  'cancelPasskeyCeremony',
-  'detectPasskeySupport',
-  'ZdpPasskeyCeremonyError',
-  'type ZdpPasskeyAuthenticationOptions',
-  'type ZdpPasskeySupport'
-]) {
-  assert.ok(
-    publicEntrySource.includes(requiredExport),
-    `The public entry must export ${requiredExport}.`
-  );
-}
-
-for (const requiredDeclaration of [
-  'export declare function detectPasskeySupport()',
-  'export declare class ZdpPasskeyCeremonyError extends Error',
-  'autocomplete?: "username" | "username webauthn";',
-  'ceremonyOptions?: ZdpPasskeyAuthenticationOptions',
-  'export declare function cancelPasskeyCeremony(): void;'
-]) {
-  assert.ok(
-    packageSurfaceSource.replaceAll("'", '"').includes(requiredDeclaration),
-    `The generated package declaration must include ${requiredDeclaration}.`
-  );
-}
 
 const support = await detectPasskeySupport();
 assert.deepEqual(

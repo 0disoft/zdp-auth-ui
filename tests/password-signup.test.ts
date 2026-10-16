@@ -1,6 +1,21 @@
 import { expect, test } from 'bun:test';
-import { createZdpPasswordSignupContract } from '../src/lib/password-signup';
+import { createZdpPasswordSignupContract, zdpPasswordSignupFieldNames } from '../src/lib/password-signup';
 import { getAuthMessages, zdpAuthTargetLocales } from '../src/lib/i18n';
+
+test('returns stable form field names and rejects unsupported locales', () => {
+  const request = { termsConsentRef: 'policy://terms/v1', locale: 'en',
+    minimumAgeYears: 14, agePolicyRef: 'account-minimum-age-14-v1' };
+  const result = createZdpPasswordSignupContract(request);
+  expect(result.outcome).toBe('created');
+  if (result.outcome === 'created') {
+    expect(result.contract.fieldNames).toBe(zdpPasswordSignupFieldNames);
+    expect(result.contract.fieldNames).toEqual({ loginId: 'login_id', password: 'password',
+      termsAccepted: 'terms_accepted', termsConsentRef: 'terms_consent_ref',
+      minimumAgeConfirmed: 'minimum_age_confirmed', agePolicyRef: 'age_policy_ref', locale: 'locale' });
+  }
+  expect(createZdpPasswordSignupContract({ ...request, locale: 'unsupported' }))
+    .toEqual({ outcome: 'rejected', reason: 'unsupported-locale' });
+});
 
 test('rejects non-object signup requests without throwing', () => {
   for (const request of [null, undefined, 42, true, 'policy://terms/v1', []]) {

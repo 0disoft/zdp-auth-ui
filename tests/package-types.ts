@@ -5,12 +5,32 @@ import {
   getAuthMessages,
   type ZdpAuthActiveLocale
 } from 'zdp-auth-ui/i18n';
-import { PasskeySettings, getPasskeySettingsMessages, validPasskeyLabel, type AuthShellProps,
+import { cancelPasskeyCeremony, detectPasskeySupport, startPasskeyAuthentication, startPasskeyRegistration,
+  ZdpPasskeyCeremonyError, type ZdpPasskeyAuthenticationOptions, type ZdpPasskeyCeremonyOptions,
+  type ZdpPasskeySupport, type ZdpAuthAvailability, type LoginIdFieldProps,
+  PasskeySettings, getPasskeySettingsMessages, validPasskeyLabel, type AuthShellProps,
   type PasskeySettingsProps, type ZdpPasskeySettingsState } from 'zdp-auth-ui';
 import koMessages, { passkeySettingsMessages } from 'zdp-auth-ui/i18n/ko';
 import { loadAuthLocale, loadPasskeySettingsMessages } from 'zdp-auth-ui/i18n/loader';
 import type { AuthShellProps as LeanShellProps,
   PasskeySettingsProps as LeanPasskeyProps } from 'zdp-auth-ui/components';
+
+const ceremonyOptions: ZdpPasskeyCeremonyOptions = { signal: new AbortController().signal, timeoutMs: 1000 };
+const authenticationOptions: ZdpPasskeyAuthenticationOptions = {
+  ...ceremonyOptions, mediation: 'conditional', container: document.createDocumentFragment()
+};
+const authenticate: (options: Parameters<typeof startPasskeyAuthentication>[0],
+  ceremony?: ZdpPasskeyAuthenticationOptions) => Promise<unknown> = startPasskeyAuthentication;
+const register: (options: Parameters<typeof startPasskeyRegistration>[0],
+  ceremony?: ZdpPasskeyCeremonyOptions) => Promise<unknown> = startPasskeyRegistration;
+const support: Promise<ZdpPasskeySupport> = detectPasskeySupport();
+const cancel: () => void = cancelPasskeyCeremony;
+const passkeyError: Error = new ZdpPasskeyCeremonyError('authentication', 'cancelled');
+const availability: ZdpAuthAvailability = 'preparing';
+const autofillField: LoginIdFieldProps = { id: 'login', name: 'login_id', autocomplete: 'username webauthn' };
+// @ts-expect-error Conditional UI uses the webauthn token after username.
+const invalidAutofill: LoginIdFieldProps = { id: 'login', name: 'login_id', autocomplete: 'webauthn' };
+void [authenticate, register, support, cancel, passkeyError, availability, autofillField, invalidAutofill];
 
 const injectedShellProps: AuthShellProps = { locale: 'ko', messages: koMessages };
 const injectedPasskeyProps: PasskeySettingsProps = {
