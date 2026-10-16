@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.11.0
+
+- Let the root `createZdpAuthSurfaceModel` accept optional `messages`, and export a catalog-free `createZdpAuthSurfaceModel` with its related types from `zdp-auth-ui/components`; that entry requires `messages` and stays out of the initial 12-locale runtime.
+- Wire the native WebAuthn failure identifiers back into `WebAuthnError` causes for duplicate registration, invalid user ID, and unsupported algorithm codes, while passing the ambiguous `SecurityError`, `NotAllowedError`, and `ConstraintError` cases through unchanged instead of guessing from message strings.
+- Reuse one `Intl.DateTimeFormat` per locale in `PasskeySettings` and derive the key name from an untouched `null` plus the edited value, empty string included, instead of syncing it from an effect, so changing locale or preference keeps what the user typed.
+- Move the locale JavaScript and declaration build to typed source modules plus `svelte-package`, remove the Vite string-template plugin, and keep the public import paths while the generated files live under `dist/svelte/i18n`; checks now cover schema and literal locale parity, all 12 lazy chunks, and packed-consumer imports.
+- Replace the source snapshot checks with runtime export, type, and behavior checks.
+
 ## 0.10.0
 
 - Added a `zdp-auth-ui/components` entry that exports the seven UI components without the synchronous catalog runtime. Its `AuthShell`, `LoginIdField`, `PasswordField`, `PasswordSignupFields`, `ProductLinkApproval`, and `PasskeySettings` require caller-injected `messages`, and `PasskeySettings` also requires `authMessages`; consumers pass one fixed `zdp-auth-ui/i18n/<locale>` catalog or load it at runtime so one locale arrives instead of all twelve.
