@@ -40,8 +40,9 @@ export function createZdpPasswordSignupContract(
   if (!isSafeReference(termsConsentRef, 256)) {
     return { outcome: 'rejected', reason: 'invalid-terms-consent-ref' };
   }
+  const agePolicyRef = typeof request.agePolicyRef === 'string' ? request.agePolicyRef.trim() : '';
   if (!Number.isSafeInteger(request.minimumAgeYears) || request.minimumAgeYears < 1 || request.minimumAgeYears > 150 ||
-    typeof request.agePolicyRef !== 'string' || !isSafeReference(request.agePolicyRef, 256)) {
+    !isSafeReference(agePolicyRef, 256)) {
     return { outcome: 'rejected', reason: 'invalid-age-policy' };
   }
   if (!(zdpAuthTargetLocales as readonly string[]).includes(request.locale)) {
@@ -52,7 +53,7 @@ export function createZdpPasswordSignupContract(
     contract: {
       termsConsentRef,
       minimumAgeYears: request.minimumAgeYears,
-      agePolicyRef: request.agePolicyRef,
+      agePolicyRef,
       locale: request.locale as ZdpAuthLocale,
       fieldNames: zdpPasswordSignupFieldNames
     }
