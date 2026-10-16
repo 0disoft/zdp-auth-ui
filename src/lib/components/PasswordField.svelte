@@ -48,51 +48,42 @@
 
   function hideOnFormReset(node: HTMLDivElement) {
     const input = node.querySelector('input');
-    const roots = new Set<EventTarget>();
-    let active = true;
-    let observedTree: Node | null = null;
-    let observer: MutationObserver | null = null;
-    const handled = new WeakSet<Event>();
+    if (!input) return;
+    let root: Node | undefined;
     const timers = new Set<ReturnType<typeof setTimeout>>();
     const onReset = (event: Event) => {
-      const form = input?.form;
-      if (!form || event.target !== form || handled.has(event)) return;
-      handled.add(event);
+      const form = input.form;
+      if (!form || event.target !== form) return;
       const timer = setTimeout(() => {
         timers.delete(timer);
-        if (!event.defaultPrevented && input?.isConnected && input.form === form) visible = false;
+        if (!event.defaultPrevented && input.isConnected && input.form === form) visible = false;
       }, 0);
       timers.add(timer);
     };
-    function refreshOwnership() {
-      if (!active) return;
-      const tree = node.getRootNode();
-      const nextRoots = new Set<EventTarget>([node.ownerDocument, tree, ...(input?.form ? [input.form] : [])]);
-      for (const root of roots) {
-        if (!nextRoots.has(root)) {
-          root.removeEventListener('reset', onReset, true);
-          roots.delete(root);
-        }
+    const Observer = node.ownerDocument.defaultView?.MutationObserver;
+    const observer = Observer ? new Observer(records => {
+      if (records.some(record => Array.from(record.removedNodes).some(removed => removed.contains(input)))) {
+        refreshRoot();
       }
-      for (const root of nextRoots) {
-        if (!roots.has(root)) {
-          root.addEventListener('reset', onReset, true);
-          roots.add(root);
-        }
+    }) : null;
+    const refreshRoot = () => {
+      const nextRoot = input.getRootNode();
+      if (nextRoot !== root) {
+        root?.removeEventListener('reset', onReset, true);
+        root = nextRoot;
+        root.addEventListener('reset', onReset, true);
       }
-      if (tree !== observedTree) {
-        observer?.disconnect();
-        observedTree = tree;
-        const Observer = node.ownerDocument.defaultView?.MutationObserver;
-        observer = Observer ? new Observer(refreshOwnership) : null;
-        observer?.observe(tree, { childList: true, subtree: true, attributes: true, attributeFilter: ['form', 'id'] });
-      }
-    }
-    refreshOwnership();
-    return { destroy() {
-      active = false;
+      // Reset does not cross a shadow boundary. Follow only this input's
+      // ancestor removals when it is relocated, never whole-tree mutations.
       observer?.disconnect();
-      for (const root of roots) root.removeEventListener('reset', onReset, true);
+      for (let ancestor = input.parentNode; ancestor; ancestor = ancestor.parentNode) {
+        observer?.observe(ancestor, { childList: true });
+      }
+    };
+    refreshRoot();
+    return { destroy() {
+      observer?.disconnect();
+      root?.removeEventListener('reset', onReset, true);
       for (const timer of timers) clearTimeout(timer);
     } };
   }

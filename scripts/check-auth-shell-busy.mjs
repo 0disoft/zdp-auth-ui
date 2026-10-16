@@ -335,6 +335,23 @@ try {
   const resetPassword = page.getByTestId('password-reset-fixture');
   await resetPassword.getByRole('button', { name: 'Show password', exact: true }).click();
   assert.equal(await resetPassword.locator('input').getAttribute('type'), 'text');
+  await resetPassword.evaluate(async form => {
+    const input = form.querySelector('input');
+    const externalForm = document.createElement('form');
+    externalForm.id = 'external-password-reset';
+    document.body.append(externalForm);
+    input.setAttribute('form', externalForm.id);
+    form.reset();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    if (input.type !== 'text') throw new Error('Resetting a former owner must not hide an externally associated password.');
+    externalForm.reset();
+  });
+  await page.waitForFunction(() => document.getElementById('reset-visible-password').type === 'password');
+  await resetPassword.locator('input').evaluate(input => {
+    input.removeAttribute('form');
+    document.getElementById('external-password-reset').remove();
+  });
+  await resetPassword.getByRole('button', { name: 'Show password', exact: true }).click();
   await resetPassword.evaluate(form => {
     const target = document.querySelector('#password-reset-shadow-host').attachShadow({ mode: 'open' });
     const newForm = document.createElement('form');
