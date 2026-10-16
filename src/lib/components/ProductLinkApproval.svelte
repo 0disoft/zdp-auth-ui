@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button, Inline, Stack, Surface } from 'zdp-design-system';
   import { onMount, tick } from 'svelte';
-  import { getAuthMessages, type ZdpAuthMessages, type ZdpAuthLocale } from '../i18n';
+  import type { ZdpAuthMessages, ZdpAuthLocale } from '../i18n';
   import {
     validateProductLinkRequest,
     type ZdpProductLinkDecision,
@@ -11,7 +11,7 @@
     type ZdpProductLinkTrustPolicy
   } from '../product-link';
 
-  export let messages: ZdpAuthMessages | undefined = undefined;
+  export let messages: ZdpAuthMessages;
   export let id: string;
   export let locale: ZdpAuthLocale | string = 'en';
   export let enabled = false;
@@ -34,7 +34,7 @@
   let sectionElement: HTMLElement;
   let statusElement: HTMLParagraphElement;
 
-  $: copy = messages ?? getAuthMessages(locale);
+  $: copy = messages;
   $: effectiveNow = now ?? clockNow;
   $: validation = enabled
     ? validateProductLinkRequest(request, trust, effectiveNow)

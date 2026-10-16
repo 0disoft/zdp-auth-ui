@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import ts from 'typescript';
 
 /**
@@ -60,8 +60,7 @@ function forEachBoundaryCall(node: ts.Node, callback: (call: ts.CallExpression) 
   ts.forEachChild(node, (child) => forEachBoundaryCall(child, callback));
 }
 
-async function main(): Promise<void> {
-  const serverBundlePath = 'dist/index.server.js';
+async function preserveBundle(serverBundlePath: string): Promise<void> {
   const source = await readFile(serverBundlePath, 'utf8');
   const sourceFile = ts.createSourceFile(
     serverBundlePath,
@@ -104,6 +103,12 @@ async function main(): Promise<void> {
   process.stdout.write(
     `preserve-server-component-identity: rewrote ${boundaries.length} component boundaries\n`
   );
+}
+
+async function main(): Promise<void> {
+  for (const file of await readdir('dist')) {
+    if (file.endsWith('.server.js')) await preserveBundle(`dist/${file}`);
+  }
 }
 
 main().catch((error: unknown) => {

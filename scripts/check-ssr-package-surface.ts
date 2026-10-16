@@ -36,3 +36,23 @@ if (!body.includes('disabled')) {
 }
 
 process.stdout.write('zdp-auth-ui SSR package surface check passed\n');
+
+const lean = await import(pathToFileURL(resolve('dist/components.server.js')).href) as {
+  AuthShell: Component<Record<string, unknown>>;
+  PasskeySettings: Component<Record<string, unknown>>;
+};
+const { loadAuthLocale } = await import('../dist/i18n/loader.js');
+const catalog = await loadAuthLocale('ko');
+const leanShell = render(lean.AuthShell, { props: {
+  locale: catalog.locale, messages: catalog.messages, availability: 'preparing'
+} });
+if (!leanShell.body.includes(preparingMessage) || !leanShell.body.includes('disabled')) {
+  throw new Error('Lean SSR must render the injected locale synchronously and preserve availability.');
+}
+const leanSettings = render(lean.PasskeySettings, { props: {
+  locale: catalog.locale, messages: catalog.passkeySettingsMessages, authMessages: catalog.messages
+} });
+if (!leanSettings.body.includes(catalog.passkeySettingsMessages.preparing)) {
+  throw new Error('Lean passkey settings SSR must render the injected settings catalog.');
+}
+process.stdout.write('zdp-auth-ui injected locale SSR check passed\n');

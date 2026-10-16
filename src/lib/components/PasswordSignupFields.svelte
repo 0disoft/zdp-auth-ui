@@ -2,13 +2,13 @@
   import { Checkbox, Link, Stack } from 'zdp-design-system';
   import { getContext } from 'svelte';
   import { readable } from 'svelte/store';
-  import { getAuthMessages, type ZdpAuthMessages } from '../i18n';
+  import type { ZdpAuthMessages } from '../i18n';
   import type { ZdpPasswordSignupContract } from '../password-signup';
   import LoginIdField from './LoginIdField.svelte';
   import PasswordField from './PasswordField.svelte';
   import { termsLinkContextKey, type TermsLinkContext } from '../terms-link-context';
 
-  export let messages: ZdpAuthMessages | undefined = undefined;
+  export let messages: ZdpAuthMessages;
   export let idPrefix: string;
   export let contract: ZdpPasswordSignupContract;
   export let loginId = '';
@@ -57,7 +57,7 @@
     };
   }
 
-  $: copy = messages ?? getAuthMessages(contract.locale);
+  $: copy = messages;
   const termsHrefContext = getContext<TermsLinkContext | undefined>(termsLinkContextKey) ?? readable(null);
   $: termsHref = $termsHrefContext;
 </script>

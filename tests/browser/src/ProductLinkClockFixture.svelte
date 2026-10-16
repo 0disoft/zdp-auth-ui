@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ProductLinkApproval from '../../../src/lib/components/ProductLinkApproval.svelte';
+  import ProductLinkApproval from '../../../src/lib/compat/ProductLinkApproval.svelte';
   import type { ZdpProductLinkRequest, ZdpProductLinkTrustPolicy } from '../../../src/lib/product-link';
   let sequence = 0, decisions = 0, enabled = false;
   let request: ZdpProductLinkRequest;

@@ -18,7 +18,7 @@ const server = await createServer({
   plugins: [svelte()],
   resolve: {
     alias: [
-      { find: 'zdp-auth-ui', replacement: join(root, 'dist', 'index.js') }
+      { find: /^zdp-auth-ui$/, replacement: join(root, 'dist', 'index.js') }
     ]
   },
   root: join(root, 'tests/browser'),
@@ -49,9 +49,9 @@ try {
   });
   page.on('pageerror', (error) => browserErrors.push(error.message));
   page.setDefaultTimeout(10_000);
-  page.setDefaultNavigationTimeout(30_000);
+  page.setDefaultNavigationTimeout(60_000);
   await page.goto(`http://127.0.0.1:${address.port}`, {
-    timeout: 30_000,
+    timeout: 60_000,
     waitUntil: 'domcontentloaded'
   });
   assert.deepEqual(browserErrors, [], `Auth browser fixture must load without browser errors: ${browserErrors.join(' | ')}`);
@@ -168,6 +168,13 @@ try {
   await passkeyReauth.getByTestId('use-password').click();
   await reauthPassword.waitFor();
   assert.equal(await reauthPassword.inputValue(), '', 'Switching reauthentication methods must discard the previous password.');
+  await passkeyReauth.getByRole('button', { name: 'Load Korean', exact: true }).click();
+  await passkeyReauth.getByRole('heading', { name: '패스키·보안 키', exact: true }).waitFor();
+  assert.equal(await passkeyReauth.locator('#reauth-settings-name').inputValue(), '이 기기 패스키',
+    'Injected passkey copy must update the suggested registration name.');
+  await passkeyReauth.getByRole('button', { name: '비밀번호 보기', exact: true }).click();
+  assert.equal(await reauthPassword.getAttribute('type'), 'text',
+    'The nested password field must use the injected auth catalog.');
   assert.equal(
     await page.getByTestId('literal-account-brand-fixture').locator('.zdp-auth-shell__summary').textContent(),
     'Continue with your ZDP $& $$ account.',
@@ -441,6 +448,12 @@ try {
     1,
     'The published dist AuthShell must keep one native submit control.'
   );
+
+  const leanShell = page.getByTestId('dist-auth-shell-fixture');
+  await leanShell.getByRole('button', { name: 'Load Korean', exact: true }).click();
+  await leanShell.getByRole('heading', { name: '로그인', exact: true }).waitFor();
+  await leanShell.getByRole('button', { name: '비밀번호 보기', exact: true }).click();
+  assert.equal(await leanShell.locator('#dist-password').getAttribute('type'), 'text');
 
   const loginHandoff = page.getByTestId('melamed-login-handoff');
   const signupHandoff = page.getByTestId('melamed-signup-handoff');

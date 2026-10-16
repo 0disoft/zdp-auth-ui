@@ -1,12 +1,14 @@
 <script lang="ts">
   import { ErrorText, Field, HelpText, Input, Label } from 'zdp-design-system';
-  import { getAuthMessages, type ZdpAuthMessages, type ZdpAuthLocale } from '../i18n';
+  import type { ZdpAuthMessages, ZdpAuthLocale } from '../i18n';
 
-  export let messages: ZdpAuthMessages | undefined = undefined;
+  export let messages: ZdpAuthMessages;
   export let id: string;
   export let name = 'login_id';
   export let label: string | null = null;
   export let value = '';
+  // Keep locale accepted for compatibility; injected messages select the copy.
+  // svelte-ignore export_let_unused
   export let locale: ZdpAuthLocale | string = 'en';
   export let autocomplete: 'username' | 'username webauthn' = 'username';
   export let describedBy: string | readonly string[] | null = null;
@@ -15,7 +17,7 @@
   export let required = true;
   export let disabled = false;
 
-  $: copy = messages ?? getAuthMessages(locale);
+  $: copy = messages;
   $: labelText = label ?? copy.fields.loginId;
   $: helpId = helpText && !errorText ? `${id}-help` : null;
   $: errorId = errorText ? `${id}-error` : null;

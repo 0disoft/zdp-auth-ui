@@ -153,6 +153,7 @@ export default defineConfig({
     lib: {
       entry: {
         index: 'src/lib/index.ts',
+        components: 'src/lib/components.ts',
         i18n: 'src/lib/i18n.ts',
         contract: 'src/lib/auth-contract.ts'
       },

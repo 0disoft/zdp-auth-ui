@@ -3,15 +3,15 @@
   import { onMount, tick } from 'svelte';
   import type { ZdpAuthMessages } from '../i18n';
   import PasswordField from './PasswordField.svelte';
-  import { getPasskeySettingsMessages, type ZdpPasskeySettingsMessages } from '../passkey-settings-messages';
+  import type { ZdpPasskeySettingsMessages } from '../passkey-settings-messages';
   import { isZdpPasskeyAuthenticatorProvider, isZdpPasskeyAuthenticatorStorage,
     isZdpPasskeyRegistrationPreference, validPasskeyLabel, zdpPasskeyRegistrationPreferenceDefault,
     zdpPasskeyRegistrationPreferences, type ZdpPasskeyAuthenticator,
     type ZdpPasskeySettingsAction, type ZdpPasskeySettingsFeedback,
     type ZdpPasskeySettingsState } from '../passkey-settings-contract';
 
-  export let messages: ZdpPasskeySettingsMessages | undefined = undefined;
-  export let authMessages: ZdpAuthMessages | undefined = undefined;
+  export let messages: ZdpPasskeySettingsMessages;
+  export let authMessages: ZdpAuthMessages;
   export let locale = 'en';
   export let idPrefix = 'passkey-settings';
   export let state: ZdpPasskeySettingsState = { status: 'preparing', passkeys: [],
@@ -54,7 +54,7 @@
     security_key: 'preferenceSecurityKey',
     phone: 'preferencePhone'
   } as const;
-  $: copy = messages ?? getPasskeySettingsMessages(locale);
+  $: copy = messages;
   $: preference = isZdpPasskeyRegistrationPreference(preferenceValue)
     ? preferenceValue : zdpPasskeyRegistrationPreferenceDefault;
   $: suggestedName = editor === 'register'

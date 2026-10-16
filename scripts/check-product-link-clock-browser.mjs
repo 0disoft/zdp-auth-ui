@@ -8,7 +8,7 @@ import { createServer } from 'vite';
 
 const root = process.cwd(), cacheDir = await mkdtemp(join(tmpdir(), 'zdp-product-link-clock-'));
 const server = await createServer({ cacheDir, configFile: false, logLevel: 'error', optimizeDeps: { noDiscovery: true }, plugins: [svelte()],
-  resolve: { alias: [{ find: 'zdp-auth-ui', replacement: join(root, 'dist', 'index.js') }] },
+  resolve: { alias: [{ find: /^zdp-auth-ui$/, replacement: join(root, 'dist', 'index.js') }] },
   root: join(root, 'tests/browser'), server: { hmr: false, host: '127.0.0.1', port: 0 } });
 let browser;
 try {
@@ -16,7 +16,7 @@ try {
   browser = await chromium.launch({ channel: process.env.ZDP_BROWSER_CHANNEL ?? 'chrome', headless: true });
   const page = await browser.newPage(), errors = []; page.setDefaultTimeout(8000); page.on('pageerror', error => errors.push(error.message));
   // Fresh Vite caches compile the shared Svelte graph before the fixture loads.
-  page.setDefaultNavigationTimeout(30000);
+  page.setDefaultNavigationTimeout(60000);
   await page.clock.setFixedTime('2026-07-15T04:05:00.000Z');
   await page.goto(`http://127.0.0.1:${address.port}`, { waitUntil: 'domcontentloaded' });
   const fixture = page.getByTestId('link-clock-fixture'), fresh = fixture.getByTestId('clock-new-request'), refresh = fixture.getByTestId('clock-same-request');

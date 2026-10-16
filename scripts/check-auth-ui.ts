@@ -171,9 +171,11 @@ function checkBuildBoundary(viteConfigSource: string, viteServerConfigSource: st
   }
 
   for (const requiredText of [
-    "ssr: 'src/lib/index.ts'",
+    "ssr: true",
+    "index: 'src/lib/index.ts'",
+    "components: 'src/lib/components.ts'",
     "noExternal: ['zdp-design-system']",
-    "entryFileNames: 'index.server.js'",
+    "entryFileNames: '[name].server.js'",
     "'@simplewebauthn/browser'",
     "'svelte'",
     'external: isExternalPackage'
@@ -254,7 +256,7 @@ function checkPackageJson(
 
   if (
     packageJson.scripts?.check
-    !== 'svelte-check --tsconfig ./tsconfig.json && bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-passkey-progressive-enhancement.ts && bun scripts/check-passkey-settings.ts && bun scripts/check-auth-ui.ts && bun scripts/check-package-types.ts && bun run --conditions development scripts/check-dev-ssr-consumer.mjs && bun run release:check'
+    !== 'svelte-check --tsconfig ./tsconfig.json && bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-passkey-progressive-enhancement.ts && bun scripts/check-passkey-settings.ts && bun scripts/check-auth-ui.ts && bun scripts/check-locale-bundles.ts && bun scripts/check-package-types.ts && bun run --conditions development scripts/check-dev-ssr-consumer.mjs && bun run release:check'
   ) {
     failures.push(
       'package.json scripts.check must run svelte-check, the lock fixture, product-link contract checker, auth handoff contract checker, passkey progressive-enhancement checker, auth UI contract checker, published package type check, dev SSR consumer check, and release workflow checker.'
@@ -307,6 +309,14 @@ function checkPackageExports(packageJson: PackageJson): void {
     types: './dist/i18n/loader.d.ts',
     import: './dist/i18n/loader.js',
     default: './dist/i18n/loader.js'
+  });
+  expectedExports.set('./components', {
+    types: './dist/components.d.ts',
+    svelte: { browser: './dist/components.js', default: './dist/components.server.js' },
+    browser: './dist/components.js',
+    node: './dist/components.server.js',
+    import: './dist/components.js',
+    default: './dist/components.js'
   });
   for (const locale of expectedLocales) {
     expectedExports.set(`./i18n/${locale}`, {

@@ -9,12 +9,23 @@ import { PasskeySettings, getPasskeySettingsMessages, validPasskeyLabel, type Au
   type PasskeySettingsProps, type ZdpPasskeySettingsState } from 'zdp-auth-ui';
 import koMessages, { passkeySettingsMessages } from 'zdp-auth-ui/i18n/ko';
 import { loadAuthLocale, loadPasskeySettingsMessages } from 'zdp-auth-ui/i18n/loader';
+import type { AuthShellProps as LeanShellProps,
+  PasskeySettingsProps as LeanPasskeyProps } from 'zdp-auth-ui/components';
 
 const injectedShellProps: AuthShellProps = { locale: 'ko', messages: koMessages };
 const injectedPasskeyProps: PasskeySettingsProps = {
   locale: 'ko', messages: passkeySettingsMessages, authMessages: koMessages
 };
 void [injectedShellProps, injectedPasskeyProps, loadAuthLocale, loadPasskeySettingsMessages];
+const leanShell: LeanShellProps = { messages: koMessages, locale: 'ko' };
+const leanPasskeys: LeanPasskeyProps = {
+  messages: passkeySettingsMessages, authMessages: koMessages, locale: 'ko'
+};
+// @ts-expect-error Lean components require an explicitly loaded catalog.
+const missingShellCatalog: LeanShellProps = {};
+// @ts-expect-error Reauthentication also needs the auth catalog for password controls.
+const missingAuthCatalog: LeanPasskeyProps = { messages: passkeySettingsMessages };
+void [leanShell, leanPasskeys, missingShellCatalog, missingAuthCatalog];
 
 const japaneseTitle: string = zdpAuthMessages.ja.title.login;
 const signupTitles: string[] = zdpAuthTargetLocales.map((locale) => zdpAuthMessages[locale].title.signup);

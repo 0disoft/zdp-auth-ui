@@ -21,7 +21,7 @@
     type ZdpAuthProviderSelectDetail,
     type ZdpAuthSubmitDetail
   } from '../auth-contract';
-  import { getAuthMessages, type ZdpAuthLocale, type ZdpAuthMessages } from '../i18n';
+  import type { ZdpAuthLocale, ZdpAuthMessages } from '../i18n';
   import ProviderButton from './ProviderButton.svelte';
   import { termsLinkContextKey, type TermsLinkContext } from '../terms-link-context';
 
@@ -31,7 +31,9 @@
     readonly invalid: boolean;
   }
 
-  export let messages: ZdpAuthMessages | undefined = undefined;
+  export let messages: ZdpAuthMessages;
+  // Keep locale accepted for compatibility; injected messages select the copy.
+  // svelte-ignore export_let_unused
   export let locale: ZdpAuthLocale | string = 'en';
   export let mode: ZdpAuthMode = 'login';
   export let availability: ZdpAuthAvailability = 'available';
@@ -60,7 +62,7 @@
   let pendingFocusKey: string | null = null;
   let sameTaskSubmitHandled = false;
 
-  $: copy = messages ?? getAuthMessages(locale);
+  $: copy = messages;
   $: normalizedAccountBrand = normalizeAccountBrand(accountBrand);
   $: title = copy.title[mode];
   $: summary = copy.summary[mode].replace(copy.brand, () => normalizedAccountBrand ?? copy.brand);

@@ -152,6 +152,7 @@ async function checkPackedConsumer(tarball: string, checkDirectory: string): Pro
   for (const entry of [
     'package.json',
     'dist/index.d.ts',
+    'dist/components.d.ts',
     'dist/contract.d.ts',
     'dist/i18n.js',
     'dist/i18n.d.ts',

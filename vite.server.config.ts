@@ -20,13 +20,18 @@ export default defineConfig({
     noExternal: ['zdp-design-system']
   },
   build: {
-    ssr: 'src/lib/index.ts',
+    ssr: true,
     outDir: 'dist',
     emptyOutDir: false,
     rollupOptions: {
+      input: {
+        index: 'src/lib/index.ts',
+        components: 'src/lib/components.ts'
+      },
       external: isExternalPackage,
       output: {
-        entryFileNames: 'index.server.js'
+        entryFileNames: '[name].server.js',
+        chunkFileNames: '[name]-[hash].server.js'
       }
     }
   }

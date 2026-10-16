@@ -1,10 +1,10 @@
 <script lang="ts">
   import { Field, Input, Label } from 'zdp-design-system';
-  import AuthShell from '../../../src/lib/components/AuthShell.svelte';
-  import LoginIdField from '../../../src/lib/components/LoginIdField.svelte';
-  import PasswordField from '../../../src/lib/components/PasswordField.svelte';
-  import PasswordSignupFields from '../../../src/lib/components/PasswordSignupFields.svelte';
-  import ProductLinkApproval from '../../../src/lib/components/ProductLinkApproval.svelte';
+  import AuthShell from '../../../src/lib/compat/AuthShell.svelte';
+  import LoginIdField from '../../../src/lib/compat/LoginIdField.svelte';
+  import PasswordField from '../../../src/lib/compat/PasswordField.svelte';
+  import PasswordSignupFields from '../../../src/lib/compat/PasswordSignupFields.svelte';
+  import ProductLinkApproval from '../../../src/lib/compat/ProductLinkApproval.svelte';
   import DistAuthShellFixture from './DistAuthShellFixture.svelte';
   import PasskeyReauthFixture from './PasskeyReauthFixture.svelte';
   import ProductLinkClockFixture from './ProductLinkClockFixture.svelte';
