@@ -7,7 +7,7 @@ import {
   assertVersionSatisfiesCaretRange,
   readBunRegistryLockEntry
 } from './bun-registry-lock';
-import { getAuthMessages } from '../src/lib/i18n';
+import { getAuthMessages, zdpAuthMessages, zdpAuthTargetLocales } from '../src/lib/i18n';
 
 interface PackageJson {
   readonly name?: string;
@@ -24,7 +24,6 @@ interface PackageJson {
 const root = process.cwd();
 const failures: string[] = [];
 const expectedLocales = ['en', 'zh', 'es', 'fr', 'hi', 'ko', 'ja', 'vi', 'ru', 'id', 'ms', 'th'] as const;
-const activeLocales = expectedLocales;
 const componentPaths = [
   'src/lib/components/AuthShell.svelte',
   'src/lib/components/LoginIdField.svelte',
@@ -123,7 +122,7 @@ checkRequiredFiles();
 checkPackageJson(packageJson, changelog, bunLockSource, installedDesignSystem);
 checkLocaleContract(readme, i18nSource);
 checkLocalizedAuthMessages();
-checkMessageCatalog(i18nSource);
+checkMessageCatalog();
 checkServiceBoundary(service);
 checkCiWorkflow(ciWorkflow);
 checkRunbook(runbook);
@@ -352,22 +351,15 @@ function checkPackageExports(packageJson: PackageJson): void {
 }
 
 function checkLocaleContract(readme: string, i18nSource: string): void {
+  if (JSON.stringify(zdpAuthTargetLocales) !== JSON.stringify(expectedLocales)) {
+    failures.push('Target locale metadata must preserve all 12 public locales.');
+  }
   for (const locale of expectedLocales) {
-    if (!i18nSource.includes(`'${locale}'`)) {
-      failures.push(`src/lib/i18n.ts is missing target locale ${locale}.`);
+    if (!Object.hasOwn(zdpAuthMessages, locale)) {
+      failures.push(`Target locale ${locale} must have its own keyed message catalog.`);
     }
-
-    if (!readme.includes(locale)) {
-      failures.push(`README.md is missing locale ${locale}.`);
-    }
+    if (!readme.includes(locale)) failures.push(`README.md is missing locale ${locale}.`);
   }
-
-  for (const locale of activeLocales) {
-    if (!new RegExp(`\\b${locale}: (?:\\{|localizedAuthMessages\\()`, 'u').test(i18nSource)) {
-      failures.push(`Active locale ${locale} must have a message catalog.`);
-    }
-  }
-
   if (!i18nSource.includes('isTargetAuthLocale(locale) ? zdpAuthMessages[locale] : zdpAuthMessages.en')) {
     failures.push('Known target locales must use their own catalog instead of silently falling back to English.');
   }
@@ -389,30 +381,18 @@ function checkLocalizedAuthMessages(): void {
   }
 }
 
-function checkMessageCatalog(i18nSource: string): void {
-  for (const requiredText of [
-    'readonly brand: string;',
-    'readonly groupLabel: string;',
-    'readonly navigation: {',
-    'readonly accountHelp: string;',
-    'readonly loginId: string;',
-    'readonly termsAcceptance: string;',
-    'readonly availability: {',
-    'readonly preparing: string;',
-    'readonly feedback: {',
-    'readonly loginUnavailable: string;',
-    "brand: '8ailors'",
-    "groupLabel: '인증 수단 선택'",
-    "groupLabel: 'Choose sign-in method'",
-    "accountHelp: '계정 도움말'",
-    "accountHelp: 'Account help'",
-    "signup: '8ailors 계정을 생성합니다.'",
-    "preparing: '계정 서비스는 아직 준비 중입니다.'",
-    "preparing: 'Account access is not available yet.'"
+function checkMessageCatalog(): void {
+  const en = getAuthMessages('en');
+  const ko = getAuthMessages('ko');
+  for (const [actual, expected] of [
+    [en.brand, '8ailors'], [ko.brand, '8ailors'],
+    [ko.providers.groupLabel, '인증 수단 선택'], [en.providers.groupLabel, 'Choose sign-in method'],
+    [ko.navigation.accountHelp, '계정 도움말'], [en.navigation.accountHelp, 'Account help'],
+    [ko.summary.signup, '8ailors 계정을 생성합니다.'],
+    [ko.availability.preparing, '계정 서비스는 아직 준비 중입니다.'],
+    [en.availability.preparing, 'Account access is not available yet.']
   ]) {
-    if (!i18nSource.includes(requiredText)) {
-      failures.push(`src/lib/i18n.ts must keep auth shell message key: ${requiredText}.`);
-    }
+    if (actual !== expected) failures.push(`Auth shell catalog must preserve copy: ${expected}.`);
   }
 }
 

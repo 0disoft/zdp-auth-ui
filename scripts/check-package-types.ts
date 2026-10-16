@@ -9,7 +9,8 @@ if (config.error) {
 
 const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, root);
 const program = ts.createProgram({
-  rootNames: [resolve(root, 'tests/package-types.ts'), resolve(root, 'tests/package-message-parity.ts')],
+  rootNames: [resolve(root, 'tests/package-types.ts'), resolve(root, 'tests/package-message-parity.ts'),
+    resolve(root, 'tests/message-catalog-schema.ts')],
   options: { ...parsed.options, noEmit: true }
 });
 const diagnostics = [...parsed.errors, ...ts.getPreEmitDiagnostics(program)];

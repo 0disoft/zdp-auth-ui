@@ -16,6 +16,29 @@ test('shared synchronous auth messages cannot be poisoned by another consumer', 
   verifyCatalog(() => getAuthMessages('en'));
 });
 
+test('synchronous catalogs reuse deeply frozen objects for every locale', () => {
+  function verifyFrozen(value: object): void {
+    expect(Object.isFrozen(value)).toBe(true);
+    for (const child of Object.values(value)) {
+      if (typeof child === 'object' && child !== null) verifyFrozen(child);
+    }
+  }
+  for (const locale of zdpAuthTargetLocales) {
+    const auth = getAuthMessages(locale);
+    const settings = getPasskeySettingsMessages(locale);
+    expect(getAuthMessages(locale)).toBe(auth);
+    expect(getPasskeySettingsMessages(locale)).toBe(settings);
+    verifyFrozen(auth);
+    verifyFrozen(settings);
+    expect(Reflect.set(settings, 'title', 'Changed by another consumer')).toBe(false);
+    expect(Reflect.set(auth.productLink.status, 'invalid', 'Changed by another consumer')).toBe(false);
+  }
+  for (const locale of ['unknown', '__proto__', 'constructor', 'toString']) {
+    expect(getAuthMessages(locale)).toBe(getAuthMessages('en'));
+    expect(getPasskeySettingsMessages(locale)).toBe(getPasskeySettingsMessages('en'));
+  }
+});
+
 test('shared lazy locale messages cannot be poisoned by another consumer', async () => {
   const { loadAuthMessages } = await import('../dist/i18n/loader.js');
   const messages = await loadAuthMessages('en');

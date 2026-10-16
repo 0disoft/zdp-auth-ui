@@ -39,6 +39,7 @@ const typecheckProgram = ts.createProgram({
     resolve('src/lib/auth-surface-model.ts')
   ],
   options: {
+    allowImportingTsExtensions: true,
     forceConsistentCasingInFileNames: true,
     module: ts.ModuleKind.ESNext,
     moduleResolution: ts.ModuleResolutionKind.Bundler,

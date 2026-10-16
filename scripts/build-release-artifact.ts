@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { appendFile, cp, mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from 'node:fs/promises';
+import { appendFile, cp, mkdtemp, mkdir, readFile, readdir, rm, stat, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -145,21 +145,13 @@ async function checkPackedConsumer(tarball: string, checkDirectory: string): Pro
   const archive = await readFile(tarball);
   const consumerRoot = join(checkDirectory, 'consumer');
   const packageRoot = join(consumerRoot, 'node_modules', 'zdp-auth-ui');
-  const declarations = (await readdir(join(root, 'dist/types'), { recursive: true }))
-    .filter(file => file.endsWith('.d.ts')).map(file => `dist/types/${file.replaceAll('\\', '/')}`);
-  const localeEntries = (await readdir(join(root, 'dist/i18n')))
-    .map(file => `dist/i18n/${file}`);
-  for (const entry of [
-    'package.json',
-    'dist/index.d.ts',
-    'dist/components.d.ts',
-    'dist/contract.d.ts',
-    'dist/i18n.js',
-    'dist/i18n.d.ts',
-    'dist/styles.css',
-    ...localeEntries,
-    ...declarations
-  ]) {
+  const distEntries = await readdir(join(root, 'dist'), { recursive: true });
+  const distFiles = (await Promise.all(distEntries.map(async file =>
+    (await stat(join(root, 'dist', file))).isFile() ? `dist/${file.replaceAll('\\', '/')}` : null
+  ))).filter(file => file !== null);
+  // A multi-entry build can extract shared JS chunks. Exercise the actual
+  // packed dist tree instead of selecting a subset that misses those imports.
+  for (const entry of ['package.json', ...distFiles]) {
     const output = join(packageRoot, entry);
     await mkdir(dirname(output), { recursive: true });
     await writeFile(output, readTarEntry(archive, `package/${entry}`));
