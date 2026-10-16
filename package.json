@@ -30,69 +30,69 @@
       "default": "./dist/i18n.js"
     },
     "./i18n/loader": {
-      "types": "./dist/i18n/loader.d.ts",
-      "import": "./dist/i18n/loader.js",
-      "default": "./dist/i18n/loader.js"
+      "types": "./dist/svelte/i18n/loader.d.ts",
+      "import": "./dist/svelte/i18n/loader.js",
+      "default": "./dist/svelte/i18n/loader.js"
     },
     "./i18n/en": {
-      "types": "./dist/i18n/en.d.ts",
-      "import": "./dist/i18n/en.js",
-      "default": "./dist/i18n/en.js"
+      "types": "./dist/svelte/i18n/en.d.ts",
+      "import": "./dist/svelte/i18n/en.js",
+      "default": "./dist/svelte/i18n/en.js"
     },
     "./i18n/zh": {
-      "types": "./dist/i18n/zh.d.ts",
-      "import": "./dist/i18n/zh.js",
-      "default": "./dist/i18n/zh.js"
+      "types": "./dist/svelte/i18n/zh.d.ts",
+      "import": "./dist/svelte/i18n/zh.js",
+      "default": "./dist/svelte/i18n/zh.js"
     },
     "./i18n/es": {
-      "types": "./dist/i18n/es.d.ts",
-      "import": "./dist/i18n/es.js",
-      "default": "./dist/i18n/es.js"
+      "types": "./dist/svelte/i18n/es.d.ts",
+      "import": "./dist/svelte/i18n/es.js",
+      "default": "./dist/svelte/i18n/es.js"
     },
     "./i18n/fr": {
-      "types": "./dist/i18n/fr.d.ts",
-      "import": "./dist/i18n/fr.js",
-      "default": "./dist/i18n/fr.js"
+      "types": "./dist/svelte/i18n/fr.d.ts",
+      "import": "./dist/svelte/i18n/fr.js",
+      "default": "./dist/svelte/i18n/fr.js"
     },
     "./i18n/hi": {
-      "types": "./dist/i18n/hi.d.ts",
-      "import": "./dist/i18n/hi.js",
-      "default": "./dist/i18n/hi.js"
+      "types": "./dist/svelte/i18n/hi.d.ts",
+      "import": "./dist/svelte/i18n/hi.js",
+      "default": "./dist/svelte/i18n/hi.js"
     },
     "./i18n/ko": {
-      "types": "./dist/i18n/ko.d.ts",
-      "import": "./dist/i18n/ko.js",
-      "default": "./dist/i18n/ko.js"
+      "types": "./dist/svelte/i18n/ko.d.ts",
+      "import": "./dist/svelte/i18n/ko.js",
+      "default": "./dist/svelte/i18n/ko.js"
     },
     "./i18n/ja": {
-      "types": "./dist/i18n/ja.d.ts",
-      "import": "./dist/i18n/ja.js",
-      "default": "./dist/i18n/ja.js"
+      "types": "./dist/svelte/i18n/ja.d.ts",
+      "import": "./dist/svelte/i18n/ja.js",
+      "default": "./dist/svelte/i18n/ja.js"
     },
     "./i18n/vi": {
-      "types": "./dist/i18n/vi.d.ts",
-      "import": "./dist/i18n/vi.js",
-      "default": "./dist/i18n/vi.js"
+      "types": "./dist/svelte/i18n/vi.d.ts",
+      "import": "./dist/svelte/i18n/vi.js",
+      "default": "./dist/svelte/i18n/vi.js"
     },
     "./i18n/ru": {
-      "types": "./dist/i18n/ru.d.ts",
-      "import": "./dist/i18n/ru.js",
-      "default": "./dist/i18n/ru.js"
+      "types": "./dist/svelte/i18n/ru.d.ts",
+      "import": "./dist/svelte/i18n/ru.js",
+      "default": "./dist/svelte/i18n/ru.js"
     },
     "./i18n/id": {
-      "types": "./dist/i18n/id.d.ts",
-      "import": "./dist/i18n/id.js",
-      "default": "./dist/i18n/id.js"
+      "types": "./dist/svelte/i18n/id.d.ts",
+      "import": "./dist/svelte/i18n/id.js",
+      "default": "./dist/svelte/i18n/id.js"
     },
     "./i18n/ms": {
-      "types": "./dist/i18n/ms.d.ts",
-      "import": "./dist/i18n/ms.js",
-      "default": "./dist/i18n/ms.js"
+      "types": "./dist/svelte/i18n/ms.d.ts",
+      "import": "./dist/svelte/i18n/ms.js",
+      "default": "./dist/svelte/i18n/ms.js"
     },
     "./i18n/th": {
-      "types": "./dist/i18n/th.d.ts",
-      "import": "./dist/i18n/th.js",
-      "default": "./dist/i18n/th.js"
+      "types": "./dist/svelte/i18n/th.d.ts",
+      "import": "./dist/svelte/i18n/th.js",
+      "default": "./dist/svelte/i18n/th.js"
     },
     "./contract": {
       "types": "./dist/svelte/auth-contract.d.ts",

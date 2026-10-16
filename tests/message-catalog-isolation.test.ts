@@ -40,14 +40,14 @@ test('synchronous catalogs reuse deeply frozen objects for every locale', () => 
 });
 
 test('shared lazy locale messages cannot be poisoned by another consumer', async () => {
-  const { loadAuthMessages } = await import('../dist/i18n/loader.js');
+  const { loadAuthMessages } = await import('zdp-auth-ui/i18n/loader');
   const messages = await loadAuthMessages('en');
   verifyCatalog(() => messages);
   expect((await loadAuthMessages('en')).title.login).toBe(messages.title.login);
 });
 
 test('locale modules and loader include matching immutable passkey settings copy', async () => {
-  const { loadAuthLocale, loadPasskeySettingsMessages } = await import('../dist/i18n/loader.js');
+  const { loadAuthLocale, loadPasskeySettingsMessages } = await import('zdp-auth-ui/i18n/loader');
   for (const locale of zdpAuthTargetLocales) {
     const catalog = await loadAuthLocale(locale);
     expect(catalog.locale).toBe(locale);

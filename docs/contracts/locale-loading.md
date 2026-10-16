@@ -33,7 +33,7 @@ The loader does not call `fetch`, inspect authentication state, use browser stor
 
 ## Initial bundle
 
-Catalogs are generated from a synchronous source, so any component that falls back to its built-in catalog keeps that catalog in the initial bundle.
+Catalogs come from thin synchronous source entries, so any component that falls back to its built-in catalog keeps that catalog in the initial bundle.
 
 - Passing only `messages` to a root component keeps the synchronous catalog import, so the bundle does not shrink.
 - The root `createZdpAuthSurfaceModel` in `zdp-auth-ui` accepts `messages` as an optional override and keeps the synchronous import for its `getAuthMessages(locale)` fallback, so injecting `messages` there does not remove the whole-catalog dependency.
@@ -48,7 +48,7 @@ Catalogs are generated from a synchronous source, so any component that falls ba
 
 ## Source of truth
 
-Auth copy is authored in `src/lib/i18n/auth/<locale>.ts` and passkey management copy in `src/lib/i18n/passkey-settings/<locale>.ts`, both against the shared types in `src/lib/i18n/schema.ts`. `src/lib/i18n.ts` exports the frozen `zdpAuthMessages` aggregate and `src/lib/passkey-settings-messages.ts` assembles its catalog internally; both freeze each catalog once at module initialization. The browser Vite build serializes each catalog member into `dist/i18n/<locale>.js`, emits the matching declaration, and writes the dynamic loader, so a rebuilt entry carries the current translated copy. No copied locale catalog is maintained in source, and the generated entries cannot drift into a second hand-maintained catalog; the locale loading and public import shapes above are unchanged.
+Auth copy is authored in `src/lib/i18n/auth/<locale>.ts` and passkey management copy in `src/lib/i18n/passkey-settings/<locale>.ts`, both against the shared types in `src/lib/i18n/schema.ts`. `src/lib/i18n.ts` exports the frozen `zdpAuthMessages` aggregate and `src/lib/passkey-settings-messages.ts` assembles its catalog internally; both freeze each catalog once at module initialization. Each `src/lib/i18n/<locale>.ts` entry is a thin typed module that imports the authored `auth/<locale>.ts` and `passkey-settings/<locale>.ts` copy and freezes it with `freezeMessages`, and `src/lib/i18n/loader.ts` holds the per-locale `import()` map checked with `satisfies` against `ZdpAuthLocale`, falling back to `en` for an unknown value. `svelte-package` compiles those entries and the loader to JavaScript with matching declarations under `dist/svelte/i18n/**`, so no translated copy is duplicated in source and a rebuilt entry carries the current copy; the locale loading and public import shapes above are unchanged.
 
 ## Brand placeholders
 

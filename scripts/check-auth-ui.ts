@@ -278,9 +278,9 @@ function checkPackageExports(packageJson: PackageJson): void {
   ]);
 
   expectedExports.set('./i18n/loader', {
-    types: './dist/i18n/loader.d.ts',
-    import: './dist/i18n/loader.js',
-    default: './dist/i18n/loader.js'
+    types: './dist/svelte/i18n/loader.d.ts',
+    import: './dist/svelte/i18n/loader.js',
+    default: './dist/svelte/i18n/loader.js'
   });
   expectedExports.set('./components', {
     types: './dist/svelte/components.d.ts',
@@ -292,9 +292,9 @@ function checkPackageExports(packageJson: PackageJson): void {
   });
   for (const locale of expectedLocales) {
     expectedExports.set(`./i18n/${locale}`, {
-      types: `./dist/i18n/${locale}.d.ts`,
-      import: `./dist/i18n/${locale}.js`,
-      default: `./dist/i18n/${locale}.js`
+      types: `./dist/svelte/i18n/${locale}.d.ts`,
+      import: `./dist/svelte/i18n/${locale}.js`,
+      default: `./dist/svelte/i18n/${locale}.js`
     });
   }
 
@@ -756,7 +756,7 @@ async function checkDistBundleExternalization(): Promise<void> {
 }
 
 async function checkGeneratedLocaleEntries(): Promise<void> {
-  const distI18n = join(root, 'dist', 'i18n');
+  const distI18n = join(root, 'dist', 'svelte', 'i18n');
 
   for (const locale of expectedLocales) {
     const modulePath = join(distI18n, `${locale}.js`);
@@ -780,14 +780,8 @@ async function checkGeneratedLocaleEntries(): Promise<void> {
       failures.push(`Generated locale entry ${locale} must preserve its literal locale and message SSOT.`);
     }
 
-    const declaration = await readFile(declarationPath, 'utf8');
-    if (
-      !declaration.includes(`export declare const locale: "${locale}";`)
-      || !declaration.includes('export declare const messages: ZdpAuthMessages;')
-      || !declaration.includes('export default messages;')
-    ) {
-      failures.push(`Generated locale declaration ${locale} must preserve the shared catalog shape.`);
-    }
+    // Declaration shapes and literal locales are verified by the TypeScript
+    // consumer in tests/package-message-parity.ts, independent of formatting.
   }
 
   const loaderPath = join(distI18n, 'loader.js');

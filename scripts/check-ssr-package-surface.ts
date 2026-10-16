@@ -49,7 +49,7 @@ const lean = await import(pathToFileURL(resolve('dist/components.server.js')).hr
   AuthShell: Component<Record<string, unknown>>;
   PasskeySettings: Component<Record<string, unknown>>;
 };
-const { loadAuthLocale } = await import('../dist/i18n/loader.js');
+const { loadAuthLocale } = await import('zdp-auth-ui/i18n/loader');
 const catalog = await loadAuthLocale('ko');
 const leanShell = render(lean.AuthShell, { props: {
   locale: catalog.locale, messages: catalog.messages, availability: 'preparing'

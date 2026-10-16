@@ -99,7 +99,7 @@ for (const bundle of [fixed, lazy]) {
 }
 for (const locale of zdpAuthTargetLocales) {
   assert.ok(lazy.chunks.some(chunk => !lazy.initial.includes(chunk)
-    && Object.keys(chunk.modules).some(id => id.replaceAll('\\', '/').endsWith(`/dist/i18n/${locale}.js`))),
+    && Object.keys(chunk.modules).some(id => id.replaceAll('\\', '/').endsWith(`/dist/svelte/i18n/${locale}.js`))),
   `Runtime consumer must retain a separate lazy ${locale} catalog.`);
 }
 assert.ok(fixed.initialBytes < legacy.initialBytes);
