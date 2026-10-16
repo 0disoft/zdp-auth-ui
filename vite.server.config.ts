@@ -9,7 +9,7 @@ const externalPackageRoots = new Set([
 function isExternalPackage(id: string): boolean {
   const packageRoot = id.startsWith('@')
     ? id.split('/').slice(0, 2).join('/')
-    : id.split('/')[0];
+    : id.split('/')[0] ?? id;
 
   return externalPackageRoots.has(packageRoot);
 }

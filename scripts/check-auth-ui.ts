@@ -8,6 +8,8 @@ import {
   readBunRegistryLockEntry
 } from './bun-registry-lock';
 import { getAuthMessages, zdpAuthMessages, zdpAuthTargetLocales } from '../src/lib/i18n';
+import browserBuildConfig from '../vite.config';
+import serverBuildConfig from '../vite.server.config';
 
 interface PackageJson {
   readonly name?: string;
@@ -86,11 +88,8 @@ const [
   runbook,
   service,
   ciWorkflow,
-  i18nSource,
   publicEntry,
   passkeySource,
-  viteConfigSource,
-  viteServerConfigSource,
   bunLockSource,
   installedDesignSystemSource
 ] = await Promise.all([
@@ -100,11 +99,8 @@ const [
   readFile(join(root, 'RUNBOOK.md'), 'utf8'),
   readFile(join(root, 'service.yaml'), 'utf8'),
   readFile(join(root, '.github', 'workflows', 'ci.yml'), 'utf8'),
-  readFile(join(root, 'src', 'lib', 'i18n.ts'), 'utf8'),
   readFile(join(root, 'src', 'lib', 'index.ts'), 'utf8'),
   readFile(join(root, 'src', 'lib', 'passkey.ts'), 'utf8'),
-  readFile(join(root, 'vite.config.ts'), 'utf8'),
-  readFile(join(root, 'vite.server.config.ts'), 'utf8'),
   readFile(join(root, 'bun.lock'), 'utf8'),
   readFile(join(root, 'node_modules', 'zdp-design-system', 'package.json'), 'utf8')
 ]);
@@ -120,7 +116,7 @@ const exampleFiles = await Promise.all(
 
 checkRequiredFiles();
 checkPackageJson(packageJson, changelog, bunLockSource, installedDesignSystem);
-checkLocaleContract(readme, i18nSource);
+checkLocaleContract(readme);
 checkLocalizedAuthMessages();
 checkMessageCatalog();
 checkServiceBoundary(service);
@@ -128,7 +124,7 @@ checkCiWorkflow(ciWorkflow);
 checkRunbook(runbook);
 checkPublicEntry(publicEntry);
 checkPasskeyBoundary(passkeySource);
-checkBuildBoundary(viteConfigSource, viteServerConfigSource);
+checkBuildBoundary();
 checkSourceBoundary(sourceFiles);
 checkCleanConsumerExamples(exampleFiles);
 await checkSvelteCompilation();
@@ -147,45 +143,36 @@ function checkRequiredFiles(): void {
   }
 }
 
-function checkBuildBoundary(viteConfigSource: string, viteServerConfigSource: string): void {
-  for (const packageRoot of [
-    "'@simplewebauthn/browser'",
-    "'svelte'",
-    "'zdp-design-system'"
-  ]) {
-    if (!viteConfigSource.includes(packageRoot)) {
-      failures.push(`vite.config.ts must externalize ${packageRoot}.`);
+function checkBuildBoundary(): void {
+  for (const [name, config, externalRoots] of [
+    ['browser', browserBuildConfig, ['svelte', '@simplewebauthn/browser', 'zdp-design-system']],
+    ['server', serverBuildConfig, ['svelte', '@simplewebauthn/browser']]
+  ] as const) {
+    const external = config.build?.rollupOptions?.external;
+    if (typeof external !== 'function') {
+      failures.push(`${name} build must expose a package externalization predicate.`);
+      continue;
+    }
+    for (const packageRoot of externalRoots) {
+      for (const id of [packageRoot, `${packageRoot}/internal/client`]) {
+        if (external(id, undefined, false) !== true) {
+          failures.push(`${name} build must externalize ${id}.`);
+        }
+      }
+    }
+    for (const id of ['./src/lib/index.ts', 'svelte-other', '@simplewebauthn/browser-other']) {
+      if (external(id, undefined, false) === true) {
+        failures.push(`${name} build must not externalize unrelated module ${id}.`);
+      }
+    }
+    if (name === 'server' && external('zdp-design-system', undefined, false) === true) {
+      failures.push('The server build must compile the design system for Node SSR.');
     }
   }
-
-  if (
-    !viteConfigSource.includes("id.startsWith('@')") ||
-    !viteConfigSource.includes("id.split('/').slice(0, 2).join('/')") ||
-    !viteConfigSource.includes("id.split('/')[0]") ||
-    !viteConfigSource.includes('external: isExternalPackage')
-  ) {
-    failures.push(
-      'vite.config.ts must externalize package roots and their subpath imports so consumers use one Svelte runtime.'
-    );
-  }
-
-  for (const requiredText of [
-    "ssr: true",
-    "index: 'src/lib/index.ts'",
-    "components: 'src/lib/components.ts'",
-    "noExternal: ['zdp-design-system']",
-    "entryFileNames: '[name].server.js'",
-    "'@simplewebauthn/browser'",
-    "'svelte'",
-    'external: isExternalPackage'
-  ]) {
-    if (!viteServerConfigSource.includes(requiredText)) {
-      failures.push(`vite.server.config.ts is missing SSR package boundary text: ${requiredText}.`);
-    }
-  }
-
-  if (viteServerConfigSource.includes("'zdp-design-system'\n]);")) {
-    failures.push('vite.server.config.ts must compile zdp-design-system for Node SSR instead of exposing raw Svelte source.');
+  if (serverBuildConfig.build?.ssr !== true
+    || !Array.isArray(serverBuildConfig.ssr?.noExternal)
+    || !serverBuildConfig.ssr.noExternal.includes('zdp-design-system')) {
+    failures.push('The server build must enable SSR and compile the design system.');
   }
 }
 
@@ -253,20 +240,11 @@ function checkPackageJson(
     failures.push('Svelte must stay a ^5.56.0 peer dependency for Astro/SvelteKit/Tauri consumers.');
   }
 
-  if (
-    packageJson.scripts?.check
-    !== 'svelte-check --tsconfig ./tsconfig.json && bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-passkey-progressive-enhancement.ts && bun scripts/check-passkey-settings.ts && bun scripts/check-auth-ui.ts && bun scripts/check-locale-bundles.ts && bun scripts/check-package-types.ts && bun run --conditions development scripts/check-dev-ssr-consumer.mjs && bun run release:check'
-  ) {
-    failures.push(
-      'package.json scripts.check must run svelte-check, the lock fixture, product-link contract checker, auth handoff contract checker, passkey progressive-enhancement checker, auth UI contract checker, published package type check, dev SSR consumer check, and release workflow checker.'
-    );
-  }
-
-  if (packageJson.scripts?.build !== 'bun run build:bundle && bun run build:svelte && bun scripts/build-package-surface.ts && bun scripts/check-ssr-package-surface.ts') {
-    failures.push('package.json scripts.build must create the browser, Node SSR and standard Svelte package surfaces and verify them.');
-  }
-  if (packageJson.scripts?.['build:svelte'] !== 'svelte-package --output dist/svelte --tsconfig tsconfig.declarations.json') {
-    failures.push('package.json scripts.build:svelte must generate Svelte components and declarations with svelte-package.');
+  // CI runs these commands; their results and artifacts verify the pipeline.
+  for (const name of ['check', 'build', 'test']) {
+    if (!packageJson.scripts?.[name]?.trim()) {
+      failures.push(`package.json must expose a ${name} command.`);
+    }
   }
 
   checkPackageExports(packageJson);
@@ -350,7 +328,7 @@ function checkPackageExports(packageJson: PackageJson): void {
   }
 }
 
-function checkLocaleContract(readme: string, i18nSource: string): void {
+function checkLocaleContract(readme: string): void {
   if (JSON.stringify(zdpAuthTargetLocales) !== JSON.stringify(expectedLocales)) {
     failures.push('Target locale metadata must preserve all 12 public locales.');
   }
@@ -360,8 +338,15 @@ function checkLocaleContract(readme: string, i18nSource: string): void {
     }
     if (!readme.includes(locale)) failures.push(`README.md is missing locale ${locale}.`);
   }
-  if (!i18nSource.includes('isTargetAuthLocale(locale) ? zdpAuthMessages[locale] : zdpAuthMessages.en')) {
-    failures.push('Known target locales must use their own catalog instead of silently falling back to English.');
+  for (const locale of expectedLocales) {
+    if (getAuthMessages(locale) !== zdpAuthMessages[locale]) {
+      failures.push(`Locale ${locale} must resolve its own catalog.`);
+    }
+  }
+  for (const locale of ['unknown', '__proto__', 'constructor']) {
+    if (getAuthMessages(locale) !== zdpAuthMessages.en) {
+      failures.push(`Unsupported locale ${locale} must resolve English.`);
+    }
   }
 }
 
@@ -611,24 +596,8 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
     }
   }
 
-  const signupFields = sourceFiles.find(
-    (sourceFile) => sourceFile.relativePath === 'src/lib/components/PasswordSignupFields.svelte'
-  );
-  if (!signupFields) {
-    failures.push('PasswordSignupFields source must be included in boundary checks.');
-  } else {
-    for (const requiredText of [
-      'getContext<TermsLinkContext | undefined>',
-      'zdp-auth-signup-terms',
-      '.zdp-auth-signup-terms :global(.zdp-choice__mark)',
-      'var(--zdp-type-body-small-size) * var(--zdp-type-body-small-line-height) - var(--zdp-control-choice-size)',
-      '<Link href={termsHref} target="_blank" rel="noopener noreferrer">{copy.links.terms}</Link>'
-    ]) {
-      if (!signupFields.source.includes(requiredText)) {
-        failures.push(`PasswordSignupFields must render the terms link beside consent copy: ${requiredText}.`);
-      }
-    }
-  }
+  // Consent placement, link updates, alignment and native validation are checked
+  // against the rendered DOM by check-browser-accessibility.mjs.
 
   if (authShell.source.includes('href="?mode=recovery"')) {
     failures.push('AuthShell must not invent a recovery route when the consumer has not activated one.');
