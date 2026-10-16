@@ -2,26 +2,43 @@
   import { ErrorText, Field, HelpText, Input, Label } from 'zdp-design-system';
   import type { ZdpAuthMessages, ZdpAuthLocale } from '../i18n';
 
-  export let messages: ZdpAuthMessages;
-  export let id: string;
-  export let name = 'login_id';
-  export let label: string | null = null;
-  export let value = '';
   // Keep locale accepted for compatibility; injected messages select the copy.
-  // svelte-ignore export_let_unused
-  export let locale: ZdpAuthLocale | string = 'en';
-  export let autocomplete: 'username' | 'username webauthn' = 'username';
-  export let describedBy: string | readonly string[] | null = null;
-  export let helpText: string | null = null;
-  export let errorText: string | null = null;
-  export let required = true;
-  export let disabled = false;
 
-  $: copy = messages;
-  $: labelText = label ?? copy.fields.loginId;
-  $: helpId = helpText && !errorText ? `${id}-help` : null;
-  $: errorId = errorText ? `${id}-error` : null;
-  $: describedByIds = [describedBy, helpId, errorId].flat().filter(Boolean) as string[];
+  interface Props {
+    messages: ZdpAuthMessages;
+    id: string;
+    name?: string;
+    label?: string | null;
+    value?: string;
+    locale?: ZdpAuthLocale | string;
+    autocomplete?: 'username' | 'username webauthn';
+    describedBy?: string | readonly string[] | null;
+    helpText?: string | null;
+    errorText?: string | null;
+    required?: boolean;
+    disabled?: boolean;
+  }
+
+  let {
+    messages,
+    id,
+    name = 'login_id',
+    label = null,
+    value = $bindable(''),
+    locale = 'en',
+    autocomplete = 'username',
+    describedBy = null,
+    helpText = null,
+    errorText = null,
+    required = true,
+    disabled = false
+  }: Props = $props();
+
+  let copy = $derived(messages);
+  let labelText = $derived(label ?? copy.fields.loginId);
+  let helpId = $derived(helpText && !errorText ? `${id}-help` : null);
+  let errorId = $derived(errorText ? `${id}-error` : null);
+  let describedByIds = $derived([describedBy, helpId, errorId].flat().filter(Boolean) as string[]);
 </script>
 
 <Field required={required} invalid={Boolean(errorText)}>

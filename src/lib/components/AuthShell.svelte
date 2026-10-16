@@ -7,7 +7,7 @@
     Stack,
     Surface
   } from 'zdp-design-system';
-  import { onMount, setContext, tick } from 'svelte';
+  import { onMount, setContext, tick, untrack } from 'svelte';
   import { writable } from 'svelte/store';
   import {
     isZdpAuthFeedbackCode,
@@ -31,71 +31,67 @@
     readonly invalid: boolean;
   }
 
-  export let messages: ZdpAuthMessages;
   // Keep locale accepted for compatibility; injected messages select the copy.
-  // svelte-ignore export_let_unused
-  export let locale: ZdpAuthLocale | string = 'en';
-  export let mode: ZdpAuthMode = 'login';
-  export let availability: ZdpAuthAvailability = 'available';
-  export let busy = false;
-  export let accountBrand: string | null = null;
-  export let providers: readonly ZdpAuthProvider[] = [];
-  export let action: string | null = null;
-  export let method: 'post' = 'post';
-  export let feedback: ZdpAuthFeedback | null = null;
-  export let status: string | null = null;
-  export let invalid = false;
-  export let referralCode: string | null = null;
-  export let referralCodeFieldName = 'referral_code';
-  export let recoveryHref: string | null = null;
-  export let termsHref: string | null = null;
-  export let signupTermsInSlot = false;
-  export let privacyHref: string | null = null;
-  export let onsubmit: ((detail: ZdpAuthSubmitDetail, event: SubmitEvent) => void) | null = null;
-  export let onproviderselect: ((detail: ZdpAuthProviderSelectDetail, event: MouseEvent) => void) | null = null;
-  export let onmodechange: ((detail: ZdpAuthModeChangeDetail, event: MouseEvent) => void) | null = null;
 
-  let mounted = false;
-  let feedbackElement: HTMLParagraphElement | null = null;
-  let previousFeedbackKey: string | null = null;
-  let previousLegacyErrorKey: string | null = null;
-  let pendingFocusKey: string | null = null;
+  interface Props {
+    messages: ZdpAuthMessages;
+    locale?: ZdpAuthLocale | string;
+    mode?: ZdpAuthMode;
+    availability?: ZdpAuthAvailability;
+    busy?: boolean;
+    accountBrand?: string | null;
+    providers?: readonly ZdpAuthProvider[];
+    action?: string | null;
+    method?: 'post';
+    feedback?: ZdpAuthFeedback | null;
+    status?: string | null;
+    invalid?: boolean;
+    referralCode?: string | null;
+    referralCodeFieldName?: string;
+    recoveryHref?: string | null;
+    termsHref?: string | null;
+    signupTermsInSlot?: boolean;
+    privacyHref?: string | null;
+    onsubmit?: ((detail: ZdpAuthSubmitDetail, event: SubmitEvent) => void) | null;
+    onproviderselect?: ((detail: ZdpAuthProviderSelectDetail, event: MouseEvent) => void) | null;
+    onmodechange?: ((detail: ZdpAuthModeChangeDetail, event: MouseEvent) => void) | null;
+    children?: import('svelte').Snippet;
+  }
+
+  let {
+    messages,
+    locale = 'en',
+    mode = 'login',
+    availability = 'available',
+    busy = false,
+    accountBrand = null,
+    providers = [],
+    action = null,
+    method = 'post',
+    feedback = null,
+    status = null,
+    invalid = false,
+    referralCode = null,
+    referralCodeFieldName = 'referral_code',
+    recoveryHref = null,
+    termsHref = null,
+    signupTermsInSlot = false,
+    privacyHref = null,
+    onsubmit = null,
+    onproviderselect = null,
+    onmodechange = null,
+    children
+  }: Props = $props();
+
+  let mounted = $state(false);
+  let feedbackElement: HTMLParagraphElement | null = $state(null);
+  let previousFeedbackKey: string | null = $state(null);
+  let previousLegacyErrorKey: string | null = $state(null);
+  let pendingFocusKey: string | null = $state(null);
   let sameTaskSubmitHandled = false;
 
-  $: copy = messages;
-  $: normalizedAccountBrand = normalizeAccountBrand(accountBrand);
-  $: title = copy.title[mode];
-  $: summary = copy.summary[mode].replace(copy.brand, () => normalizedAccountBrand ?? copy.brand);
-  $: primaryAction = copy.actions[mode];
-  $: preparing = availability === 'preparing';
-  $: submitting = busy && !preparing;
-  $: interactionLocked = preparing || submitting;
-  $: nextMode = getNextMode(mode);
-  $: nextModeLabel = mode === 'login' ? copy.links.signup : copy.links.login;
-  $: formMethod = getFormMethod(method);
-  $: normalizedReferralCode = normalizeOptionalFormValue(referralCode);
-  $: normalizedReferralCodeFieldName = normalizeOptionalFormValue(referralCodeFieldName) ?? 'referral_code';
-  $: normalizedRecoveryHref = normalizeOptionalFormValue(recoveryHref);
-  $: typedFeedback = resolveTypedFeedback(feedback, copy, mode);
-  $: feedbackKey = getFeedbackKey(feedback);
-  $: legacyErrorKey = invalid && status ? status : null;
-  $: visibleErrorKey = typedFeedback
-    ? (typedFeedback.invalid && feedbackKey ? `typed:${feedbackKey}` : null)
-    : (legacyErrorKey ? `legacy:${legacyErrorKey}` : null);
-  $: if (mounted && feedbackKey !== previousFeedbackKey) {
-    previousFeedbackKey = feedbackKey;
-    pendingFocusKey = typedFeedback?.invalid && feedbackKey ? `typed:${feedbackKey}` : null;
-  }
-  $: if (mounted && legacyErrorKey !== previousLegacyErrorKey) {
-    previousLegacyErrorKey = legacyErrorKey;
-    if (!typedFeedback) pendingFocusKey = legacyErrorKey ? `legacy:${legacyErrorKey}` : null;
-  }
-  $: if (mounted && !submitting && pendingFocusKey && pendingFocusKey === visibleErrorKey) {
-    void focusFeedback(pendingFocusKey);
-  }
-  const termsLinkContext = writable(termsHref?.trim() || null);
+  const termsLinkContext = writable(untrack(() => termsHref?.trim() || null));
   setContext<TermsLinkContext>(termsLinkContextKey, termsLinkContext);
-  $: termsLinkContext.set(termsHref?.trim() || null);
 
   onMount(() => {
     previousFeedbackKey = feedbackKey;
@@ -211,6 +207,46 @@
       pendingFocusKey = null;
     }
   }
+  let copy = $derived(messages);
+  let normalizedAccountBrand = $derived(normalizeAccountBrand(accountBrand));
+  let title = $derived(copy.title[mode]);
+  let summary = $derived(copy.summary[mode].replace(copy.brand, () => normalizedAccountBrand ?? copy.brand));
+  let primaryAction = $derived(copy.actions[mode]);
+  let preparing = $derived(availability === 'preparing');
+  let submitting = $derived(busy && !preparing);
+  let interactionLocked = $derived(preparing || submitting);
+  let nextMode = $derived(getNextMode(mode));
+  let nextModeLabel = $derived(mode === 'login' ? copy.links.signup : copy.links.login);
+  let formMethod = $derived(getFormMethod(method));
+  let normalizedReferralCode = $derived(normalizeOptionalFormValue(referralCode));
+  let normalizedReferralCodeFieldName = $derived(normalizeOptionalFormValue(referralCodeFieldName) ?? 'referral_code');
+  let normalizedRecoveryHref = $derived(normalizeOptionalFormValue(recoveryHref));
+  let typedFeedback = $derived(resolveTypedFeedback(feedback, copy, mode));
+  let feedbackKey = $derived(getFeedbackKey(feedback));
+  let legacyErrorKey = $derived(invalid && status ? status : null);
+  let visibleErrorKey = $derived(typedFeedback
+    ? (typedFeedback.invalid && feedbackKey ? `typed:${feedbackKey}` : null)
+    : (legacyErrorKey ? `legacy:${legacyErrorKey}` : null));
+  $effect.pre(() => {
+    if (mounted && feedbackKey !== previousFeedbackKey) {
+      previousFeedbackKey = feedbackKey;
+      pendingFocusKey = typedFeedback?.invalid && feedbackKey ? `typed:${feedbackKey}` : null;
+    }
+  });
+  $effect.pre(() => {
+    if (mounted && legacyErrorKey !== previousLegacyErrorKey) {
+      previousLegacyErrorKey = legacyErrorKey;
+      if (!typedFeedback) pendingFocusKey = legacyErrorKey ? `legacy:${legacyErrorKey}` : null;
+    }
+  });
+  $effect.pre(() => {
+    if (mounted && !submitting && pendingFocusKey && pendingFocusKey === visibleErrorKey) {
+      void focusFeedback(pendingFocusKey);
+    }
+  });
+  $effect.pre(() => {
+    termsLinkContext.set(termsHref?.trim() || null);
+  });
 </script>
 
 <Surface padding="lg">
@@ -239,7 +275,7 @@
           <Divider />
         {/if}
 
-        <slot />
+        {@render children?.()}
 
         {#if mode === 'signup' && normalizedReferralCode}
           <input

@@ -11,68 +11,43 @@
     type ZdpProductLinkTrustPolicy
   } from '../product-link';
 
-  export let messages: ZdpAuthMessages;
-  export let id: string;
-  export let locale: ZdpAuthLocale | string = 'en';
-  export let enabled = false;
-  export let request: ZdpProductLinkRequest;
-  export let trust: ZdpProductLinkTrustPolicy;
-  export let now: Date | null = null;
-  export let busy = false;
-  export let ondecision: ((detail: ZdpProductLinkDecisionDetail, event: MouseEvent) => void) | null = null;
+  interface Props {
+    messages: ZdpAuthMessages;
+    id: string;
+    locale?: ZdpAuthLocale | string;
+    enabled?: boolean;
+    request: ZdpProductLinkRequest;
+    trust: ZdpProductLinkTrustPolicy;
+    now?: Date | null;
+    busy?: boolean;
+    ondecision?: ((detail: ZdpProductLinkDecisionDetail, event: MouseEvent) => void) | null;
+  }
 
-  let mounted = false;
+  let {
+    messages,
+    id,
+    locale = 'en',
+    enabled = false,
+    request,
+    trust,
+    now = null,
+    busy = false,
+    ondecision = null
+  }: Props = $props();
+
+  let mounted = $state(false);
   let deadlineTimer: ReturnType<typeof setTimeout> | null = null;
-  let clockNow = new Date();
+  let clockNow = $state(new Date());
   let clockScope: string | null = null;
   let clockWallOrigin = 0;
   let clockElapsedOrigin = 0;
   let clockHighWater = 0;
-  let decisionFocusRequested = false;
+  let decisionFocusRequested = $state(false);
   let sameTaskDecisionHandled = false;
-  let previousDisposition: ZdpProductLinkDisposition | null = null;
-  let sectionElement: HTMLElement;
-  let statusElement: HTMLParagraphElement;
+  let previousDisposition: ZdpProductLinkDisposition | null = $state(null);
+  let sectionElement: HTMLElement | undefined = $state();
+  let statusElement: HTMLParagraphElement | undefined = $state();
 
-  $: copy = messages;
-  $: effectiveNow = now ?? clockNow;
-  $: validation = enabled
-    ? validateProductLinkRequest(request, trust, effectiveNow)
-    : { disposition: 'invalid' as const, actionable: false };
-  $: titleId = `${id}-title`;
-  $: detailsId = `${id}-details`;
-  $: statusMessage = enabled
-    ? copy.productLink.status[validation.disposition]
-    : copy.productLink.status.disabled;
-  $: formattedExpiry = validation.disposition === 'invalid'
-    ? copy.productLink.status.invalid
-    : formatExpiry(request.expiresAt, locale);
-  $: {
-    const nextDisposition = validation.disposition;
-    if (
-      mounted
-      && previousDisposition === 'ready'
-      && nextDisposition !== 'ready'
-      && (decisionFocusRequested || sectionElement?.contains(document.activeElement))
-    ) {
-      focusStatusAfterUpdate();
-    }
-    if (previousDisposition === 'ready' && nextDisposition !== 'ready') {
-      decisionFocusRequested = false;
-    }
-    previousDisposition = nextDisposition;
-  }
-  $: if (mounted && decisionFocusRequested && validation.disposition === 'ready' && !busy) {
-    decisionFocusRequested = false;
-  }
-  $: if (mounted) {
-    if (enabled && now === null) {
-      clockNow = readClock();
-      scheduleDeadlineRefresh(request?.issuedAt ?? '', request?.expiresAt ?? '', trust?.maxRequestAgeMs ?? 0);
-    } else {
-      clearDeadlineRefresh();
-    }
-  }
 
   onMount(() => {
     mounted = true;
@@ -175,6 +150,49 @@
     await tick();
     statusElement?.focus();
   }
+  let copy = $derived(messages);
+  $effect.pre(() => {
+    if (mounted) {
+      if (enabled && now === null) {
+        clockNow = readClock();
+        scheduleDeadlineRefresh(request?.issuedAt ?? '', request?.expiresAt ?? '', trust?.maxRequestAgeMs ?? 0);
+      } else {
+        clearDeadlineRefresh();
+      }
+    }
+  });
+  let effectiveNow = $derived(now ?? clockNow);
+  let validation = $derived(enabled
+    ? validateProductLinkRequest(request, trust, effectiveNow)
+    : { disposition: 'invalid' as const, actionable: false });
+  let titleId = $derived(`${id}-title`);
+  let detailsId = $derived(`${id}-details`);
+  let statusMessage = $derived(enabled
+    ? copy.productLink.status[validation.disposition]
+    : copy.productLink.status.disabled);
+  let formattedExpiry = $derived(validation.disposition === 'invalid'
+    ? copy.productLink.status.invalid
+    : formatExpiry(request.expiresAt, locale));
+  $effect.pre(() => {
+    const nextDisposition = validation.disposition;
+    if (
+      mounted
+      && previousDisposition === 'ready'
+      && nextDisposition !== 'ready'
+      && (decisionFocusRequested || sectionElement?.contains(document.activeElement))
+    ) {
+      focusStatusAfterUpdate();
+    }
+    if (previousDisposition === 'ready' && nextDisposition !== 'ready') {
+      decisionFocusRequested = false;
+    }
+    previousDisposition = nextDisposition;
+  });
+  $effect.pre(() => {
+    if (mounted && decisionFocusRequested && validation.disposition === 'ready' && !busy) {
+      decisionFocusRequested = false;
+    }
+  });
 </script>
 
 <Surface padding="lg">

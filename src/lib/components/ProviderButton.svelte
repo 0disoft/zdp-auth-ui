@@ -2,9 +2,13 @@
   import { Button } from 'zdp-design-system';
   import type { ZdpAuthProvider } from '../auth-contract';
 
-  export let provider: ZdpAuthProvider;
-  export let disabled = false;
-  export let onclick: ((provider: ZdpAuthProvider, event: MouseEvent) => void) | null = null;
+  interface Props {
+    provider: ZdpAuthProvider;
+    disabled?: boolean;
+    onclick?: ((provider: ZdpAuthProvider, event: MouseEvent) => void) | null;
+  }
+
+  let { provider, disabled = false, onclick = null }: Props = $props();
 
   function handleClick(event: MouseEvent): void {
     onclick?.(provider, event);

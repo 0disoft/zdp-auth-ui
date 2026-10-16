@@ -554,9 +554,9 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
 
   for (const requiredText of [
     'event.preventDefault();',
-    "export let method: 'post' = 'post';",
-    "export let availability: ZdpAuthAvailability = 'available';",
-    "export let accountBrand: string | null = null;",
+    "method?: 'post';",
+    "availability?: ZdpAuthAvailability;",
+    "accountBrand?: string | null;",
     'normalizeAccountBrand(accountBrand)',
     '/[\\p{C}\\p{Zl}\\p{Zp}]/u',
     'method={formMethod}',
@@ -580,7 +580,7 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
   }
 
   for (const requiredText of [
-    "export let recoveryHref: string | null = null;",
+    "recoveryHref?: string | null;",
     "mode === 'login' && normalizedRecoveryHref && !preparing",
     '<Link href={normalizedRecoveryHref}>{copy.links.recovery}</Link>'
   ]) {
@@ -591,7 +591,7 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
 
   for (const requiredText of [
     "mode !== 'signup' || (preparing && !signupTermsInSlot)",
-    'export let signupTermsInSlot = false;',
+    'signupTermsInSlot = false,',
     'setContext<TermsLinkContext>',
     "import { termsLinkContextKey"
   ]) {

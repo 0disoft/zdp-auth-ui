@@ -21,7 +21,7 @@ const [loginIdFieldSource, publicEntrySource, packageSurfaceSource] = await Prom
 ]);
 assert.ok(
   loginIdFieldSource.includes(
-    "export let autocomplete: 'username' | 'username webauthn' = 'username';"
+    "autocomplete?: 'username' | 'username webauthn';"
   ),
   'LoginIdField must keep an explicit conditional-UI autocomplete contract.'
 );
@@ -51,7 +51,7 @@ for (const requiredDeclaration of [
   'export declare function cancelPasskeyCeremony(): void;'
 ]) {
   assert.ok(
-    packageSurfaceSource.includes(requiredDeclaration),
+    packageSurfaceSource.replaceAll("'", '"').includes(requiredDeclaration),
     `The generated package declaration must include ${requiredDeclaration}.`
   );
 }

@@ -3,11 +3,8 @@
   import View from '../components/LoginIdField.svelte';
   import { getAuthMessages, type ZdpAuthMessages } from '../i18n';
 
-  type $$Props = Omit<ComponentProps<typeof View>, 'messages'> & { messages?: ZdpAuthMessages };
-  export let messages: ZdpAuthMessages | undefined = undefined;
-  export let locale = 'en';
-  export let value = '';
-  $: rest = $$restProps as Omit<$$Props, 'messages' | 'value' | 'locale'>;
+  type Props = Omit<ComponentProps<typeof View>, 'messages'> & { messages?: ZdpAuthMessages };
+  let { messages = undefined, locale = 'en', value = $bindable(''), ...rest }: Props = $props();
 </script>
 
 <View {...rest} {locale} messages={messages ?? getAuthMessages(locale)} bind:value />

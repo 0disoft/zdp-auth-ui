@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Checkbox, Link, Stack } from 'zdp-design-system';
-  import { getContext } from 'svelte';
+  import { getContext, untrack } from 'svelte';
   import { readable } from 'svelte/store';
   import type { ZdpAuthMessages } from '../i18n';
   import type { ZdpPasswordSignupContract } from '../password-signup';
@@ -8,39 +8,60 @@
   import PasswordField from './PasswordField.svelte';
   import { termsLinkContextKey, type TermsLinkContext } from '../terms-link-context';
 
-  export let messages: ZdpAuthMessages;
-  export let idPrefix: string;
-  export let contract: ZdpPasswordSignupContract;
-  export let loginId = '';
-  export let password = '';
-  export let termsAccepted = false;
-  export let minimumAgeConfirmed = false;
-  export let disabled = false;
-  export let loginIdError: string | null = null;
-  export let passwordError: string | null = null;
-
-  let confirmation = '';
-  let confirmationTouched = false;
-  let acceptedTermsRef = contract.termsConsentRef;
-  let confirmedAgePolicyRef = contract.agePolicyRef;
-  let confirmedMinimumAge = contract.minimumAgeYears;
-
-  $: if (contract.termsConsentRef !== acceptedTermsRef) {
-    termsAccepted = false;
-    acceptedTermsRef = contract.termsConsentRef;
+  interface Props {
+    messages: ZdpAuthMessages;
+    idPrefix: string;
+    contract: ZdpPasswordSignupContract;
+    loginId?: string;
+    password?: string;
+    termsAccepted?: boolean;
+    minimumAgeConfirmed?: boolean;
+    disabled?: boolean;
+    loginIdError?: string | null;
+    passwordError?: string | null;
   }
-  $: if (contract.agePolicyRef !== confirmedAgePolicyRef || contract.minimumAgeYears !== confirmedMinimumAge) {
-    minimumAgeConfirmed = false;
-    confirmedAgePolicyRef = contract.agePolicyRef;
-    confirmedMinimumAge = contract.minimumAgeYears;
-  }
+
+  let {
+    messages,
+    idPrefix,
+    contract,
+    loginId = $bindable(''),
+    password = $bindable(''),
+    termsAccepted = $bindable(false),
+    minimumAgeConfirmed = $bindable(false),
+    disabled = false,
+    loginIdError = null,
+    passwordError = null
+  }: Props = $props();
+
+  let confirmation = $state('');
+  let confirmationTouched = $state(false);
+  let acceptedTermsRef = $state(untrack(() => contract.termsConsentRef));
+  let confirmedAgePolicyRef = $state(untrack(() => contract.agePolicyRef));
+  let confirmedMinimumAge = $state(untrack(() => contract.minimumAgeYears));
+
+  $effect.pre(() => {
+    if (contract.termsConsentRef !== acceptedTermsRef) {
+      termsAccepted = false;
+      acceptedTermsRef = contract.termsConsentRef;
+    }
+  });
+  $effect.pre(() => {
+    if (contract.agePolicyRef !== confirmedAgePolicyRef || contract.minimumAgeYears !== confirmedMinimumAge) {
+      minimumAgeConfirmed = false;
+      confirmedAgePolicyRef = contract.agePolicyRef;
+      confirmedMinimumAge = contract.minimumAgeYears;
+    }
+  });
 
   // Consumers clear the credential after handoff; clear its local confirmation too.
-  $: if (!password) {
-    confirmation = '';
-    confirmationTouched = false;
-  }
-  $: mismatch = confirmation.length > 0 && confirmation !== password;
+  $effect.pre(() => {
+    if (!password) {
+      confirmation = '';
+      confirmationTouched = false;
+    }
+  });
+  let mismatch = $derived(confirmation.length > 0 && confirmation !== password);
 
   function validateConfirmation(node: HTMLDivElement, message: string) {
     const input = node.querySelector('input');
@@ -57,9 +78,9 @@
     };
   }
 
-  $: copy = messages;
+  let copy = $derived(messages);
   const termsHrefContext = getContext<TermsLinkContext | undefined>(termsLinkContextKey) ?? readable(null);
-  $: termsHref = $termsHrefContext;
+  let termsHref = $derived($termsHrefContext);
 </script>
 
 <Stack gap="md">

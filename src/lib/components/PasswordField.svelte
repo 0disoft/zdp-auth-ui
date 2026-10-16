@@ -9,23 +9,42 @@
   } from 'zdp-design-system';
   import type { ZdpAuthMessages, ZdpAuthLocale } from '../i18n';
 
-  export let messages: ZdpAuthMessages;
-  export let id: string;
-  export let name: string;
-  export let label: string | null = null;
-  export let value = '';
   // Keep locale accepted for compatibility; injected messages select the copy.
-  // svelte-ignore export_let_unused
-  export let locale: ZdpAuthLocale | string = 'en';
-  export let autocomplete: 'current-password' | 'new-password' = 'current-password';
-  export let describedBy: string | readonly string[] | null = null;
-  export let helpText: string | null = null;
-  export let errorText: string | null = null;
-  export let required = false;
-  export let disabled = false;
 
-  let visible = false;
-  $: if (value === '') visible = false;
+  interface Props {
+    messages: ZdpAuthMessages;
+    id: string;
+    name: string;
+    label?: string | null;
+    value?: string;
+    locale?: ZdpAuthLocale | string;
+    autocomplete?: 'current-password' | 'new-password';
+    describedBy?: string | readonly string[] | null;
+    helpText?: string | null;
+    errorText?: string | null;
+    required?: boolean;
+    disabled?: boolean;
+  }
+
+  let {
+    messages,
+    id,
+    name,
+    label = null,
+    value = $bindable(''),
+    locale = 'en',
+    autocomplete = 'current-password',
+    describedBy = null,
+    helpText = null,
+    errorText = null,
+    required = false,
+    disabled = false
+  }: Props = $props();
+
+  let visible = $state(false);
+  $effect.pre(() => {
+    if (value === '') visible = false;
+  });
 
   function hideOnFormReset(node: HTMLDivElement) {
     const input = node.querySelector('input');
@@ -78,12 +97,12 @@
     } };
   }
 
-  $: copy = messages;
-  $: labelText = label ?? copy.fields.password;
-  $: helpId = helpText && !errorText ? `${id}-help` : null;
-  $: errorId = errorText ? `${id}-error` : null;
-  $: describedByIds = [describedBy, helpId, errorId].flat().filter(Boolean) as string[];
-  $: toggleLabel = visible ? copy.actions.hidePassword : copy.actions.showPassword;
+  let copy = $derived(messages);
+  let labelText = $derived(label ?? copy.fields.password);
+  let helpId = $derived(helpText && !errorText ? `${id}-help` : null);
+  let errorId = $derived(errorText ? `${id}-error` : null);
+  let describedByIds = $derived([describedBy, helpId, errorId].flat().filter(Boolean) as string[]);
+  let toggleLabel = $derived(visible ? copy.actions.hidePassword : copy.actions.showPassword);
 </script>
 
 <Field required={required} invalid={Boolean(errorText)}>

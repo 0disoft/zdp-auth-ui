@@ -10,32 +10,46 @@
     type ZdpPasskeySettingsAction, type ZdpPasskeySettingsFeedback,
     type ZdpPasskeySettingsState } from '../passkey-settings-contract';
 
-  export let messages: ZdpPasskeySettingsMessages;
-  export let authMessages: ZdpAuthMessages;
-  export let locale = 'en';
-  export let idPrefix = 'passkey-settings';
-  export let state: ZdpPasskeySettingsState = { status: 'preparing', passkeys: [],
-    capabilities: { register: false, rename: false, revoke: false }, reauthentication: 'password' };
-  export let busy = false;
-  export let feedback: ZdpPasskeySettingsFeedback = null;
-  export let feedbackSequence: number | null = null;
-  export let onaction: ((detail: ZdpPasskeySettingsAction, event: SubmitEvent) => void) | null = null;
+  interface Props {
+    messages: ZdpPasskeySettingsMessages;
+    authMessages: ZdpAuthMessages;
+    locale?: string;
+    idPrefix?: string;
+    state?: ZdpPasskeySettingsState;
+    busy?: boolean;
+    feedback?: ZdpPasskeySettingsFeedback;
+    feedbackSequence?: number | null;
+    onaction?: ((detail: ZdpPasskeySettingsAction, event: SubmitEvent) => void) | null;
+  }
 
-  let editor: 'register' | 'rename' | 'revoke' | null = null;
-  let selectedId = '';
-  let name = '';
-  let nameEdited = false;
-  let preferenceValue: string = zdpPasskeyRegistrationPreferenceDefault;
-  let password = '';
-  let touched = false;
-  let mounted = false;
+  let {
+    messages,
+    authMessages,
+    locale = 'en',
+    idPrefix = 'passkey-settings',
+    state: settingsState = { status: 'preparing', passkeys: [],
+    capabilities: { register: false, rename: false, revoke: false }, reauthentication: 'password' },
+    busy = false,
+    feedback = null,
+    feedbackSequence = null,
+    onaction = null
+  }: Props = $props();
+
+  let editor: 'register' | 'rename' | 'revoke' | null = $state(null);
+  let selectedId = $state('');
+  let name = $state('');
+  let nameEdited = $state(false);
+  let preferenceValue: string = $state(zdpPasskeyRegistrationPreferenceDefault);
+  let password = $state('');
+  let touched = $state(false);
+  let mounted = $state(false);
   let sameTask = false;
-  let submitted = false;
-  let actionSequence = 0;
-  let submittedFeedback: ZdpPasskeySettingsFeedback = null;
-  let feedbackChanged = false;
-  let editorElement: HTMLDivElement;
-  let feedbackElement: HTMLParagraphElement;
+  let submitted = $state(false);
+  let actionSequence = $state(0);
+  let submittedFeedback: ZdpPasskeySettingsFeedback = $state(null);
+  let feedbackChanged = $state(false);
+  let editorElement: HTMLDivElement | undefined = $state();
+  let feedbackElement: HTMLParagraphElement | undefined = $state();
   let returnFocus: HTMLElement | null = null;
   const providerLabels = {
     windows_hello: 'providerWindowsHello',
@@ -54,35 +68,10 @@
     security_key: 'preferenceSecurityKey',
     phone: 'preferencePhone'
   } as const;
-  $: copy = messages;
-  $: preference = isZdpPasskeyRegistrationPreference(preferenceValue)
-    ? preferenceValue : zdpPasskeyRegistrationPreferenceDefault;
-  $: suggestedName = editor === 'register'
-    ? copy[defaultNameKeys[preference]] : '';
-  $: if (editor === 'register' && !nameEdited) name = suggestedName;
-  $: ready = state.status === 'ready';
-  $: if (state.reauthentication !== 'password') password = '';
-  $: currentFeedback = feedbackSequence === null || feedbackSequence === actionSequence ? feedback : null;
-  $: locked = busy || !ready || !onaction || currentFeedback === 'unconfirmed';
-  $: permitted = editor !== null && state.capabilities[editor];
-  $: selectedExists = editor === 'register' || state.passkeys.some(key => key.passkey_id === selectedId);
-  $: nameInvalid = editor !== 'revoke' && !validPasskeyLabel(name);
-  $: passwordInvalid = Array.from(password).length < 12 || Array.from(password).length > 128;
-  $: if (submitted && currentFeedback !== submittedFeedback) feedbackChanged = true;
-  $: if (submitted && !busy && currentFeedback === 'saved' && editor &&
-    (feedbackSequence !== null ? feedbackSequence === actionSequence : feedbackChanged)) close(false);
-  $: if (!busy && editor && (!ready || !permitted || !selectedExists)) close(false);
-  $: if (mounted && currentFeedback && !busy) {
-    const expectedSequence = actionSequence;
-    const expectedFeedback = currentFeedback;
-    void tick().then(() => {
-      if (!busy && expectedSequence === actionSequence && currentFeedback === expectedFeedback) feedbackElement?.focus();
-    });
-  }
   onMount(() => { mounted = true; });
 
   async function open(action: typeof editor, id = '', label = '') {
-    if (locked || !action || !state.capabilities[action]) return;
+    if (locked || !action || !settingsState.capabilities[action]) return;
     returnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     editor = action; selectedId = id; name = label; password = ''; touched = false; submitted = false;
     nameEdited = action !== 'register';
@@ -101,11 +90,11 @@
     if (locked || !editor || !permitted || !selectedExists || sameTask) return;
     touched = true;
     if (nameInvalid && editor !== 'revoke') return;
-    if (editor !== 'rename' && state.reauthentication === 'password' &&
+    if (editor !== 'rename' && settingsState.reauthentication === 'password' &&
         passwordInvalid) return;
     sameTask = true;
     queueMicrotask(() => { sameTask = false; });
-    const currentPassword = state.reauthentication === 'password' ? password : undefined;
+    const currentPassword = settingsState.reauthentication === 'password' ? password : undefined;
     const detail: ZdpPasskeySettingsAction = editor === 'register'
       ? { action: editor, label: name.trim(), preference, currentPassword }
       : editor === 'rename' ? { action: editor, passkeyId: selectedId, label: name.trim() }
@@ -133,24 +122,61 @@
       : authenticator.storage === 'synced' ? copy.storageSynced : copy.storageDeviceBound;
     return `${storage} · ${authenticator.backed_up ? copy.backedUp : copy.notBackedUp}`;
   }
+  let copy = $derived(messages);
+  let preference = $derived(isZdpPasskeyRegistrationPreference(preferenceValue)
+    ? preferenceValue : zdpPasskeyRegistrationPreferenceDefault);
+  let suggestedName = $derived(editor === 'register'
+    ? copy[defaultNameKeys[preference]] : '');
+  $effect.pre(() => {
+    if (editor === 'register' && !nameEdited) name = suggestedName;
+  });
+  let ready = $derived(settingsState.status === 'ready');
+  $effect.pre(() => {
+    if (settingsState.reauthentication !== 'password') password = '';
+  });
+  let currentFeedback = $derived(feedbackSequence === null || feedbackSequence === actionSequence ? feedback : null);
+  let locked = $derived(busy || !ready || !onaction || currentFeedback === 'unconfirmed');
+  let permitted = $derived(editor !== null && settingsState.capabilities[editor]);
+  let selectedExists = $derived(editor === 'register' || settingsState.passkeys.some(key => key.passkey_id === selectedId));
+  let nameInvalid = $derived(editor !== 'revoke' && !validPasskeyLabel(name));
+  let passwordInvalid = $derived(Array.from(password).length < 12 || Array.from(password).length > 128);
+  $effect.pre(() => {
+    if (submitted && currentFeedback !== submittedFeedback) feedbackChanged = true;
+  });
+  $effect.pre(() => {
+    if (submitted && !busy && currentFeedback === 'saved' && editor &&
+      (feedbackSequence !== null ? feedbackSequence === actionSequence : feedbackChanged)) close(false);
+  });
+  $effect.pre(() => {
+    if (!busy && editor && (!ready || !permitted || !selectedExists)) close(false);
+  });
+  $effect.pre(() => {
+    if (mounted && currentFeedback && !busy) {
+      const expectedSequence = actionSequence;
+      const expectedFeedback = currentFeedback;
+      void tick().then(() => {
+        if (!busy && expectedSequence === actionSequence && currentFeedback === expectedFeedback) feedbackElement?.focus();
+      });
+    }
+  });
 </script>
 
 <Surface padding="lg">
   <section class="zdp-passkey-settings" aria-labelledby={`${idPrefix}-title`} aria-busy={busy}>
     <header>
       <div><h2 id={`${idPrefix}-title`}>{copy.title}</h2><p>{copy.description}</p></div>
-      {#if ready && state.capabilities.register}
+      {#if ready && settingsState.capabilities.register}
         <Button type="button" variant="secondary" disabled={locked} onclick={() => open('register')}>
           {copy.add}
         </Button>
       {/if}
     </header>
     {#if !ready}
-      <p role="status">{state.status === 'preparing' ? copy.preparing : copy.unavailable}</p>
+      <p role="status">{settingsState.status === 'preparing' ? copy.preparing : copy.unavailable}</p>
     {:else}
-      {#if state.passkeys.length === 0}<p>{copy.empty}</p>{/if}
+      {#if settingsState.passkeys.length === 0}<p>{copy.empty}</p>{/if}
       <ul>
-        {#each state.passkeys as key (key.passkey_id)}
+        {#each settingsState.passkeys as key (key.passkey_id)}
           <li>
             <div>
               <div class="zdp-passkey-settings__identity">
@@ -161,8 +187,8 @@
               <p>{key.authenticator ? storageLabel(key.authenticator) : copy.storageUnknown}</p>
             </div>
             <div class="zdp-passkey-settings__actions">
-              {#if state.capabilities.rename}<Button type="button" variant="secondary" disabled={locked} onclick={() => open('rename', key.passkey_id, key.label)}>{copy.rename}</Button>{/if}
-              {#if state.capabilities.revoke}<Button type="button" variant="secondary" disabled={locked} onclick={() => open('revoke', key.passkey_id, key.label)}>{copy.remove}</Button>{/if}
+              {#if settingsState.capabilities.rename}<Button type="button" variant="secondary" disabled={locked} onclick={() => open('rename', key.passkey_id, key.label)}>{copy.rename}</Button>{/if}
+              {#if settingsState.capabilities.revoke}<Button type="button" variant="secondary" disabled={locked} onclick={() => open('revoke', key.passkey_id, key.label)}>{copy.remove}</Button>{/if}
             </div>
           </li>
         {/each}
@@ -196,8 +222,8 @@
                 </Field>
               {/if}
               {#if editor !== 'rename'}
-                <p>{state.reauthentication === 'passkey' ? copy.reauthPasskey : copy.reauthPassword}</p>
-                {#if state.reauthentication === 'password'}
+                <p>{settingsState.reauthentication === 'passkey' ? copy.reauthPasskey : copy.reauthPassword}</p>
+                {#if settingsState.reauthentication === 'password'}
                   <PasswordField id={`${idPrefix}-password`} name="current_password" {locale} messages={authMessages} bind:value={password}
                     label={copy.currentPassword} autocomplete="current-password" required disabled={locked}
                     errorText={touched && passwordInvalid ? copy.invalidPassword : null} />
