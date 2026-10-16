@@ -12,8 +12,19 @@ import { cancelPasskeyCeremony, detectPasskeySupport, startPasskeyAuthentication
   type PasskeySettingsProps, type ZdpPasskeySettingsState } from 'zdp-auth-ui';
 import koMessages, { passkeySettingsMessages } from 'zdp-auth-ui/i18n/ko';
 import { loadAuthLocale, loadPasskeySettingsMessages } from 'zdp-auth-ui/i18n/loader';
-import type { AuthShellProps as LeanShellProps,
-  PasskeySettingsProps as LeanPasskeyProps } from 'zdp-auth-ui/components';
+import { createZdpAuthSurfaceModel as createLeanSurface, type ZdpAuthSurfaceConfig as LeanSurfaceConfig,
+  type AuthShellProps as LeanShellProps, type PasskeySettingsProps as LeanPasskeyProps } from 'zdp-auth-ui/components';
+import { createZdpAuthSurfaceModel, type ZdpAuthSurfaceConfig } from 'zdp-auth-ui';
+
+const surfaceConfig: ZdpAuthSurfaceConfig = { locale: 'ko', mode: 'login', availability: 'available' };
+const injectedSurfaceConfig: LeanSurfaceConfig = { ...surfaceConfig, messages: koMessages };
+const injectedSurface = createLeanSurface(injectedSurfaceConfig);
+const injectedSurfaceProps: LeanShellProps = { ...injectedSurface.shell, messages: injectedSurface.messages };
+const defaultSurface = createZdpAuthSurfaceModel(surfaceConfig);
+const customSurface = createZdpAuthSurfaceModel(injectedSurfaceConfig);
+// @ts-expect-error The catalog-free model builder must not silently load a default catalog.
+const missingSurfaceMessages: LeanSurfaceConfig = { locale: 'ko', mode: 'login', availability: 'available' };
+void [injectedSurfaceProps, defaultSurface, customSurface, missingSurfaceMessages];
 
 const ceremonyOptions: ZdpPasskeyCeremonyOptions = { signal: new AbortController().signal, timeoutMs: 1000 };
 const authenticationOptions: ZdpPasskeyAuthenticationOptions = {

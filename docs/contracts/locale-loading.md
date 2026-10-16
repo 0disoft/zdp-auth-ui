@@ -10,7 +10,7 @@ Consumers that know the locale at build time import one catalog directly.
 import koMessages, { locale, messages, passkeySettingsMessages } from 'zdp-auth-ui/i18n/ko';
 ```
 
-Every target locale has the same module shape: a literal `locale`, a named `messages` value, a named `passkeySettingsMessages` value for the passkey management surface, and `messages` as the default export.
+Every target locale has the same module shape: a literal `locale`, a named `messages` value, a named `passkeySettingsMessages` value for the passkey management surface, and `messages` as the default export. That value is what the lean surface builder in `zdp-auth-ui/components` takes as its required `messages`.
 
 ## Runtime locale import
 
@@ -27,7 +27,7 @@ export async function loadCatalog(requestedLocale: string) {
 
 `loadAuthLocale()` dynamically imports one generated locale module and returns `{ locale, messages, passkeySettingsMessages }` from that single import. `loadAuthMessages(locale)` remains available and returns `messages`; `loadPasskeySettingsMessages(locale)` returns `passkeySettingsMessages`. A value outside `zdpAuthTargetLocales` loads English.
 
-Call `loadCatalog()` from the application's route load or async bootstrap. Consumers await the catalog before rendering and pass its values as component props. This applies to SSR and client rendering; components never load messages asynchronously themselves.
+Call `loadCatalog()` from the application's route load or async bootstrap. Consumers await the catalog before rendering and pass its values as component props. This applies to SSR and client rendering; components never load messages asynchronously themselves. A runtime locale reaches the surface builder the same way: await `loadAuthLocale(locale)` first, then pass the resolved `messages` to `createZdpAuthSurfaceModel` from `zdp-auth-ui/components`.
 
 The loader does not call `fetch`, inspect authentication state, use browser storage, choose a remote URL, or navigate.
 
@@ -36,9 +36,11 @@ The loader does not call `fetch`, inspect authentication state, use browser stor
 Catalogs are generated from a synchronous source, so any component that falls back to its built-in catalog keeps that catalog in the initial bundle.
 
 - Passing only `messages` to a root component keeps the synchronous catalog import, so the bundle does not shrink.
+- The root `createZdpAuthSurfaceModel` in `zdp-auth-ui` accepts `messages` as an optional override and keeps the synchronous import for its `getAuthMessages(locale)` fallback, so injecting `messages` there does not remove the whole-catalog dependency.
+- `createZdpAuthSurfaceModel` from `zdp-auth-ui/components` requires `messages` and imports no catalog runtime, so only the copy the caller supplies ships.
 - `zdp-auth-ui/components` with `loadAuthLocale` keeps every catalog out of the initial bundle; the selected locale arrives as a separate lazy chunk.
 - `zdp-auth-ui/components` with a fixed `zdp-auth-ui/i18n/<locale>` import includes that one locale's data in the initial bundle and leaves the other eleven catalogs out.
-- Root utilities such as `createZdpAuthSurfaceModel` and `getAuthMessages` stay synchronous, so using them pulls the whole auth catalog in.
+- Root utilities such as `getAuthMessages` and `getPasskeySettingsMessages` stay synchronous, so using them pulls the whole auth catalog in.
 
 ## Compatibility
 

@@ -9,6 +9,16 @@ export { default as PasskeySettings } from './components/PasskeySettings.svelte'
 export { default as ProviderButton } from './components/ProviderButton.svelte';
 export type { ZdpAuthLocale, ZdpAuthMessages } from './i18n';
 export type { ZdpPasskeySettingsMessages } from './passkey-settings-messages';
+export {
+  createZdpAuthSurfaceModel,
+  zdpAuthSurfaceProviderIds,
+  type ZdpAuthSurfaceConfig,
+  type ZdpAuthSurfaceLinks,
+  type ZdpAuthSurfaceModel,
+  type ZdpAuthSurfaceProviderFlags,
+  type ZdpAuthSurfaceProviderId,
+  type ZdpAuthSurfaceShellModel
+} from './auth-surface-model-core';
 
 export type AuthShellProps = ComponentProps<typeof import('./components/AuthShell.svelte').default>;
 export type LoginIdFieldProps = ComponentProps<typeof import('./components/LoginIdField.svelte').default>;

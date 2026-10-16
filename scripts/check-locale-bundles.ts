@@ -6,21 +6,31 @@ import { getPasskeySettingsMessages } from '../src/lib/passkey-settings-messages
 
 // Bundle the published Svelte surface, externalizing host runtimes so the byte
 // comparison measures this package rather than a consumer's framework version.
-async function consumerBundle(componentEntry: string, lazy: boolean) {
+async function consumerBundle(componentEntry: string, lazy: boolean, compileSvelte = true) {
   const entry = '\0auth-locale-consumer';
   const result = await build({
     configFile: false,
     logLevel: 'error',
-    plugins: [svelte(), {
+    plugins: [...(compileSvelte ? [svelte()] : []), {
       name: 'auth-locale-consumer',
       resolveId(id) { return id === entry ? entry : null; },
       load(id) {
         if (id !== entry) return null;
         return `export { AuthShell, LoginIdField, PasswordField, PasswordSignupFields,
           ProductLinkApproval, ProviderButton, PasskeySettings } from '${componentEntry}';
+          import { createZdpAuthSurfaceModel } from '${componentEntry}';
           ${lazy
-            ? "export { loadAuthLocale } from 'zdp-auth-ui/i18n/loader';"
-            : "export { messages, passkeySettingsMessages } from 'zdp-auth-ui/i18n/ko';"}`;
+            ? `import { loadAuthLocale } from 'zdp-auth-ui/i18n/loader';
+               export { loadAuthLocale };
+               export async function loadSurface(locale) {
+                 const { messages } = await loadAuthLocale(locale);
+                 return createZdpAuthSurfaceModel({ locale, messages, mode: 'login', availability: 'available',
+                   providerFlags: { passkey: true } });
+               }`
+            : `import { messages, passkeySettingsMessages } from 'zdp-auth-ui/i18n/ko';
+               export { messages, passkeySettingsMessages };
+               export const surface = createZdpAuthSurfaceModel({ locale: 'ko', messages, mode: 'login',
+                 availability: 'available', providerFlags: { passkey: true } });`}`;
       }
     }],
     build: {
@@ -65,10 +75,15 @@ function assertCatalogsAbsent(code: string, locales: readonly string[]) {
 const fixed = await consumerBundle('zdp-auth-ui/components', false);
 const lazy = await consumerBundle('zdp-auth-ui/components', true);
 const legacy = await consumerBundle('zdp-auth-ui', false);
+const compiledFixed = await consumerBundle('zdp-auth-ui/components', false, false);
+const compiledLazy = await consumerBundle('zdp-auth-ui/components', true, false);
 const fixedCode = fixed.initial.map(chunk => chunk.code).join('\n');
 const lazyCode = lazy.initial.map(chunk => chunk.code).join('\n');
 assertCatalogsAbsent(fixedCode, zdpAuthTargetLocales.filter(locale => locale !== 'ko'));
 assertCatalogsAbsent(lazyCode, zdpAuthTargetLocales);
+assertCatalogsAbsent(compiledFixed.initial.map(chunk => chunk.code).join('\n'),
+  zdpAuthTargetLocales.filter(locale => locale !== 'ko'));
+assertCatalogsAbsent(compiledLazy.initial.map(chunk => chunk.code).join('\n'), zdpAuthTargetLocales);
 assert.ok(fixedCode.includes(getAuthMessages('ko').title.login));
 assert.ok(fixedCode.includes(getPasskeySettingsMessages('ko').title));
 
@@ -77,6 +92,8 @@ for (const bundle of [fixed, lazy]) {
     .map(id => id.replaceAll('\\', '/'));
   assert.ok(modules.some(id => id.includes('/dist/svelte/components/AuthShell.svelte')),
     'Svelte consumers must compile the packaged components instead of the precompiled fallback.');
+  assert.ok(modules.some(id => id.endsWith('/dist/svelte/auth-surface-model-core.js')),
+    'Bundle coverage must include the injected model builder alongside the components.');
   assert.ok(!modules.some(id => /\/dist\/(?:svelte\/)?(?:i18n|index)\.js$/.test(id)),
     'Lean component imports must not pull in either synchronous compatibility entry.');
 }
@@ -92,6 +109,10 @@ console.log(JSON.stringify({
     compatibilityWithKorean: legacy.initialBytes,
     componentsWithKorean: fixed.initialBytes,
     componentsWithLoaderInitial: lazy.initialBytes
+  },
+  precompiledJavaScriptBytes: {
+    componentsWithKorean: compiledFixed.initialBytes,
+    componentsWithLoaderInitial: compiledLazy.initialBytes
   },
   lazyLocaleChunks: zdpAuthTargetLocales.length
 }, null, 2));

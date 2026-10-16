@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import ts from 'typescript';
 import {
   buildZdpAuthHandoffUrl,
@@ -53,33 +53,10 @@ const typecheckProgram = ts.createProgram({
     types: ['node']
   }
 });
-const [publicEntrySource, packageSurfaceBuilderSource] = await Promise.all([
-  readFile(resolve('src/lib/index.ts'), 'utf8'),
-  readFile(resolve('dist/svelte/auth-surface-model.d.ts'), 'utf8')
-]);
-for (const requiredExport of [
-  'createZdpAuthSurfaceModel',
-  'zdpAuthSurfaceProviderIds',
-  'type ZdpAuthSurfaceConfig',
-  'type ZdpAuthSurfaceModel'
-]) {
-  assert.equal(
-    publicEntrySource.includes(requiredExport),
-    true,
-    `The package root must export the auth surface contract: ${requiredExport}.`
-  );
-}
-for (const requiredDeclaration of [
-  'export declare const zdpAuthSurfaceProviderIds',
-  'export interface ZdpAuthSurfaceConfig',
-  'export interface ZdpAuthSurfaceModel',
-  'export declare function createZdpAuthSurfaceModel'
-]) {
-  assert.equal(
-    packageSurfaceBuilderSource.includes(requiredDeclaration),
-    true,
-    `The generated package declaration must include the auth surface contract: ${requiredDeclaration}.`
-  );
+for (const entry of ['index.server.js', 'components.server.js']) {
+  const published = await import(pathToFileURL(resolve('dist', entry)).href);
+  assert.equal(typeof published.createZdpAuthSurfaceModel, 'function', `${entry} must expose the model builder.`);
+  assert.deepEqual(published.zdpAuthSurfaceProviderIds, zdpAuthSurfaceProviderIds);
 }
 
 const typecheckDiagnostics = ts.getPreEmitDiagnostics(typecheckProgram);
