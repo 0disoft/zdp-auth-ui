@@ -147,6 +147,8 @@ async function checkPackedConsumer(tarball: string, checkDirectory: string): Pro
   const packageRoot = join(consumerRoot, 'node_modules', 'zdp-auth-ui');
   const declarations = (await readdir(join(root, 'dist/types'), { recursive: true }))
     .filter(file => file.endsWith('.d.ts')).map(file => `dist/types/${file.replaceAll('\\', '/')}`);
+  const localeEntries = (await readdir(join(root, 'dist/i18n')))
+    .map(file => `dist/i18n/${file}`);
   for (const entry of [
     'package.json',
     'dist/index.d.ts',
@@ -154,6 +156,7 @@ async function checkPackedConsumer(tarball: string, checkDirectory: string): Pro
     'dist/i18n.js',
     'dist/i18n.d.ts',
     'dist/styles.css',
+    ...localeEntries,
     ...declarations
   ]) {
     const output = join(packageRoot, entry);

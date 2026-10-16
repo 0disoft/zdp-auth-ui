@@ -1,5 +1,6 @@
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { defineConfig, type Plugin } from 'vite';
+import { getPasskeySettingsMessages } from './src/lib/passkey-settings-messages.ts';
 import {
   zdpAuthMessages,
   zdpAuthTargetLocales,
@@ -64,6 +65,7 @@ function renderLocaleModule(locale: ZdpAuthLocale, messages: ZdpAuthMessages): s
   return [
     `export const locale = ${JSON.stringify(locale)};`,
     `export const messages = ${serializeJavaScript(messages)};`,
+    `export const passkeySettingsMessages = ${serializeJavaScript(getPasskeySettingsMessages(locale))};`,
     'function freezeMessages(value) {',
     '  for (const child of Object.values(value)) {',
     "    if (child !== null && typeof child === 'object' && !Object.isFrozen(child)) freezeMessages(child);",
@@ -71,6 +73,7 @@ function renderLocaleModule(locale: ZdpAuthLocale, messages: ZdpAuthMessages): s
     '  Object.freeze(value);',
     '}',
     'freezeMessages(messages);',
+    'freezeMessages(passkeySettingsMessages);',
     'export default messages;',
     ''
   ].join('\n');
@@ -79,9 +82,11 @@ function renderLocaleModule(locale: ZdpAuthLocale, messages: ZdpAuthMessages): s
 function renderLocaleDeclaration(locale: ZdpAuthLocale): string {
   return [
     "import type { ZdpAuthMessages } from '../i18n';",
+    "import type { ZdpPasskeySettingsMessages } from '../types/passkey-settings-messages';",
     '',
     `export declare const locale: ${JSON.stringify(locale)};`,
     'export declare const messages: ZdpAuthMessages;',
+    'export declare const passkeySettingsMessages: ZdpPasskeySettingsMessages;',
     'export default messages;',
     ''
   ].join('\n');
@@ -97,18 +102,25 @@ function renderLocaleLoader(): string {
     loaders,
     '};',
     '',
-    'export async function loadAuthMessages(locale) {',
+    'export async function loadAuthLocale(locale) {',
     "  const selectedLocale = typeof locale === 'string' && Object.hasOwn(localeLoaders, locale)",
     "    ? locale",
     "    : 'en';",
-    '  const module = await localeLoaders[selectedLocale]();',
-    '  return module.default;',
+    '  return localeLoaders[selectedLocale]();',
+    '}',
+    '',
+    'export async function loadAuthMessages(locale) {',
+    '  return (await loadAuthLocale(locale)).messages;',
+    '}',
+    '',
+    'export async function loadPasskeySettingsMessages(locale) {',
+    '  return (await loadAuthLocale(locale)).passkeySettingsMessages;',
     '}',
     ''
   ].join('\n');
 }
 
-function serializeJavaScript(value: ZdpAuthMessages): string {
+function serializeJavaScript(value: object): string {
   const serialized = JSON.stringify(value);
   if (serialized === undefined) {
     throw new TypeError('Auth locale messages must be JSON serializable.');
@@ -120,6 +132,15 @@ function serializeJavaScript(value: ZdpAuthMessages): string {
 }
 
 const localeLoaderDeclaration = `import type { ZdpAuthLocale, ZdpAuthMessages } from '../i18n';
+import type { ZdpPasskeySettingsMessages } from '../types/passkey-settings-messages';
+
+export declare function loadAuthLocale(locale: ZdpAuthLocale | string): Promise<{
+  readonly locale: ZdpAuthLocale;
+  readonly messages: ZdpAuthMessages;
+  readonly passkeySettingsMessages: ZdpPasskeySettingsMessages;
+}>;
+
+export declare function loadPasskeySettingsMessages(locale: ZdpAuthLocale | string): Promise<ZdpPasskeySettingsMessages>;
 
 export declare function loadAuthMessages(
   locale: ZdpAuthLocale | string

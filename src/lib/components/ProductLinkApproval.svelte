@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button, Inline, Stack, Surface } from 'zdp-design-system';
   import { onMount, tick } from 'svelte';
-  import { getAuthMessages, type ZdpAuthLocale } from '../i18n';
+  import { getAuthMessages, type ZdpAuthMessages, type ZdpAuthLocale } from '../i18n';
   import {
     validateProductLinkRequest,
     type ZdpProductLinkDecision,
@@ -11,6 +11,7 @@
     type ZdpProductLinkTrustPolicy
   } from '../product-link';
 
+  export let messages: ZdpAuthMessages | undefined = undefined;
   export let id: string;
   export let locale: ZdpAuthLocale | string = 'en';
   export let enabled = false;
@@ -33,7 +34,7 @@
   let sectionElement: HTMLElement;
   let statusElement: HTMLParagraphElement;
 
-  $: messages = getAuthMessages(locale);
+  $: copy = messages ?? getAuthMessages(locale);
   $: effectiveNow = now ?? clockNow;
   $: validation = enabled
     ? validateProductLinkRequest(request, trust, effectiveNow)
@@ -41,10 +42,10 @@
   $: titleId = `${id}-title`;
   $: detailsId = `${id}-details`;
   $: statusMessage = enabled
-    ? messages.productLink.status[validation.disposition]
-    : messages.productLink.status.disabled;
+    ? copy.productLink.status[validation.disposition]
+    : copy.productLink.status.disabled;
   $: formattedExpiry = validation.disposition === 'invalid'
-    ? messages.productLink.status.invalid
+    ? copy.productLink.status.invalid
     : formatExpiry(request.expiresAt, locale);
   $: {
     const nextDisposition = validation.disposition;
@@ -101,7 +102,7 @@
   function formatExpiry(value: string, requestedLocale: string): string {
     const date = new Date(value);
     if (!Number.isFinite(date.getTime())) {
-      return messages.productLink.status.invalid;
+      return copy.productLink.status.invalid;
     }
 
     try {
@@ -180,37 +181,37 @@
   <section bind:this={sectionElement} class="zdp-product-link" aria-labelledby={titleId} aria-describedby={detailsId}>
     <Stack gap="md">
       <header class="zdp-product-link__header">
-        <p class="zdp-product-link__eyebrow">{messages.brand}</p>
-        <h1 id={titleId}>{messages.productLink.title}</h1>
-        <p id={detailsId}>{messages.productLink.summary}</p>
+        <p class="zdp-product-link__eyebrow">{copy.brand}</p>
+        <h1 id={titleId}>{copy.productLink.title}</h1>
+        <p id={detailsId}>{copy.productLink.summary}</p>
       </header>
 
       {#if enabled && validation.disposition !== 'invalid'}
         <dl class="zdp-product-link__context">
           <div>
-            <dt>{messages.productLink.fields.product}</dt>
+            <dt>{copy.productLink.fields.product}</dt>
             <dd>{request.productLabel}</dd>
           </div>
           <div>
-            <dt>{messages.productLink.fields.account}</dt>
+            <dt>{copy.productLink.fields.account}</dt>
             <dd>{request.accountLabel}</dd>
           </div>
           <div>
-            <dt>{messages.productLink.fields.workspace}</dt>
-            <dd>{request.workspaceLabel ?? messages.productLink.noWorkspace}</dd>
+            <dt>{copy.productLink.fields.workspace}</dt>
+            <dd>{request.workspaceLabel ?? copy.productLink.noWorkspace}</dd>
           </div>
           <div>
-            <dt>{messages.productLink.fields.expires}</dt>
+            <dt>{copy.productLink.fields.expires}</dt>
             <dd><time datetime={request.expiresAt}>{formattedExpiry}</time></dd>
           </div>
         </dl>
 
         <section class="zdp-product-link__requested" aria-labelledby={`${id}-requested-title`}>
-          <h2 id={`${id}-requested-title`}>{messages.productLink.requestedTitle}</h2>
+          <h2 id={`${id}-requested-title`}>{copy.productLink.requestedTitle}</h2>
           <ul>
             {#each request.requestedItems as item (item.ref)}
               <li>
-                <span class="zdp-product-link__item-kind">{messages.productLink.itemKinds[item.kind]}</span>
+                <span class="zdp-product-link__item-kind">{copy.productLink.itemKinds[item.kind]}</span>
                 <strong>{item.label}</strong>
                 <p>{item.description}</p>
               </li>
@@ -219,23 +220,23 @@
         </section>
 
         <section class="zdp-product-link__consent" aria-labelledby={`${id}-consent-title`}>
-          <h2 id={`${id}-consent-title`}>{messages.productLink.consentTitle}</h2>
+          <h2 id={`${id}-consent-title`}>{copy.productLink.consentTitle}</h2>
           <ul>
             {#each request.consentImplications as implication}
               <li>{implication}</li>
             {/each}
           </ul>
-          <p>{messages.productLink.consentBoundary}</p>
+          <p>{copy.productLink.consentBoundary}</p>
         </section>
       {/if}
 
       {#if validation.actionable}
         <Inline gap="sm" align="stretch" justify="between">
           <Button type="button" disabled={busy} onclick={(event: MouseEvent) => handleDecision('approve', event)}>
-            {messages.productLink.actions.approve}
+            {copy.productLink.actions.approve}
           </Button>
           <Button type="button" variant="secondary" disabled={busy} onclick={(event: MouseEvent) => handleDecision('deny', event)}>
-            {messages.productLink.actions.deny}
+            {copy.productLink.actions.deny}
           </Button>
         </Inline>
       {/if}
@@ -248,7 +249,7 @@
         aria-live={busy || !validation.actionable ? 'polite' : 'off'}
         tabindex="-1"
       >
-        {busy && validation.actionable ? messages.productLink.status.submitting : statusMessage}
+        {busy && validation.actionable ? copy.productLink.status.submitting : statusMessage}
       </p>
     </Stack>
   </section>

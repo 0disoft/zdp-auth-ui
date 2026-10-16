@@ -1,7 +1,8 @@
 <script lang="ts">
   import { ErrorText, Field, HelpText, Input, Label } from 'zdp-design-system';
-  import { getAuthMessages, type ZdpAuthLocale } from '../i18n';
+  import { getAuthMessages, type ZdpAuthMessages, type ZdpAuthLocale } from '../i18n';
 
+  export let messages: ZdpAuthMessages | undefined = undefined;
   export let id: string;
   export let name = 'login_id';
   export let label: string | null = null;
@@ -14,8 +15,8 @@
   export let required = true;
   export let disabled = false;
 
-  $: messages = getAuthMessages(locale);
-  $: labelText = label ?? messages.fields.loginId;
+  $: copy = messages ?? getAuthMessages(locale);
+  $: labelText = label ?? copy.fields.loginId;
   $: helpId = helpText && !errorText ? `${id}-help` : null;
   $: errorId = errorText ? `${id}-error` : null;
   $: describedByIds = [describedBy, helpId, errorId].flat().filter(Boolean) as string[];

@@ -7,6 +7,14 @@ import {
 } from 'zdp-auth-ui/i18n';
 import { PasskeySettings, getPasskeySettingsMessages, validPasskeyLabel, type AuthShellProps,
   type PasskeySettingsProps, type ZdpPasskeySettingsState } from 'zdp-auth-ui';
+import koMessages, { passkeySettingsMessages } from 'zdp-auth-ui/i18n/ko';
+import { loadAuthLocale, loadPasskeySettingsMessages } from 'zdp-auth-ui/i18n/loader';
+
+const injectedShellProps: AuthShellProps = { locale: 'ko', messages: koMessages };
+const injectedPasskeyProps: PasskeySettingsProps = {
+  locale: 'ko', messages: passkeySettingsMessages, authMessages: koMessages
+};
+void [injectedShellProps, injectedPasskeyProps, loadAuthLocale, loadPasskeySettingsMessages];
 
 const japaneseTitle: string = zdpAuthMessages.ja.title.login;
 const signupTitles: string[] = zdpAuthTargetLocales.map((locale) => zdpAuthMessages[locale].title.signup);

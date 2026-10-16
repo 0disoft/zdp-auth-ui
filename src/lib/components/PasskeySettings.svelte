@@ -1,14 +1,17 @@
 <script lang="ts">
   import { Badge, Button, Field, HelpText, Input, Label, Select, Surface } from 'zdp-design-system';
   import { onMount, tick } from 'svelte';
+  import type { ZdpAuthMessages } from '../i18n';
   import PasswordField from './PasswordField.svelte';
-  import { getPasskeyRegistrationDefaultLabel, getPasskeySettingsMessages } from '../passkey-settings-messages';
+  import { getPasskeySettingsMessages, type ZdpPasskeySettingsMessages } from '../passkey-settings-messages';
   import { isZdpPasskeyAuthenticatorProvider, isZdpPasskeyAuthenticatorStorage,
     isZdpPasskeyRegistrationPreference, validPasskeyLabel, zdpPasskeyRegistrationPreferenceDefault,
     zdpPasskeyRegistrationPreferences, type ZdpPasskeyAuthenticator,
     type ZdpPasskeySettingsAction, type ZdpPasskeySettingsFeedback,
     type ZdpPasskeySettingsState } from '../passkey-settings-contract';
 
+  export let messages: ZdpPasskeySettingsMessages | undefined = undefined;
+  export let authMessages: ZdpAuthMessages | undefined = undefined;
   export let locale = 'en';
   export let idPrefix = 'passkey-settings';
   export let state: ZdpPasskeySettingsState = { status: 'preparing', passkeys: [],
@@ -41,17 +44,21 @@
     apple_passwords: 'providerApplePasswords',
     unknown: 'providerUnknown'
   } as const;
+  const defaultNameKeys = {
+    device: 'defaultNameDevice', manager: 'defaultNameManager',
+    security_key: 'defaultNameSecurityKey', phone: 'defaultNamePhone'
+  } as const;
   const preferenceLabels = {
     device: 'preferenceDevice',
     manager: 'preferenceManager',
     security_key: 'preferenceSecurityKey',
     phone: 'preferencePhone'
   } as const;
-  $: copy = getPasskeySettingsMessages(locale);
+  $: copy = messages ?? getPasskeySettingsMessages(locale);
   $: preference = isZdpPasskeyRegistrationPreference(preferenceValue)
     ? preferenceValue : zdpPasskeyRegistrationPreferenceDefault;
   $: suggestedName = editor === 'register'
-    ? getPasskeyRegistrationDefaultLabel(locale, preference) : '';
+    ? copy[defaultNameKeys[preference]] : '';
   $: if (editor === 'register' && !nameEdited) name = suggestedName;
   $: ready = state.status === 'ready';
   $: if (state.reauthentication !== 'password') password = '';
@@ -191,7 +198,7 @@
               {#if editor !== 'rename'}
                 <p>{state.reauthentication === 'passkey' ? copy.reauthPasskey : copy.reauthPassword}</p>
                 {#if state.reauthentication === 'password'}
-                  <PasswordField id={`${idPrefix}-password`} name="current_password" {locale} bind:value={password}
+                  <PasswordField id={`${idPrefix}-password`} name="current_password" {locale} messages={authMessages} bind:value={password}
                     label={copy.currentPassword} autocomplete="current-password" required disabled={locked}
                     errorText={touched && passwordInvalid ? copy.invalidPassword : null} />
                 {/if}

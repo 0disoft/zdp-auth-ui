@@ -1,5 +1,5 @@
-import type { ZdpAuthLocale } from './i18n';
-import type { ZdpPasskeyRegistrationPreference } from './passkey-settings-contract';
+import type { ZdpAuthLocale } from './i18n.ts';
+import type { ZdpPasskeyRegistrationPreference } from './passkey-settings-contract.ts';
 const keys = ["title","description","add","rename","remove","name","save","cancel","confirmRemove","reauthPassword","reauthPasskey","removeHelp","empty","preparing","unavailable","created","lastUsed","neverUsed","invalidName","currentPassword","saved","failed","unconfirmed","expired","rate_limited","waiting","invalidPassword","providerWindowsHello","providerGooglePasswordManager","providerBitwarden","providerApplePasswords","providerUnknown","storageSynced","storageDeviceBound","backedUp","notBackedUp","preferenceLabel","preferenceHelp","preferenceDevice","preferenceManager","preferenceSecurityKey","preferencePhone","defaultNameDevice","defaultNameManager","defaultNameSecurityKey","defaultNamePhone","storageUnknown"] as const;
 export type ZdpPasskeySettingsMessages = Readonly<Record<(typeof keys)[number], string>>;
 const copy: Record<ZdpAuthLocale, readonly string[]> = {

@@ -2,12 +2,13 @@
   import { Checkbox, Link, Stack } from 'zdp-design-system';
   import { getContext } from 'svelte';
   import { readable } from 'svelte/store';
-  import { getAuthMessages } from '../i18n';
+  import { getAuthMessages, type ZdpAuthMessages } from '../i18n';
   import type { ZdpPasswordSignupContract } from '../password-signup';
   import LoginIdField from './LoginIdField.svelte';
   import PasswordField from './PasswordField.svelte';
   import { termsLinkContextKey, type TermsLinkContext } from '../terms-link-context';
 
+  export let messages: ZdpAuthMessages | undefined = undefined;
   export let idPrefix: string;
   export let contract: ZdpPasswordSignupContract;
   export let loginId = '';
@@ -56,7 +57,7 @@
     };
   }
 
-  $: messages = getAuthMessages(contract.locale);
+  $: copy = messages ?? getAuthMessages(contract.locale);
   const termsHrefContext = getContext<TermsLinkContext | undefined>(termsLinkContextKey) ?? readable(null);
   $: termsHref = $termsHrefContext;
 </script>
@@ -66,6 +67,7 @@
     id={`${idPrefix}-login-id`}
     name={contract.fieldNames.loginId}
     locale={contract.locale}
+    messages={copy}
     bind:value={loginId}
     errorText={loginIdError}
     {disabled}
@@ -74,21 +76,23 @@
     id={`${idPrefix}-password`}
     name={contract.fieldNames.password}
     locale={contract.locale}
+    messages={copy}
     autocomplete="new-password"
     bind:value={password}
     errorText={passwordError}
     required
     {disabled}
   />
-  <div use:validateConfirmation={mismatch ? messages.feedback.passwordMismatch : ''}>
+  <div use:validateConfirmation={mismatch ? copy.feedback.passwordMismatch : ''}>
     <PasswordField
       id={`${idPrefix}-password-confirmation`}
       name=""
-      label={messages.fields.passwordConfirmation}
+      label={copy.fields.passwordConfirmation}
       locale={contract.locale}
+      messages={copy}
       autocomplete="new-password"
       bind:value={confirmation}
-      errorText={confirmationTouched && mismatch ? messages.feedback.passwordMismatch : null}
+      errorText={confirmationTouched && mismatch ? copy.feedback.passwordMismatch : null}
       required
       {disabled}
     />
@@ -103,11 +107,11 @@
       required
       {disabled}
     >
-      {messages.fields.termsAcceptance}
+      {copy.fields.termsAcceptance}
     </Checkbox>
     {/key}
     {#if termsHref}
-      <Link href={termsHref} target="_blank" rel="noopener noreferrer">{messages.links.terms}</Link>
+      <Link href={termsHref} target="_blank" rel="noopener noreferrer">{copy.links.terms}</Link>
     {/if}
   </div>
   {#key JSON.stringify([contract.agePolicyRef, contract.minimumAgeYears])}
@@ -119,7 +123,7 @@
     required
     {disabled}
   >
-    {messages.fields.minimumAgeConfirmation.replace('{minimumAge}', String(contract.minimumAgeYears))}
+    {copy.fields.minimumAgeConfirmation.replace('{minimumAge}', String(contract.minimumAgeYears))}
   </Checkbox>
   {/key}
   <input type="hidden" name={contract.fieldNames.agePolicyRef} value={contract.agePolicyRef} autocomplete="off" />

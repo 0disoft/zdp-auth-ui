@@ -7,8 +7,9 @@
     Input,
     Label
   } from 'zdp-design-system';
-  import { getAuthMessages, type ZdpAuthLocale } from '../i18n';
+  import { getAuthMessages, type ZdpAuthMessages, type ZdpAuthLocale } from '../i18n';
 
+  export let messages: ZdpAuthMessages | undefined = undefined;
   export let id: string;
   export let name: string;
   export let label: string | null = null;
@@ -75,12 +76,12 @@
     } };
   }
 
-  $: messages = getAuthMessages(locale);
-  $: labelText = label ?? messages.fields.password;
+  $: copy = messages ?? getAuthMessages(locale);
+  $: labelText = label ?? copy.fields.password;
   $: helpId = helpText && !errorText ? `${id}-help` : null;
   $: errorId = errorText ? `${id}-error` : null;
   $: describedByIds = [describedBy, helpId, errorId].flat().filter(Boolean) as string[];
-  $: toggleLabel = visible ? messages.actions.hidePassword : messages.actions.showPassword;
+  $: toggleLabel = visible ? copy.actions.hidePassword : copy.actions.showPassword;
 </script>
 
 <Field required={required} invalid={Boolean(errorText)}>

@@ -31,6 +31,7 @@
     readonly invalid: boolean;
   }
 
+  export let messages: ZdpAuthMessages | undefined = undefined;
   export let locale: ZdpAuthLocale | string = 'en';
   export let mode: ZdpAuthMode = 'login';
   export let availability: ZdpAuthAvailability = 'available';
@@ -59,21 +60,21 @@
   let pendingFocusKey: string | null = null;
   let sameTaskSubmitHandled = false;
 
-  $: messages = getAuthMessages(locale);
+  $: copy = messages ?? getAuthMessages(locale);
   $: normalizedAccountBrand = normalizeAccountBrand(accountBrand);
-  $: title = messages.title[mode];
-  $: summary = messages.summary[mode].replace(messages.brand, () => normalizedAccountBrand ?? messages.brand);
-  $: primaryAction = messages.actions[mode];
+  $: title = copy.title[mode];
+  $: summary = copy.summary[mode].replace(copy.brand, () => normalizedAccountBrand ?? copy.brand);
+  $: primaryAction = copy.actions[mode];
   $: preparing = availability === 'preparing';
   $: submitting = busy && !preparing;
   $: interactionLocked = preparing || submitting;
   $: nextMode = getNextMode(mode);
-  $: nextModeLabel = mode === 'login' ? messages.links.signup : messages.links.login;
+  $: nextModeLabel = mode === 'login' ? copy.links.signup : copy.links.login;
   $: formMethod = getFormMethod(method);
   $: normalizedReferralCode = normalizeOptionalFormValue(referralCode);
   $: normalizedReferralCodeFieldName = normalizeOptionalFormValue(referralCodeFieldName) ?? 'referral_code';
   $: normalizedRecoveryHref = normalizeOptionalFormValue(recoveryHref);
-  $: typedFeedback = resolveTypedFeedback(feedback, messages, mode);
+  $: typedFeedback = resolveTypedFeedback(feedback, copy, mode);
   $: feedbackKey = getFeedbackKey(feedback);
   $: legacyErrorKey = invalid && status ? status : null;
   $: visibleErrorKey = typedFeedback
@@ -228,7 +229,7 @@
         </header>
 
         {#if providers.length > 0}
-          <div class="zdp-auth-shell__providers" role="group" aria-label={messages.providers.groupLabel}>
+          <div class="zdp-auth-shell__providers" role="group" aria-label={copy.providers.groupLabel}>
             {#each providers as provider (provider.id)}
               <ProviderButton {provider} disabled={preparing} onclick={handleProviderSelect} />
             {/each}
@@ -248,7 +249,7 @@
         {/if}
 
         {#if submitting}
-          <p class="zdp-auth-shell__notice" role="status" aria-live="polite">{messages.status.waiting}</p>
+          <p class="zdp-auth-shell__notice" role="status" aria-live="polite">{copy.status.waiting}</p>
         {:else if typedFeedback}
           {#if typedFeedback.invalid}
             <p
@@ -283,7 +284,7 @@
         {/if}
 
         {#if preparing}
-          <p class="zdp-auth-shell__notice" role="status">{messages.availability.preparing}</p>
+          <p class="zdp-auth-shell__notice" role="status">{copy.availability.preparing}</p>
         {/if}
 
         <Inline gap="sm" align="stretch" justify="between">
@@ -293,15 +294,15 @@
           {/if}
         </Inline>
 
-        <nav class="zdp-auth-shell__links" aria-label={messages.navigation.accountHelp}>
+        <nav class="zdp-auth-shell__links" aria-label={copy.navigation.accountHelp}>
           {#if mode === 'login' && normalizedRecoveryHref && !preparing}
-            <Link href={normalizedRecoveryHref}>{messages.links.recovery}</Link>
+            <Link href={normalizedRecoveryHref}>{copy.links.recovery}</Link>
           {/if}
           {#if termsHref && (mode !== 'signup' || (preparing && !signupTermsInSlot))}
-            <Link href={termsHref} target="_blank" rel="noopener noreferrer">{messages.links.terms}</Link>
+            <Link href={termsHref} target="_blank" rel="noopener noreferrer">{copy.links.terms}</Link>
           {/if}
           {#if privacyHref}
-            <Link href={privacyHref}>{messages.links.privacy}</Link>
+            <Link href={privacyHref}>{copy.links.privacy}</Link>
           {/if}
         </nav>
       </Stack>

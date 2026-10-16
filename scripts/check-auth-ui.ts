@@ -543,9 +543,9 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
     'method={formMethod}',
     'data-availability={availability}',
     'disabled={preparing}',
-    'messages.availability.preparing',
-    'aria-label={messages.providers.groupLabel}',
-    'aria-label={messages.navigation.accountHelp}'
+    'copy.availability.preparing',
+    'aria-label={copy.providers.groupLabel}',
+    'aria-label={copy.navigation.accountHelp}'
   ]) {
     if (!authShell.source.includes(requiredText)) {
       failures.push(`src/lib/components/AuthShell.svelte must keep auth boundary guard: ${requiredText}.`);
@@ -563,7 +563,7 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
   for (const requiredText of [
     "export let recoveryHref: string | null = null;",
     "mode === 'login' && normalizedRecoveryHref && !preparing",
-    '<Link href={normalizedRecoveryHref}>{messages.links.recovery}</Link>'
+    '<Link href={normalizedRecoveryHref}>{copy.links.recovery}</Link>'
   ]) {
     if (!authShell.source.includes(requiredText)) {
       failures.push(`AuthShell recovery navigation must stay consumer-configured and login-only: ${requiredText}.`);
@@ -592,7 +592,7 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
       'zdp-auth-signup-terms',
       '.zdp-auth-signup-terms :global(.zdp-choice__mark)',
       'var(--zdp-type-body-small-size) * var(--zdp-type-body-small-line-height) - var(--zdp-control-choice-size)',
-      '<Link href={termsHref} target="_blank" rel="noopener noreferrer">{messages.links.terms}</Link>'
+      '<Link href={termsHref} target="_blank" rel="noopener noreferrer">{copy.links.terms}</Link>'
     ]) {
       if (!signupFields.source.includes(requiredText)) {
         failures.push(`PasswordSignupFields must render the terms link beside consent copy: ${requiredText}.`);
