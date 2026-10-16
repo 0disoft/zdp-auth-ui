@@ -43,11 +43,15 @@ export interface ZdpPasskeySupport {
 
 export interface ZdpPasskeyCeremonyOptions {
   readonly timeoutMs?: number;
+  /** Aborting this signal cancels only the ceremony started by this call. */
+  readonly signal?: AbortSignal;
 }
 
 export interface ZdpPasskeyAuthenticationOptions extends ZdpPasskeyCeremonyOptions {
   readonly mediation?: ZdpPasskeyAuthenticationMediation;
   readonly verifyBrowserAutofillInput?: boolean;
+  /** Limit conditional-UI input discovery to this root (defaults to document). */
+  readonly container?: ParentNode;
 }
 
 export class ZdpPasskeyCeremonyError extends Error {
@@ -106,7 +110,11 @@ export async function startPasskeyRegistration(
   return runPasskeyCeremony(
     'registration',
     timeoutMs,
-    (assertActive) => { assertActive(); return startRegistration({ optionsJSON: options }); }
+    ceremonyOptions.signal,
+    async (assertActive) => {
+      assertActive();
+      return startRegistration({ optionsJSON: structuredClone(options) });
+    }
   );
 }
 
@@ -123,33 +131,34 @@ export async function startPasskeyAuthentication(
   }
   const useBrowserAutofill = mediation === 'conditional';
 
-  return runPasskeyCeremony('authentication', timeoutMs, async (assertActive) => {
-  // Capture server-issued ceremony data before awaiting browser capability probes.
-  const requestOptions = structuredClone(options);
-  if (useBrowserAutofill) {
-    const conditionalUi = await safeCapabilityProbe(browserSupportsWebAuthnAutofill);
+  return runPasskeyCeremony('authentication', timeoutMs, ceremonyOptions.signal, async (assertActive) => {
+    // Capture server-issued ceremony data before awaiting browser capability probes.
+    const requestOptions = structuredClone(options);
+    if (useBrowserAutofill) {
+      const conditionalUi = await safeCapabilityProbe(browserSupportsWebAuthnAutofill);
+      assertActive();
+      if (!conditionalUi) {
+        throw new ZdpPasskeyCeremonyError(
+          'authentication',
+          'conditional-ui-unsupported'
+        );
+      }
+
+      const verifyBrowserAutofillInput = ceremonyOptions.verifyBrowserAutofillInput ?? true;
+      if (verifyBrowserAutofillInput && !hasBrowserAutofillInput(ceremonyOptions.container)) {
+        throw new ZdpPasskeyCeremonyError(
+          'authentication',
+          'conditional-input-missing'
+        );
+      }
+    }
+
     assertActive();
-    if (!conditionalUi) {
-      throw new ZdpPasskeyCeremonyError(
-        'authentication',
-        'conditional-ui-unsupported'
-      );
-    }
-
-    const verifyBrowserAutofillInput = ceremonyOptions.verifyBrowserAutofillInput ?? true;
-    if (verifyBrowserAutofillInput && !hasBrowserAutofillInput()) {
-      throw new ZdpPasskeyCeremonyError(
-        'authentication',
-        'conditional-input-missing'
-      );
-    }
-  }
-
-  assertActive();
-  return startAuthentication({
+    return startAuthentication({
       optionsJSON: requestOptions,
       useBrowserAutofill,
-      verifyBrowserAutofillInput: ceremonyOptions.verifyBrowserAutofillInput
+      // Input validation above respects the caller's root; the SDK scans document.
+      verifyBrowserAutofillInput: false
     });
   });
 }
@@ -198,16 +207,21 @@ function validateTimeout(
   return timeoutMs;
 }
 
-function hasBrowserAutofillInput(): boolean {
-  return typeof document !== 'undefined'
-    && document.querySelector("input[autocomplete$='webauthn']") !== null;
+function hasBrowserAutofillInput(container?: ParentNode): boolean {
+  const root = container ?? (typeof document === 'undefined' ? undefined : document);
+  return root?.querySelector("input[autocomplete$='webauthn']") != null;
 }
 
 async function runPasskeyCeremony<Response>(
   ceremony: ZdpPasskeyCeremonyKind,
   timeoutMs: number | null,
+  signal: AbortSignal | undefined,
   start: (assertActive: () => void) => Promise<Response>
 ): Promise<Response> {
+  // A cancelled caller must not replace another caller's active prompt.
+  if (signal?.aborted) {
+    throw new ZdpPasskeyCeremonyError(ceremony, 'cancelled', signal.reason);
+  }
   cancelPasskeyCeremony();
   const current = { controller: new AbortController(), ceremony };
   activeCeremony = current;
@@ -221,6 +235,11 @@ async function runPasskeyCeremony<Response>(
     rejectCancellation = () => reject(current.controller.signal.reason);
     current.controller.signal.addEventListener('abort', rejectCancellation, { once: true });
   });
+  const cancelOwnedCeremony = () => {
+    current.controller.abort(new ZdpPasskeyCeremonyError(ceremony, 'cancelled', signal?.reason));
+    if (activeCeremony === current) WebAuthnAbortService.cancelCeremony();
+  };
+  signal?.addEventListener('abort', cancelOwnedCeremony, { once: true });
 
   if (timeoutMs !== null) {
     timeout = setTimeout(() => {
@@ -239,6 +258,7 @@ async function runPasskeyCeremony<Response>(
       clearTimeout(timeout);
     }
     current.controller.signal.removeEventListener('abort', rejectCancellation);
+    signal?.removeEventListener('abort', cancelOwnedCeremony);
     if (activeCeremony === current) activeCeremony = null;
   }
 }

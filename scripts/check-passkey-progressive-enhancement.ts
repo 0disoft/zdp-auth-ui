@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import type { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser';
+import type { PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser';
 import {
   ZdpPasskeyCeremonyError,
   cancelPasskeyCeremony,
   detectPasskeySupport,
   startPasskeyAuthentication,
+  startPasskeyRegistration,
   zdpPasskeyAuthenticationMediationModes,
   zdpPasskeyCeremonyKinds,
   zdpPasskeyErrorReasons
@@ -118,6 +119,8 @@ type CredentialGet = (request: CredentialRequestOptions) => Promise<Credential |
 let hasAutofillInput = false;
 let credentialGet: CredentialGet = async () => createAuthenticationCredential();
 let capturedRequest: CredentialRequestOptions | null = null;
+let capturedCreation: CredentialCreationOptions | null = null;
+const getCapturedCreation = (): CredentialCreationOptions | null => capturedCreation;
 const getCapturedRequest = (): CredentialRequestOptions | null => capturedRequest;
 let conditionalProbe: () => Promise<boolean> = async () => true;
 let platformProbe: () => Promise<boolean> = async () => true;
@@ -169,6 +172,10 @@ try {
       get: async (request: CredentialRequestOptions) => {
         capturedRequest = request;
         return credentialGet(request);
+      },
+      create: async (request: CredentialCreationOptions) => {
+        capturedCreation = request;
+        return waitForAbort(request);
       }
     }
   });
@@ -199,6 +206,61 @@ try {
   });
   assert.equal(conditionalResponse.id, 'credential-id');
   assert.equal(getCapturedRequest()?.mediation, 'conditional');
+
+  // A different form's autofill input cannot satisfy this form's precondition.
+  const emptyContainer = { querySelector: () => null } as unknown as ParentNode;
+  await assert.rejects(
+    startPasskeyAuthentication(options, { mediation: 'conditional', container: emptyContainer }),
+    (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'conditional-input-missing'
+  );
+  hasAutofillInput = false;
+  const scopedContainer = { querySelector: () => ({}) } as unknown as ParentNode;
+  assert.equal((await startPasskeyAuthentication(options, {
+    mediation: 'conditional', container: scopedContainer
+  })).id, 'credential-id', 'Scoped inputs must work without a matching input in document (including shadow roots).');
+  hasAutofillInput = true;
+
+  credentialGet = waitForAbort;
+  const firstOwner = new AbortController();
+  const firstOwned = startPasskeyAuthentication(options, { signal: firstOwner.signal });
+  const firstOwnedCheck = assert.rejects(firstOwned,
+    (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'cancelled');
+  const nextOwner = new AbortController();
+  const nextOwned = startPasskeyAuthentication(options, { signal: nextOwner.signal });
+  const nextOwnedCheck = assert.rejects(nextOwned,
+    (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'cancelled');
+  const nextRequest = getCapturedRequest();
+  firstOwner.abort();
+  assert.equal(nextRequest?.signal?.aborted, false, 'An old owner must not cancel a replacement prompt.');
+  const alreadyCancelled = new AbortController();
+  alreadyCancelled.abort();
+  await assert.rejects(startPasskeyAuthentication(options, { signal: alreadyCancelled.signal }),
+    (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'cancelled');
+  assert.equal(getCapturedRequest(), nextRequest, 'An already-cancelled caller must not start a new prompt.');
+  assert.equal(nextRequest?.signal?.aborted, false, 'An already-cancelled caller must leave the active owner alone.');
+  nextOwner.abort('component-unmounted');
+  await Promise.all([firstOwnedCheck, nextOwnedCheck]);
+  assert.equal(nextRequest?.signal?.aborted, true, 'The current owner must cancel its own browser prompt.');
+
+  const registrationOwner = new AbortController();
+  const registrationOptions: PublicKeyCredentialCreationOptionsJSON = {
+    challenge: 'AA', rp: { name: 'Test', id: 'localhost' },
+    user: { id: 'AA', name: 'test', displayName: 'Test' },
+    pubKeyCredParams: [{ type: 'public-key', alg: -7 }], extensions: { credProps: true }
+  };
+  const registration = startPasskeyRegistration(registrationOptions, { signal: registrationOwner.signal });
+  const registrationCheck = assert.rejects(registration,
+    (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.ceremony === 'registration' && error.reason === 'cancelled');
+  registrationOptions.rp.name = 'Changed';
+  registrationOptions.pubKeyCredParams[0]!.alg = -257;
+  registrationOptions.extensions!.credProps = false;
+  const capturedPublicKeyCreation = getCapturedCreation()?.publicKey;
+  assert.equal(capturedPublicKeyCreation?.rp.name, 'Test');
+  assert.equal(capturedPublicKeyCreation?.pubKeyCredParams[0]?.alg, -7);
+  assert.equal(capturedPublicKeyCreation?.extensions?.credProps, true,
+    'Registration must snapshot nested server-issued options before browser transport.');
+  registrationOwner.abort();
+  await registrationCheck;
 
   await assert.rejects(
     () => startPasskeyAuthentication(options, { timeoutMs: 999 }),
@@ -253,6 +315,15 @@ try {
   finishProbe(true);
   await new Promise(resolve => setTimeout(resolve, 0));
   assert.equal(getCapturedRequest(), null, 'A cancelled preparation must never call credentials.get.');
+
+  const preparingOwner = new AbortController();
+  const ownedPreparing = startPasskeyAuthentication(options, { mediation: 'conditional', signal: preparingOwner.signal });
+  preparingOwner.abort();
+  await assert.rejects(ownedPreparing,
+    (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'cancelled');
+  finishProbe(true);
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(getCapturedRequest(), null, 'Unmounting during capability detection must prevent a late prompt.');
 
   const superseded = startPasskeyAuthentication(options, { mediation: 'conditional' });
   const supersededCheck = assert.rejects(superseded, (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'cancelled');
