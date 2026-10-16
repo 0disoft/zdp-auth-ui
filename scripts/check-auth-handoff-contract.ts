@@ -55,7 +55,7 @@ const typecheckProgram = ts.createProgram({
 });
 const [publicEntrySource, packageSurfaceBuilderSource] = await Promise.all([
   readFile(resolve('src/lib/index.ts'), 'utf8'),
-  readFile(resolve('dist/types/auth-surface-model.d.ts'), 'utf8')
+  readFile(resolve('dist/svelte/auth-surface-model.d.ts'), 'utf8')
 ]);
 for (const requiredExport of [
   'createZdpAuthSurfaceModel',

@@ -38,9 +38,11 @@ Each `./i18n/<locale>` entry exposes `locale`, `messages`, and `passkeySettingsM
 
 ## Resolution and build
 
-`package.json` JavaScript and declaration export entries must resolve to `dist/**`. The root export selects `dist/index.js` for browser builds and `dist/index.server.js` for Node SSR builds. The browser build generates locale JavaScript and declarations together under `dist/i18n/**`. Consumers must not deep import `src/**`.
+`package.json` JavaScript and declaration export entries must resolve to `dist/**`. The root export selects `dist/index.js` for browser builds and `dist/index.server.js` for Node SSR builds, while its `svelte` and `types` conditions resolve to `dist/svelte/index.js` and `dist/svelte/index.d.ts`. The browser build's `authLocaleEntries` plugin emits every `dist/i18n/<locale>.js` with its own `<locale>.d.ts` plus the `loader.js` and `loader.d.ts` pair, while `svelte-package` owns the component and shared TypeScript declarations under `dist/svelte/**`, including the synchronous `./i18n` aggregate and `./contract` types. The existing `./styles.css` entry stays on `dist/styles.css`. Consumers must not deep import `src/**`.
 
-The `./components` entry selects `dist/components.js` for browser builds and `dist/components.server.js` for Node SSR builds.
+The `./components` entry selects `dist/components.js` for browser builds and `dist/components.server.js` for Node SSR builds, and `dist/svelte/components.js` with `dist/svelte/components.d.ts` for the `svelte` and `types` conditions.
+
+Components and compatibility adapters are now authored with Svelte 5 runes, so the `svelte` condition ships packaged `.svelte` files that the consumer's own Svelte compiler builds. Declarations come from `svelte-package`; the manual declaration generator `scripts/build-package-declarations.ts` and the server component identity rewrite `scripts/preserve-server-component-identity.ts` are removed, and `svelte2tsx` is no longer a direct dependency although `svelte-package` still uses it internally.
 
 The synchronous `./i18n` export remains compatible and contains all locale catalogs. Consumers that need one fixed catalog should import `zdp-auth-ui/i18n/<locale>`. Consumers that select locale at runtime should import `loadAuthLocale` from `zdp-auth-ui/i18n/loader`; unsupported values fall back to English.
 

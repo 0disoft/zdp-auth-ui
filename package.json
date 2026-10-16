@@ -16,11 +16,8 @@
   "homepage": "https://github.com/0disoft/zdp-auth-ui#readme",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "svelte": {
-        "browser": "./dist/index.js",
-        "default": "./dist/index.server.js"
-      },
+      "types": "./dist/svelte/index.d.ts",
+      "svelte": "./dist/svelte/index.js",
       "browser": "./dist/index.js",
       "node": "./dist/index.server.js",
       "import": "./dist/index.js",
@@ -28,7 +25,7 @@
     },
     "./styles.css": "./dist/styles.css",
     "./i18n": {
-      "types": "./dist/i18n.d.ts",
+      "types": "./dist/svelte/i18n.d.ts",
       "import": "./dist/i18n.js",
       "default": "./dist/i18n.js"
     },
@@ -98,16 +95,13 @@
       "default": "./dist/i18n/th.js"
     },
     "./contract": {
-      "types": "./dist/contract.d.ts",
+      "types": "./dist/svelte/auth-contract.d.ts",
       "import": "./dist/contract.js",
       "default": "./dist/contract.js"
     },
     "./components": {
-      "types": "./dist/components.d.ts",
-      "svelte": {
-        "browser": "./dist/components.js",
-        "default": "./dist/components.server.js"
-      },
+      "types": "./dist/svelte/components.d.ts",
+      "svelte": "./dist/svelte/components.js",
       "browser": "./dist/components.js",
       "node": "./dist/components.server.js",
       "import": "./dist/components.js",
@@ -126,30 +120,31 @@
     "LICENSE"
   ],
   "sideEffects": [
-    "./dist/styles.css"
+    "**/*.css"
   ],
   "scripts": {
     "auth-handoff:generate": "bun scripts/generate-auth-handoff-registry.ts",
     "auth-handoff:check": "bun scripts/generate-auth-handoff-registry.ts --check",
-    "build": "vite build && vite build --config vite.server.config.ts && bun scripts/preserve-server-component-identity.ts && bun scripts/build-package-surface.ts && bun scripts/check-ssr-package-surface.ts",
+    "build": "bun run build:bundle && bun run build:svelte && bun scripts/build-package-surface.ts && bun scripts/check-ssr-package-surface.ts",
     "build:bundle": "vite build && vite build --config vite.server.config.ts",
     "browser:check": "node scripts/check-browser-accessibility.mjs && node scripts/check-auth-shell-busy.mjs && node scripts/check-auth-feedback-browser.mjs && node scripts/check-product-link-clock-browser.mjs",
     "check": "svelte-check --tsconfig ./tsconfig.json && bun scripts/check-bun-registry-lock.ts && bun scripts/check-product-link-contract.ts && bun scripts/check-auth-handoff-contract.ts && bun scripts/check-passkey-progressive-enhancement.ts && bun scripts/check-passkey-settings.ts && bun scripts/check-auth-ui.ts && bun scripts/check-locale-bundles.ts && bun scripts/check-package-types.ts && bun run --conditions development scripts/check-dev-ssr-consumer.mjs && bun run release:check",
     "release:artifact:check": "bun scripts/build-release-artifact.ts --check",
     "release:check": "bun scripts/check-release-workflow.ts && bun run release:artifact:check",
-    "package:check": "bun run check"
+    "package:check": "bun run check",
+    "build:svelte": "svelte-package --output dist/svelte --tsconfig tsconfig.declarations.json"
   },
   "dependencies": {
     "@simplewebauthn/browser": "^14.0.0",
     "zdp-design-system": "^0.65.0"
   },
   "devDependencies": {
+    "@sveltejs/package": "^3",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@types/node": "^26.6.4",
     "playwright-core": "^1.64.0",
     "svelte": "^5.57.2",
     "svelte-check": "^4.7.6",
-    "svelte2tsx": "^0.7.61",
     "typescript": "^6.0.3",
     "vite": "^8.3.4"
   },

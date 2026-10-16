@@ -5,7 +5,11 @@
     "emitDeclarationOnly": true,
     "declaration": true,
     "declarationMap": false,
-    "rootDir": "./src/lib"
+    "rootDir": "./src/lib",
+    "rewriteRelativeImportExtensions": true
   },
-  "include": ["src/lib/**/*.ts", "src/lib/**/*.svelte"]
+  "include": [
+    "src/lib/**/*.ts",
+    "src/lib/**/*.svelte"
+  ]
 }

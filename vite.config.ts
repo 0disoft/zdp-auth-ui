@@ -81,8 +81,8 @@ function renderLocaleModule(locale: ZdpAuthLocale, messages: ZdpAuthMessages): s
 
 function renderLocaleDeclaration(locale: ZdpAuthLocale): string {
   return [
-    "import type { ZdpAuthMessages } from '../i18n';",
-    "import type { ZdpPasskeySettingsMessages } from '../types/passkey-settings-messages';",
+    "import type { ZdpAuthMessages } from '../svelte/i18n.js';",
+    "import type { ZdpPasskeySettingsMessages } from '../svelte/passkey-settings-messages.js';",
     '',
     `export declare const locale: ${JSON.stringify(locale)};`,
     'export declare const messages: ZdpAuthMessages;',
@@ -131,8 +131,8 @@ function serializeJavaScript(value: object): string {
     .replaceAll('\u2029', '\\u2029');
 }
 
-const localeLoaderDeclaration = `import type { ZdpAuthLocale, ZdpAuthMessages } from '../i18n';
-import type { ZdpPasskeySettingsMessages } from '../types/passkey-settings-messages';
+const localeLoaderDeclaration = `import type { ZdpAuthLocale, ZdpAuthMessages } from '../svelte/i18n.js';
+import type { ZdpPasskeySettingsMessages } from '../svelte/passkey-settings-messages.js';
 
 export declare function loadAuthLocale(locale: ZdpAuthLocale | string): Promise<{
   readonly locale: ZdpAuthLocale;

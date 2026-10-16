@@ -262,8 +262,11 @@ function checkPackageJson(
     );
   }
 
-  if (packageJson.scripts?.build !== 'vite build && vite build --config vite.server.config.ts && bun scripts/preserve-server-component-identity.ts && bun scripts/build-package-surface.ts && bun scripts/check-ssr-package-surface.ts') {
-    failures.push('package.json scripts.build must create both package surfaces, preserve server component identity, and verify them.');
+  if (packageJson.scripts?.build !== 'bun run build:bundle && bun run build:svelte && bun scripts/build-package-surface.ts && bun scripts/check-ssr-package-surface.ts') {
+    failures.push('package.json scripts.build must create the browser, Node SSR and standard Svelte package surfaces and verify them.');
+  }
+  if (packageJson.scripts?.['build:svelte'] !== 'svelte-package --output dist/svelte --tsconfig tsconfig.declarations.json') {
+    failures.push('package.json scripts.build:svelte must generate Svelte components and declarations with svelte-package.');
   }
 
   checkPackageExports(packageJson);
@@ -274,11 +277,8 @@ function checkPackageExports(packageJson: PackageJson): void {
     [
       '.',
       {
-        types: './dist/index.d.ts',
-        svelte: {
-          browser: './dist/index.js',
-          default: './dist/index.server.js'
-        },
+        types: './dist/svelte/index.d.ts',
+        svelte: './dist/svelte/index.js',
         browser: './dist/index.js',
         node: './dist/index.server.js',
         import: './dist/index.js',
@@ -289,7 +289,7 @@ function checkPackageExports(packageJson: PackageJson): void {
     [
       './i18n',
       {
-        types: './dist/i18n.d.ts',
+        types: './dist/svelte/i18n.d.ts',
         import: './dist/i18n.js',
         default: './dist/i18n.js'
       }
@@ -297,7 +297,7 @@ function checkPackageExports(packageJson: PackageJson): void {
     [
       './contract',
       {
-        types: './dist/contract.d.ts',
+        types: './dist/svelte/auth-contract.d.ts',
         import: './dist/contract.js',
         default: './dist/contract.js'
       }
@@ -310,8 +310,8 @@ function checkPackageExports(packageJson: PackageJson): void {
     default: './dist/i18n/loader.js'
   });
   expectedExports.set('./components', {
-    types: './dist/components.d.ts',
-    svelte: { browser: './dist/components.js', default: './dist/components.server.js' },
+    types: './dist/svelte/components.d.ts',
+    svelte: './dist/svelte/components.js',
     browser: './dist/components.js',
     node: './dist/components.server.js',
     import: './dist/components.js',
@@ -345,8 +345,8 @@ function checkPackageExports(packageJson: PackageJson): void {
     failures.push('package.json files must not publish src/ because clean consumers must use the generated dist package surface.');
   }
 
-  if (!packageJson.sideEffects?.includes('./dist/styles.css')) {
-    failures.push('package.json sideEffects must preserve ./dist/styles.css.');
+  if (!packageJson.sideEffects?.includes('**/*.css')) {
+    failures.push('package.json sideEffects must preserve the styles entry and consumer-generated component CSS.');
   }
 }
 

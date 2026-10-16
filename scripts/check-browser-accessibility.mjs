@@ -16,11 +16,6 @@ const server = await createServer({
     noDiscovery: true
   },
   plugins: [svelte()],
-  resolve: {
-    alias: [
-      { find: /^zdp-auth-ui$/, replacement: join(root, 'dist', 'index.js') }
-    ]
-  },
   root: join(root, 'tests/browser'),
   server: {
     hmr: false,

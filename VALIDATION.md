@@ -25,7 +25,7 @@
 
 - Service boundary: `service.yaml`
 - Package surface: `package.json`, `src/lib/index.ts`, `src/lib/auth-contract.ts`, `src/lib/auth-handoff.ts`, `src/lib/password-signup.ts`, `src/lib/i18n.ts`
-- Dist builders and SSR regression: `vite.config.ts`, `vite.server.config.ts`, `scripts/build-package-surface.ts`, `scripts/check-ssr-package-surface.ts`
+- Dist builders and SSR regression: `vite.config.ts`, `vite.server.config.ts`, `tsconfig.declarations.json` used by `bun run build:svelte` (`svelte-package`), `scripts/build-package-surface.ts` (styles entry), `scripts/check-ssr-package-surface.ts`
 - Package checker: `scripts/check-auth-handoff-contract.ts`, `scripts/check-passkey-progressive-enhancement.ts`, `scripts/check-auth-ui.ts`, `scripts/check-package-types.ts`
 - Release workflow: `.github/workflows/publish-npm.yml`, `scripts/check-release-workflow.ts`
 - Consumer fixture: `examples/clean-consumer/AuthUiCleanConsumer.svelte`
@@ -54,7 +54,7 @@
 
 - `vite.config.ts` must externalize dependency package roots and subpaths so the browser library never embeds a second Svelte runtime; `vite.server.config.ts` must keep Svelte external while compiling design-system components into a Node SSR entrypoint.
 - `service.yaml`, `BOUNDARY.md`, `SECURITY.md`, and agent docs must agree that this package is UI-only.
-- `package.json` exports, build output, and checker expectations must agree on root, styles, i18n, and contract entrypoints.
+- `package.json` exports, build output, and checker expectations must agree on root, `./components`, styles, i18n, and contract entrypoints. The root and `./components` `svelte` and `types` conditions resolve to `dist/svelte/**`, per-locale and loader declarations come from the browser build under `dist/i18n/**`, and browser and Node fallbacks resolve to the `dist/**` bundles.
 - Locale docs and checker rules must agree that all 12 locales have login/signup copy while only reviewed feature and policy combinations are active.
 - Passkey docs, source, declarations, and CI checks must agree on fail-closed capability detection, conditional UI requiring an autocomplete value ending in `webauthn`, typed cancellation and caller-bounded timeout, and server-owned challenge verification and credential storage.
 - Product-link docs, source, declarations, unit checks, and browser fixture must agree that the component is disabled by default, never calls a live route, validates the trusted HTTPS verification context, and fails closed without rendering challenge references.

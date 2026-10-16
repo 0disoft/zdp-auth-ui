@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'svelte';
+
 export { default as AuthShell } from './compat/AuthShell.svelte';
 export { default as LoginIdField } from './compat/LoginIdField.svelte';
 export { default as PasswordField } from './compat/PasswordField.svelte';
@@ -113,3 +115,11 @@ export {
   type ZdpPasswordSignupContractRequest,
   type ZdpPasswordSignupContractResult
 } from './password-signup';
+
+export type AuthShellProps = ComponentProps<typeof import('./compat/AuthShell.svelte').default>;
+export type LoginIdFieldProps = ComponentProps<typeof import('./compat/LoginIdField.svelte').default>;
+export type PasswordFieldProps = ComponentProps<typeof import('./compat/PasswordField.svelte').default>;
+export type PasswordSignupFieldsProps = ComponentProps<typeof import('./compat/PasswordSignupFields.svelte').default>;
+export type ProductLinkApprovalProps = ComponentProps<typeof import('./compat/ProductLinkApproval.svelte').default>;
+export type ProviderButtonProps = ComponentProps<typeof import('./components/ProviderButton.svelte').default>;
+export type PasskeySettingsProps = ComponentProps<typeof import('./compat/PasskeySettings.svelte').default>;

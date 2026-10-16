@@ -15,8 +15,8 @@ const [loginIdFieldSource, publicEntrySource, packageSurfaceSource] = await Prom
   readFile(new URL('../src/lib/components/LoginIdField.svelte', import.meta.url), 'utf8'),
   readFile(new URL('../src/lib/index.ts', import.meta.url), 'utf8'),
   Promise.all([
-    readFile(new URL('../dist/types/passkey.d.ts', import.meta.url), 'utf8'),
-    readFile(new URL('../dist/types/components/LoginIdField.svelte.d.ts', import.meta.url), 'utf8')
+    readFile(new URL('../dist/svelte/passkey.d.ts', import.meta.url), 'utf8'),
+    readFile(new URL('../dist/svelte/components/LoginIdField.svelte.d.ts', import.meta.url), 'utf8')
   ]).then(parts => parts.join('\n'))
 ]);
 assert.ok(

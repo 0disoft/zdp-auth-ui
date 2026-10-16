@@ -1,16 +1,17 @@
 import assert from 'node:assert/strict';
 import { build } from 'vite';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { getAuthMessages, zdpAuthTargetLocales } from '../src/lib/i18n';
 import { getPasskeySettingsMessages } from '../src/lib/passkey-settings-messages';
 
-// Bundle the published JS surface, externalizing host runtimes so the byte
+// Bundle the published Svelte surface, externalizing host runtimes so the byte
 // comparison measures this package rather than a consumer's framework version.
 async function consumerBundle(componentEntry: string, lazy: boolean) {
   const entry = '\0auth-locale-consumer';
   const result = await build({
     configFile: false,
     logLevel: 'error',
-    plugins: [{
+    plugins: [svelte(), {
       name: 'auth-locale-consumer',
       resolveId(id) { return id === entry ? entry : null; },
       load(id) {
@@ -74,7 +75,9 @@ assert.ok(fixedCode.includes(getPasskeySettingsMessages('ko').title));
 for (const bundle of [fixed, lazy]) {
   const modules = bundle.initial.flatMap(chunk => Object.keys(chunk.modules))
     .map(id => id.replaceAll('\\', '/'));
-  assert.ok(!modules.some(id => /\/dist\/(?:i18n|index)\.js$/.test(id)),
+  assert.ok(modules.some(id => id.includes('/dist/svelte/components/AuthShell.svelte')),
+    'Svelte consumers must compile the packaged components instead of the precompiled fallback.');
+  assert.ok(!modules.some(id => /\/dist\/(?:svelte\/)?(?:i18n|index)\.js$/.test(id)),
     'Lean component imports must not pull in either synchronous compatibility entry.');
 }
 for (const locale of zdpAuthTargetLocales) {

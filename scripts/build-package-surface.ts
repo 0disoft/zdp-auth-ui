@@ -1,4 +1,3 @@
-import { generatePackageDeclarations } from './build-package-declarations';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -17,8 +16,6 @@ async function writeStylesEntry(): Promise<void> {
   await writeFile(join(distDir, 'styles.css'), `${styles.trimEnd()}\n`, 'utf8');
 }
 
-async function writeDeclarationFiles(): Promise<void> { await generatePackageDeclarations(root); }
-
 async function readOptionalFile(path: string): Promise<string> {
   try {
     return await readFile(path, 'utf8');
@@ -33,4 +30,3 @@ async function readOptionalFile(path: string): Promise<string> {
 
 await mkdir(distDir, { recursive: true });
 await writeStylesEntry();
-await writeDeclarationFiles();

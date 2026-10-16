@@ -9,8 +9,8 @@ import { createServer } from 'vite';
 
 const root = process.cwd();
 const [contractDeclaration, indexDeclaration, feedbackContract] = await Promise.all([
-  readFile(join(root, 'dist/types/auth-contract.d.ts'), 'utf8'),
-  readFile(join(root, 'dist/types/components/AuthShell.svelte.d.ts'), 'utf8'),
+  readFile(join(root, 'dist/svelte/auth-contract.d.ts'), 'utf8'),
+  readFile(join(root, 'dist/svelte/components/AuthShell.svelte.d.ts'), 'utf8'),
   import(pathToFileURL(join(root, 'dist', 'contract.js')).href)
 ]);
 
