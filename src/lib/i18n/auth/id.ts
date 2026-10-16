@@ -8,8 +8,8 @@ const messages = {
     "recovery": "Pulihkan akun"
   },
   "summary": {
-    "login": "Lanjutkan dengan akun 8ailors Anda.",
-    "signup": "Buat akun 8ailors Anda.",
+    "login": "Lanjutkan dengan akun {brand} Anda.",
+    "signup": "Buat akun {brand} Anda.",
     "recovery": "Kami akan mengirim petunjuk pemulihan ke email Anda."
   },
   "fields": {

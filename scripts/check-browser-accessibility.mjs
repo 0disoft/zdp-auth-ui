@@ -175,6 +175,11 @@ try {
     'Continue with your ZDP $& $$ account.',
     'Account brands must be inserted literally without interpreting replacement tokens.'
   );
+  assert.deepEqual(
+    await page.getByTestId('account-brand-template-fixture').locator('.zdp-auth-shell__summary').allTextContents(),
+    ['ZDP $& $$ / ZDP $& $$', 'Editorial fallback / Editorial fallback'],
+    'All brand placeholders must use the override or catalog default independently of catalog wording.'
+  );
   const resetPasswordInput = passwordResetFixture.getByLabel('Password', { exact: true });
   await passwordResetFixture.getByRole('button', { name: 'Show password', exact: true }).click();
   assert.equal(await resetPasswordInput.getAttribute('type'), 'text');

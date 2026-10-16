@@ -20,6 +20,7 @@ export interface ZdpAuthMessages {
     readonly signup: string;
     readonly recovery: string;
   };
+  /** Templates use {brand} wherever the account brand is named. */
   readonly summary: {
     readonly login: string;
     readonly signup: string;

@@ -47,3 +47,7 @@ Catalogs are generated from a synchronous source, so any component that falls ba
 ## Source of truth
 
 Auth copy is authored in `src/lib/i18n/auth/<locale>.ts` and passkey management copy in `src/lib/i18n/passkey-settings/<locale>.ts`, both against the shared types in `src/lib/i18n/schema.ts`. `src/lib/i18n.ts` exports the frozen `zdpAuthMessages` aggregate and `src/lib/passkey-settings-messages.ts` assembles its catalog internally; both freeze each catalog once at module initialization. The browser Vite build serializes each catalog member into `dist/i18n/<locale>.js`, emits the matching declaration, and writes the dynamic loader, so a rebuilt entry carries the current translated copy. No copied locale catalog is maintained in source, and the generated entries cannot drift into a second hand-maintained catalog; the locale loading and public import shapes above are unchanged.
+
+## Brand placeholders
+
+A `summary` in `src/lib/i18n/auth/<locale>.ts` that names the account brand carries the `{brand}` placeholder instead of a literal `8ailors`, while summaries without a brand, such as the English signup copy, stay unchanged; a consumer that renders a catalog summary without the UI component substitutes the placeholder itself. `AuthShell` fills every token from the normalized `accountBrand`, falling back to `catalog.brand`, through a `replaceAll` callback so tokens land literally (`$&` and `$$` survive), and `PasswordSignupFields` uses the same callback form for `{minimumAge}`.

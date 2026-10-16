@@ -8,7 +8,7 @@ const messages = {
     "recovery": "Recover account"
   },
   "summary": {
-    "login": "Continue with your 8ailors account.",
+    "login": "Continue with your {brand} account.",
     "signup": "Start with only the details we need.",
     "recovery": "We will send recovery instructions to your email."
   },

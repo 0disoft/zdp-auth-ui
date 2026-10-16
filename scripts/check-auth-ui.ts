@@ -417,11 +417,22 @@ function checkMessageCatalog(): void {
     [en.brand, '8ailors'], [ko.brand, '8ailors'],
     [ko.providers.groupLabel, '인증 수단 선택'], [en.providers.groupLabel, 'Choose sign-in method'],
     [ko.navigation.accountHelp, '계정 도움말'], [en.navigation.accountHelp, 'Account help'],
-    [ko.summary.signup, '8ailors 계정을 생성합니다.'],
+    [ko.summary.signup, '{brand} 계정을 생성합니다.'],
     [ko.availability.preparing, '계정 서비스는 아직 준비 중입니다.'],
     [en.availability.preparing, 'Account access is not available yet.']
   ]) {
     if (actual !== expected) failures.push(`Auth shell catalog must preserve copy: ${expected}.`);
+  }
+  for (const locale of zdpAuthTargetLocales) {
+    const messages = getAuthMessages(locale);
+    if (!messages.summary.login.includes('{brand}')) {
+      failures.push(`Locale ${locale} login summary must include the {brand} placeholder.`);
+    }
+    for (const summary of Object.values(messages.summary)) {
+      if (summary.includes(messages.brand)) {
+        failures.push(`Locale ${locale} summary must use {brand} instead of a literal brand.`);
+      }
+    }
   }
 }
 

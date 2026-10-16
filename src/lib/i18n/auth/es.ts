@@ -8,8 +8,8 @@ const messages = {
     "recovery": "Recuperar cuenta"
   },
   "summary": {
-    "login": "Continúa con tu cuenta de 8ailors.",
-    "signup": "Crea tu cuenta de 8ailors.",
+    "login": "Continúa con tu cuenta de {brand}.",
+    "signup": "Crea tu cuenta de {brand}.",
     "recovery": "Enviaremos las instrucciones de recuperación a tu correo electrónico."
   },
   "fields": {

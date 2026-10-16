@@ -144,7 +144,7 @@
     required
     {disabled}
   >
-    {copy.fields.minimumAgeConfirmation.replace('{minimumAge}', String(contract.minimumAgeYears))}
+    {copy.fields.minimumAgeConfirmation.replaceAll('{minimumAge}', () => String(contract.minimumAgeYears))}
   </Checkbox>
   {/key}
   <input type="hidden" name={contract.fieldNames.agePolicyRef} value={contract.agePolicyRef} autocomplete="off" />

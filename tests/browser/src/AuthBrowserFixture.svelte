@@ -19,6 +19,11 @@
     ZdpProductLinkTrustPolicy
   } from '../../../src/lib/product-link';
   import { createZdpPasswordSignupContract } from '../../../src/lib/password-signup';
+  import { getAuthMessages } from '../../../src/lib/i18n';
+
+  const defaultMessages = getAuthMessages('en');
+  const templateMessages = { ...defaultMessages, brand: 'Editorial fallback',
+    summary: { ...defaultMessages.summary, login: '{brand} / {brand}' } };
 
   let password = '';
   let resetPassword = 'initial-fixture-password';
@@ -207,6 +212,10 @@
 
   <section data-testid="literal-account-brand-fixture">
     <AuthShell locale="en" mode="login" availability="preparing" accountBrand={'ZDP $& $$'} />
+  </section>
+  <section data-testid="account-brand-template-fixture">
+    <AuthShell messages={templateMessages} availability="preparing" accountBrand={'ZDP $& $$'} />
+    <AuthShell messages={templateMessages} availability="preparing" />
   </section>
 
   <DistAuthShellFixture />

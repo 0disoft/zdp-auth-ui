@@ -8,8 +8,8 @@ const messages = {
     "recovery": "アカウントを復旧"
   },
   "summary": {
-    "login": "8ailors アカウントで続行します。",
-    "signup": "8ailors アカウントを作成します。",
+    "login": "{brand} アカウントで続行します。",
+    "signup": "{brand} アカウントを作成します。",
     "recovery": "復旧手順をメールでお送りします。"
   },
   "fields": {

@@ -210,7 +210,7 @@
   let copy = $derived(messages);
   let normalizedAccountBrand = $derived(normalizeAccountBrand(accountBrand));
   let title = $derived(copy.title[mode]);
-  let summary = $derived(copy.summary[mode].replace(copy.brand, () => normalizedAccountBrand ?? copy.brand));
+  let summary = $derived(copy.summary[mode].replaceAll('{brand}', () => normalizedAccountBrand ?? copy.brand));
   let primaryAction = $derived(copy.actions[mode]);
   let preparing = $derived(availability === 'preparing');
   let submitting = $derived(busy && !preparing);
