@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## 0.10.0
+
+- Added a `zdp-auth-ui/components` entry that exports the seven UI components without the synchronous catalog runtime. Its `AuthShell`, `LoginIdField`, `PasswordField`, `PasswordSignupFields`, `ProductLinkApproval`, and `PasskeySettings` require caller-injected `messages`, and `PasskeySettings` also requires `authMessages`; consumers pass one fixed `zdp-auth-ui/i18n/<locale>` catalog or load it at runtime so one locale arrives instead of all twelve.
+- Kept the root export as compatibility adapters whose `messages` props stay optional and still default to the synchronous `getAuthMessages()` and `getPasskeySettingsMessages()` lookups, including the `PasskeySettings.authMessages` fallback.
+- Split the single message module into per-locale auth and passkey-settings catalogs authored against a shared schema and froze every catalog once at initialization, and translated the product-link copy and the provider passkey label across all 12 target locales; no feature gate or locale is activated by this work.
+- The locale loader returns `{ locale, messages, passkeySettingsMessages }` from one import through `loadAuthLocale()`, `loadAuthMessages()` and `loadPasskeySettingsMessages()` remain available, and each `zdp-auth-ui/i18n/<locale>` entry now exposes the matching `passkeySettingsMessages`.
+- Rebuilt the components with Svelte 5 runes and adopted the standard `svelte-package` pipeline, so the `svelte` condition ships packaged `.svelte` files that the consumer's own compiler builds, native snippets and design-system slots render in dev SSR, and the string-based SSR component-identity rewrite and manual declaration generator are removed.
+- Named the account brand through explicit `{brand}` and `{minimumAge}` placeholders that `AuthShell` and `PasswordSignupFields` fill from the normalized brand and signup contract, so translated summaries no longer hardcode the default `8ailors` brand.
+- Narrowed the password reveal reset watch to the input's own ancestor removals instead of whole-tree document mutations, and trimmed the surrounding signup copy.
+- Scoped passkey ceremonies to the caller's own `AbortSignal` and optional `container`, issued native `navigator.credentials` requests instead of the SDK global abort service, deep-copied registration options, and trimmed the age-policy reference before validation; the behavior checks were reworked to assert locale and build output without source snapshots.
+
 ## 0.9.4
 
 - Use shared foundation CSS without loading a remote font stylesheet. Consumers own font delivery.
