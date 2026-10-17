@@ -23,7 +23,8 @@ export default defineConfig({
         index: 'src/lib/index.ts',
         components: 'src/lib/components.ts',
         i18n: 'src/lib/i18n.ts',
-        contract: 'src/lib/auth-contract.ts'
+        contract: 'src/lib/auth-contract.ts',
+        passkey: 'src/lib/passkey.ts'
       },
       formats: ['es'],
       fileName: (_format: string, entryName: string) => `${entryName}.js`

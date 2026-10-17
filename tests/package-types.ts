@@ -15,6 +15,44 @@ import { loadAuthLocale, loadPasskeySettingsMessages } from 'zdp-auth-ui/i18n/lo
 import { createZdpAuthSurfaceModel as createLeanSurface, type ZdpAuthSurfaceConfig as LeanSurfaceConfig,
   type AuthShellProps as LeanShellProps, type PasskeySettingsProps as LeanPasskeyProps } from 'zdp-auth-ui/components';
 import { createZdpAuthSurfaceModel, type ZdpAuthSurfaceConfig } from 'zdp-auth-ui';
+import type { ComponentProps } from 'svelte';
+import type * as LeanComponents from 'zdp-auth-ui/components';
+import type * as LeanContract from 'zdp-auth-ui/contract';
+import type * as LeanPasskey from 'zdp-auth-ui/passkey';
+import type * as Root from 'zdp-auth-ui';
+
+type Equal<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? true : false;
+type RequireTrue<T extends true> = T;
+type LeanPropsParity = [
+  RequireTrue<Equal<LeanComponents.AuthShellProps, ComponentProps<typeof LeanComponents.AuthShell>>>,
+  RequireTrue<Equal<LeanComponents.LoginIdFieldProps, ComponentProps<typeof LeanComponents.LoginIdField>>>,
+  RequireTrue<Equal<LeanComponents.PasswordFieldProps, ComponentProps<typeof LeanComponents.PasswordField>>>,
+  RequireTrue<Equal<LeanComponents.PasswordSignupFieldsProps, ComponentProps<typeof LeanComponents.PasswordSignupFields>>>,
+  RequireTrue<Equal<LeanComponents.ProductLinkApprovalProps, ComponentProps<typeof LeanComponents.ProductLinkApproval>>>,
+  RequireTrue<Equal<LeanComponents.ProviderButtonProps, ComponentProps<typeof LeanComponents.ProviderButton>>>,
+  RequireTrue<Equal<LeanComponents.PasskeySettingsProps, ComponentProps<typeof LeanComponents.PasskeySettings>>>
+];
+type LeanContractParity = [
+  RequireTrue<Equal<LeanContract.ZdpManagedPasskey, Root.ZdpManagedPasskey>>,
+  RequireTrue<Equal<LeanContract.ZdpPasskeyAuthenticator, Root.ZdpPasskeyAuthenticator>>,
+  RequireTrue<Equal<LeanContract.ZdpPasskeyAuthenticatorProvider, Root.ZdpPasskeyAuthenticatorProvider>>,
+  RequireTrue<Equal<LeanContract.ZdpPasskeyAuthenticatorStorage, Root.ZdpPasskeyAuthenticatorStorage>>,
+  RequireTrue<Equal<LeanContract.ZdpPasskeyRegistrationPreference, Root.ZdpPasskeyRegistrationPreference>>,
+  RequireTrue<Equal<LeanContract.ZdpPasskeySettingsAction, Root.ZdpPasskeySettingsAction>>,
+  RequireTrue<Equal<LeanContract.ZdpPasskeySettingsFeedback, Root.ZdpPasskeySettingsFeedback>>,
+  RequireTrue<Equal<LeanContract.ZdpPasskeySettingsState, Root.ZdpPasskeySettingsState>>,
+  RequireTrue<Equal<typeof LeanContract.validateProductLinkRequest, typeof Root.validateProductLinkRequest>>
+];
+type LeanPasskeyParity = [
+  RequireTrue<Equal<LeanPasskey.ZdpPasskeyCeremonyOptions, Root.ZdpPasskeyCeremonyOptions>>,
+  RequireTrue<Equal<LeanPasskey.ZdpPasskeyAuthenticationOptions, Root.ZdpPasskeyAuthenticationOptions>>,
+  RequireTrue<Equal<LeanPasskey.ZdpPasskeySupport, Root.ZdpPasskeySupport>>,
+  RequireTrue<Equal<LeanPasskey.ZdpPasskeyAuthenticationMediation, Root.ZdpPasskeyAuthenticationMediation>>,
+  RequireTrue<Equal<LeanPasskey.ZdpPasskeyCeremonyKind, Root.ZdpPasskeyCeremonyKind>>,
+  RequireTrue<Equal<LeanPasskey.ZdpPasskeyErrorReason, Root.ZdpPasskeyErrorReason>>,
+  RequireTrue<Equal<typeof LeanPasskey.startPasskeyAuthentication, typeof Root.startPasskeyAuthentication>>,
+  RequireTrue<Equal<typeof LeanPasskey.startPasskeyRegistration, typeof Root.startPasskeyRegistration>>
+];
 
 const surfaceConfig: ZdpAuthSurfaceConfig = { locale: 'ko', mode: 'login', availability: 'available' };
 const injectedSurfaceConfig: LeanSurfaceConfig = { ...surfaceConfig, messages: koMessages };

@@ -166,9 +166,15 @@ async function checkPackedConsumer(tarball: string, checkDirectory: string): Pro
 
   const runtimeConsumer = join(consumerRoot, 'consumer.mjs');
   await writeFile(runtimeConsumer, `import { zdpAuthMessages, zdpAuthTargetLocales } from 'zdp-auth-ui/i18n';
+import { validPasskeyLabel, validateProductLinkRequest } from 'zdp-auth-ui/contract';
+import { detectPasskeySupport, cancelPasskeyCeremony } from 'zdp-auth-ui/passkey';
 if (zdpAuthTargetLocales.length !== 12 || !zdpAuthMessages.ja?.title.login) {
   throw new Error('Packed locale catalog is incomplete.');
 }
+if (!validPasskeyLabel('Desktop') || validPasskeyLabel('') ||
+    validateProductLinkRequest(null, null).disposition !== 'invalid' ||
+    (await detectPasskeySupport()).supported) throw new Error('Packed lean API is incomplete or unsafe during SSR.');
+cancelPasskeyCeremony();
 `);
   await import(pathToFileURL(runtimeConsumer).href);
 

@@ -84,6 +84,7 @@ export {
 } from './auth-handoff';
 
 export {
+  validateProductLinkRequest,
   zdpProductLinkDecisions,
   zdpProductLinkItemKinds,
   zdpProductLinkStates,
@@ -105,3 +106,22 @@ export {
   type ZdpPasswordSignupContractRequest,
   type ZdpPasswordSignupContractResult
 } from './password-signup';
+
+export {
+  isZdpPasskeyAuthenticatorProvider,
+  isZdpPasskeyAuthenticatorStorage,
+  isZdpPasskeyRegistrationPreference,
+  validPasskeyLabel,
+  zdpPasskeyAuthenticatorProviders,
+  zdpPasskeyAuthenticatorStorages,
+  zdpPasskeyRegistrationPreferenceDefault,
+  zdpPasskeyRegistrationPreferences,
+  type ZdpManagedPasskey,
+  type ZdpPasskeyAuthenticator,
+  type ZdpPasskeyAuthenticatorProvider,
+  type ZdpPasskeyAuthenticatorStorage,
+  type ZdpPasskeyRegistrationPreference,
+  type ZdpPasskeySettingsAction,
+  type ZdpPasskeySettingsFeedback,
+  type ZdpPasskeySettingsState
+} from './passkey-settings-contract';

@@ -14,6 +14,8 @@ The browser helper may start or cancel a consumer-triggered ceremony. It may not
 
 ## Ceremony cancellation and concurrency
 
+Import browser ceremony helpers and their types from `zdp-auth-ui/passkey` to avoid the package root's synchronous locale catalogs. The browser root and this subpath share the same helper implementation and ceremony state.
+
 Registration and authentication both accept `ZdpPasskeyCeremonyOptions`, which carries `timeoutMs` and `signal`. Pass the caller's own `AbortController.signal`; aborting it cancels only the ceremony started by that call and reports `cancelled`. A signal that is already aborted when the call starts rejects at once with `cancelled` and leaves any in-flight prompt alone, and aborting an earlier caller's signal after a newer call begins has no effect on the newer request. An abort that lands while the helper is still awaiting a browser capability probe settles the call as `cancelled` before any prompt opens, so a late browser prompt does not surface. Both kinds clone the caller's options with `structuredClone` before the ceremony consumes them, so mutating the original object after the call cannot reach the browser request.
 
 The package maintains a single-flight policy: a new ceremony replaces the previous in-flight request, and `cancelPasskeyCeremony()` remains the explicit whole-cancel entry point for whichever ceremony is active. Per-call cancellation does not cancel another direct SDK consumer. A component that owns an `AbortController` registers teardown independently of its event handler so an unmounted surface does not leave a prompt running:

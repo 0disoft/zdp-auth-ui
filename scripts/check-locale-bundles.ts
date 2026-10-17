@@ -80,6 +80,22 @@ const compiledFixed = await consumerBundle('zdp-auth-ui/components', false, fals
 const compiledLazy = await consumerBundle('zdp-auth-ui/components', true, false);
 const signup = await consumerBundle('zdp-auth-ui/components', false, true,
   resolve('tests/bundles/KoreanPasswordSignup.svelte'));
+const management = await consumerBundle('zdp-auth-ui/components', false, true,
+  resolve('tests/bundles/LeanManagement.ts'));
+assertCatalogsAbsent(management.initial.map(chunk => chunk.code).join('\n'), zdpAuthTargetLocales);
+const managementExports = management.initial.flatMap(chunk => chunk.exports);
+for (const name of ['AuthShell', 'PasskeySettings', 'ProductLinkApproval', 'validPasskeyLabel',
+  'validateProductLinkRequest', 'isZdpPasskeyAuthenticatorProvider', 'isZdpPasskeyAuthenticatorStorage',
+  'isZdpPasskeyRegistrationPreference', 'zdpPasskeyAuthenticatorProviders', 'zdpPasskeyAuthenticatorStorages',
+  'zdpPasskeyRegistrationPreferenceDefault', 'zdpPasskeyRegistrationPreferences', 'startPasskeyAuthentication',
+  'startPasskeyRegistration', 'detectPasskeySupport', 'cancelPasskeyCeremony', 'ZdpPasskeyCeremonyError',
+  'zdpPasskeyCeremonyKinds', 'zdpPasskeyAuthenticationMediationModes', 'zdpPasskeyErrorReasons']) {
+  assert.ok(managementExports.includes(name), `Catalog-free management bundle must retain ${name}.`);
+}
+const managementModules = management.initial.flatMap(chunk => Object.keys(chunk.modules))
+  .map(id => id.replaceAll('\\', '/'));
+assert.ok(!managementModules.some(id => /\/dist\/(?:svelte\/)?(?:i18n|index)\.js$/.test(id)),
+  'Management utilities and components must not import a synchronous compatibility entry.');
 const fixedCode = fixed.initial.map(chunk => chunk.code).join('\n');
 const lazyCode = lazy.initial.map(chunk => chunk.code).join('\n');
 const signupCode = signup.initial.map(chunk => chunk.code).join('\n');
@@ -129,6 +145,7 @@ console.log(JSON.stringify({
     compatibilityWithKorean: legacy.initialBytes,
     componentsWithKorean: fixed.initialBytes,
     signupWithKoreanAndContract: signup.initialBytes,
+    managementWithoutCatalogs: management.initialBytes,
     componentsWithLoaderInitial: lazy.initialBytes
   },
   precompiledJavaScriptBytes: {

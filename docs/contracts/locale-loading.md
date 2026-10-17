@@ -45,6 +45,8 @@ Catalogs come from thin synchronous source entries, so any component that falls 
 
 ## Compatibility
 
+Catalog-free consumers import passkey settings contracts and guards (including `ZdpPasskeySettingsState`, `ZdpManagedPasskey`, and `validPasskeyLabel`) and `validateProductLinkRequest` from `zdp-auth-ui/contract`. Browser ceremony helpers, their error class, constants and options types are available from `zdp-auth-ui/passkey`. All seven component Props aliases are exported from `zdp-auth-ui/components`; those aliases describe the lean components and retain their required injected catalogs. The management bundle fixture retains all runtime exports from both utility subpaths alongside components and checks that none of the 12 catalogs enter the initial bundle.
+
 `zdp-auth-ui/i18n` and package-root message exports remain synchronous compatibility surfaces and continue to expose all 12 catalogs. New consumers should use a fixed locale entry or the loader when initial JavaScript size matters.
 
 ## Source of truth

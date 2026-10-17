@@ -99,6 +99,11 @@
       "import": "./dist/contract.js",
       "default": "./dist/contract.js"
     },
+    "./passkey": {
+      "types": "./dist/svelte/passkey.d.ts",
+      "import": "./dist/passkey.js",
+      "default": "./dist/passkey.js"
+    },
     "./components": {
       "types": "./dist/svelte/components.d.ts",
       "svelte": "./dist/svelte/components.js",
