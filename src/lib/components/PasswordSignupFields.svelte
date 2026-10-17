@@ -65,15 +65,34 @@
 
   function validateConfirmation(node: HTMLDivElement, message: string) {
     const input = node.querySelector('input');
+    if (!input) return;
+    const root = input.getRootNode();
+    const timers = new Set<ReturnType<typeof setTimeout>>();
     const revealError = () => { confirmationTouched = true; };
-    input?.setCustomValidity(message);
-    input?.addEventListener('blur', revealError);
-    input?.addEventListener('invalid', revealError);
+    const onReset = (event: Event) => {
+      const form = input.form;
+      if (!form || event.target !== form) return;
+      // Wait for native restoration and any later listener that cancels reset.
+      const timer = setTimeout(() => {
+        timers.delete(timer);
+        if (event.defaultPrevented || !input.isConnected || input.form !== form) return;
+        confirmation = '';
+        confirmationTouched = false;
+        input.setCustomValidity('');
+      }, 0);
+      timers.add(timer);
+    };
+    input.setCustomValidity(message);
+    input.addEventListener('blur', revealError);
+    input.addEventListener('invalid', revealError);
+    root.addEventListener('reset', onReset, true);
     return {
-      update(nextMessage: string) { input?.setCustomValidity(nextMessage); },
+      update(nextMessage: string) { input.setCustomValidity(nextMessage); },
       destroy() {
-        input?.removeEventListener('blur', revealError);
-        input?.removeEventListener('invalid', revealError);
+        input.removeEventListener('blur', revealError);
+        input.removeEventListener('invalid', revealError);
+        root.removeEventListener('reset', onReset, true);
+        for (const timer of timers) clearTimeout(timer);
       }
     };
   }
