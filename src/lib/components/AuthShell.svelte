@@ -88,6 +88,7 @@
   let previousFeedbackKey: string | null = $state(null);
   let previousLegacyErrorKey: string | null = $state(null);
   let pendingFocusKey: string | null = $state(null);
+  let politeAnnouncement: string | null = $state(null);
   let sameTaskSubmitHandled = false;
 
   const termsLinkContext = writable(untrack(() => termsHref?.trim() || null));
@@ -223,6 +224,8 @@
   let normalizedRecoveryHref = $derived(normalizeOptionalFormValue(recoveryHref));
   let typedFeedback = $derived(resolveTypedFeedback(feedback, copy, mode));
   let feedbackKey = $derived(getFeedbackKey(feedback));
+  let politeFeedbackKey = $derived(typedFeedback && !typedFeedback.invalid ? feedbackKey : null);
+  let politeFeedbackMessage = $derived(typedFeedback && !typedFeedback.invalid ? typedFeedback.message : null);
   let legacyErrorKey = $derived(invalid && status ? status : null);
   let visibleErrorKey = $derived(typedFeedback
     ? (typedFeedback.invalid && feedbackKey ? `typed:${feedbackKey}` : null)
@@ -243,6 +246,31 @@
     if (mounted && !submitting && pendingFocusKey && pendingFocusKey === visibleErrorKey) {
       void focusFeedback(pendingFocusKey);
     }
+  });
+  $effect.pre(() => {
+    const key = politeFeedbackKey;
+    const message = politeFeedbackMessage;
+    if (!mounted || submitting || !key || message === null) {
+      politeAnnouncement = null;
+      return;
+    }
+
+    politeAnnouncement = '';
+    let cancelled = false;
+    let frame: number | null = null;
+    void tick().then(() => {
+      if (cancelled) return;
+      // Keep the existing live region empty for a rendered frame before refilling it.
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(() => {
+          if (!cancelled) politeAnnouncement = message;
+        });
+      });
+    });
+    return () => {
+      cancelled = true;
+      if (frame !== null) cancelAnimationFrame(frame);
+    };
   });
   $effect.pre(() => {
     termsLinkContext.set(termsHref?.trim() || null);
@@ -305,7 +333,8 @@
               data-feedback-code={typedFeedback.code}
               role="status"
               aria-live="polite"
-            >{typedFeedback.message}</p>
+              aria-atomic="true"
+            >{politeAnnouncement ?? typedFeedback.message}</p>
           {/if}
         {:else if status}
           {#if invalid}

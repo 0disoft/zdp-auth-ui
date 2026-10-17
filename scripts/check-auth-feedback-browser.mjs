@@ -8,10 +8,11 @@ import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
 
 const root = process.cwd();
-const [contractDeclaration, indexDeclaration, feedbackContract] = await Promise.all([
+const [contractDeclaration, indexDeclaration, feedbackContract, englishCatalog] = await Promise.all([
   readFile(join(root, 'dist/svelte/auth-contract.d.ts'), 'utf8'),
   readFile(join(root, 'dist/svelte/components/AuthShell.svelte.d.ts'), 'utf8'),
-  import(pathToFileURL(join(root, 'dist', 'contract.js')).href)
+  import(pathToFileURL(join(root, 'dist', 'contract.js')).href),
+  import(pathToFileURL(join(root, 'dist/svelte/i18n/en.js')).href)
 ]);
 
 assert.match(
@@ -131,7 +132,7 @@ try {
   const registeredButton = fixture.getByTestId('show-registered');
   await registeredButton.click();
   const registeredFeedback = fixture.locator('[data-feedback-code="registered"]');
-  await registeredFeedback.waitFor();
+  await waitForStatus('registered', englishCatalog.messages.feedback.registered);
   assert.equal(await registeredFeedback.textContent(), 'Account created. Sign in to continue.');
   assert.equal(await registeredFeedback.getAttribute('role'), 'status');
   assert.equal(await registeredFeedback.getAttribute('aria-live'), 'polite');
@@ -146,6 +147,123 @@ try {
     false,
     'Non-error typed feedback must not use the error presentation.'
   );
+
+  async function waitForStatus(code, message) {
+    await page.waitForFunction(({ code, message }) =>
+      document.querySelector(`[data-testid="typed-auth-feedback-fixture"] [data-feedback-code="${code}"]`)?.textContent === message,
+    { code, message });
+  }
+
+  for (const [code, message] of [
+    ['registered', englishCatalog.messages.feedback.registered],
+    ['waiting', englishCatalog.messages.status.waiting]
+  ]) {
+    const button = fixture.getByTestId(`show-${code}`);
+    await button.click();
+    await waitForStatus(code, message);
+    const region = fixture.locator(`[data-feedback-code="${code}"]`);
+    await fixture.locator('#typed-feedback-password').focus();
+    await region.evaluate((element) => {
+      const probe = { element, focus: document.activeElement, changes: [] };
+      probe.observer = new MutationObserver(() => probe.changes.push({
+        text: element.textContent,
+        focusKept: document.activeElement === probe.focus
+      }));
+      probe.observer.observe(element, { subtree: true, childList: true, characterData: true });
+      window.feedbackMutationProbe = probe;
+    });
+    await button.evaluate((element) => element.click());
+    await page.waitForFunction((message) => {
+      const changes = window.feedbackMutationProbe.changes;
+      return changes.length >= 2 && changes.at(-1).text === message;
+    }, message);
+    const changes = await region.evaluate((element) => {
+      const probe = window.feedbackMutationProbe;
+      probe.observer.disconnect();
+      return { sameRegion: probe.element === element, changes: probe.changes };
+    });
+    assert.equal(changes.sameRegion, true, `${code} must preserve its live-region element.`);
+    assert.deepEqual(changes.changes, [
+      { text: '', focusKept: true },
+      { text: message, focusKept: true }
+    ], `${code} must clear and refill identical copy on a new sequence without moving input focus.`);
+    assert.equal(await region.getAttribute('aria-atomic'), 'true');
+  }
+
+  // Hold animation frames so supersession can be tested at either scheduled render.
+  await page.evaluate(() => {
+    const frames = {
+      pending: new Map(), cancelled: [], nextId: 0,
+      request: window.requestAnimationFrame, cancel: window.cancelAnimationFrame,
+      flush() {
+        const pending = [...this.pending.values()];
+        this.pending.clear();
+        for (const callback of pending) callback(performance.now());
+      }
+    };
+    window.requestAnimationFrame = (callback) => {
+      const id = ++frames.nextId;
+      frames.pending.set(id, callback);
+      return id;
+    };
+    window.cancelAnimationFrame = (id) => {
+      frames.cancelled.push(id);
+      frames.pending.delete(id);
+    };
+    window.feedbackFrames = frames;
+  });
+  async function queueStatus(code) {
+    await fixture.getByTestId(`show-${code}`).evaluate((element) => element.click());
+    await page.waitForFunction(() => window.feedbackFrames.pending.size === 1);
+    assert.equal(await fixture.locator(`[data-feedback-code="${code}"]`).textContent(), '');
+    return page.evaluate(() => [...window.feedbackFrames.pending.keys()][0]);
+  }
+  async function flushFrames() {
+    await page.evaluate(() => window.feedbackFrames.flush());
+  }
+  const firstFrame = await queueStatus('registered');
+  const replacementFrame = await queueStatus('registered');
+  assert.equal(await page.evaluate((id) => window.feedbackFrames.cancelled.includes(id), firstFrame), true);
+  await flushFrames();
+  const secondFrame = await page.evaluate(() => [...window.feedbackFrames.pending.keys()][0]);
+  assert.notEqual(secondFrame, replacementFrame);
+  await queueStatus('waiting');
+  assert.equal(await page.evaluate((id) => window.feedbackFrames.cancelled.includes(id), secondFrame), true);
+  await flushFrames();
+  assert.equal(await fixture.locator('[data-feedback-code="waiting"]').textContent(), '', 'The empty region must survive the first render frame.');
+  await flushFrames();
+  await waitForStatus('waiting', englishCatalog.messages.status.waiting);
+  assert.equal(await page.evaluate(() => window.feedbackFrames.pending.size), 0);
+
+  const clearedFrame = await queueStatus('registered');
+  await fixture.getByTestId('clear-feedback').evaluate((element) => element.click());
+  await page.waitForFunction(() => window.feedbackFrames.pending.size === 0);
+  assert.equal(await page.evaluate((id) => window.feedbackFrames.cancelled.includes(id), clearedFrame), true);
+  await flushFrames();
+  assert.equal(await fixture.locator('[data-feedback-code]').count(), 0, 'Cleared feedback must not return from an old callback.');
+
+  const busyFrame = await queueStatus('registered');
+  await fixture.getByTestId('queue-typed-error').evaluate((element) => element.click());
+  await page.waitForFunction(() => window.feedbackFrames.pending.size === 0);
+  assert.equal(await page.evaluate((id) => window.feedbackFrames.cancelled.includes(id), busyFrame), true);
+  await flushFrames();
+  assert.equal(await fixture.locator('[data-feedback-code]').count(), 0, 'Busy feedback must not revive a cancelled status.');
+  await fixture.getByTestId('release-busy').evaluate((element) => element.click());
+  await invalidFeedback.waitFor();
+
+  const unmountedFrame = await queueStatus('registered');
+  await fixture.getByTestId('toggle-feedback-shell').evaluate((element) => element.click());
+  await page.waitForFunction(() => window.feedbackFrames.pending.size === 0);
+  assert.equal(await page.evaluate((id) => window.feedbackFrames.cancelled.includes(id), unmountedFrame), true);
+  await flushFrames();
+  assert.equal(await fixture.locator('[data-feedback-code]').count(), 0);
+  await page.evaluate(() => {
+    window.requestAnimationFrame = window.feedbackFrames.request;
+    window.cancelAnimationFrame = window.feedbackFrames.cancel;
+    delete window.feedbackFrames;
+  });
+  await fixture.getByTestId('clear-feedback').click();
+  await fixture.getByTestId('toggle-feedback-shell').click();
 
   await fixture.getByTestId('clear-feedback').click();
   assert.equal(
@@ -180,7 +298,7 @@ try {
   await fixture.getByTestId('show-registered').click();
   const releaseBusy = fixture.getByTestId('release-busy');
   await releaseBusy.click();
-  await registeredFeedback.waitFor();
+  await waitForStatus('registered', englishCatalog.messages.feedback.registered);
   assert.equal(
     await releaseBusy.evaluate((element) => document.activeElement === element),
     true,

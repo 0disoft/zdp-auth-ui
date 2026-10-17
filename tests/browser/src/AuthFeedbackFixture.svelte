@@ -12,6 +12,7 @@
   let busy = false;
   let legacyStatus = 'Legacy fallback status.';
   let legacyInvalid = true;
+  let shellVisible = true;
 
   function showFeedback(code: ZdpAuthFeedbackCode): void {
     feedbackSequence += 1;
@@ -20,22 +21,24 @@
 </script>
 
 <section data-testid="typed-auth-feedback-fixture">
-  <AuthShell
-    locale="en"
-    mode="login"
-    {feedback}
-    {busy}
-    status={legacyStatus}
-    invalid={legacyInvalid}
-  >
-    <PasswordField
-      id="typed-feedback-password"
-      name="password"
-      bind:value={password}
+  {#if shellVisible}
+    <AuthShell
       locale="en"
-      autocomplete="current-password"
-    />
-  </AuthShell>
+      mode="login"
+      {feedback}
+      {busy}
+      status={legacyStatus}
+      invalid={legacyInvalid}
+    >
+      <PasswordField
+        id="typed-feedback-password"
+        name="password"
+        bind:value={password}
+        locale="en"
+        autocomplete="current-password"
+      />
+    </AuthShell>
+  {/if}
 
   <div>
     <button
@@ -53,6 +56,12 @@
       data-testid="show-registered"
       onclick={() => showFeedback('registered')}
     >Show registered</button>
+    <button type="button" data-testid="show-waiting" onclick={() => showFeedback('waiting')}>
+      Show waiting
+    </button>
+    <button type="button" data-testid="toggle-feedback-shell" onclick={() => (shellVisible = !shellVisible)}>
+      Toggle feedback shell
+    </button>
     <button type="button" data-testid="clear-feedback" onclick={() => (feedback = null)}>
       Clear feedback
     </button>

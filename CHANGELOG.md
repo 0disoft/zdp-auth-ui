@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reannounce repeated `waiting` and `registered` feedback by clearing and refilling the existing polite live region on a new sequence, preserve input focus, and cancel superseded or unmounted announcements.
+
 ## 0.11.0
 
 - Let the root `createZdpAuthSurfaceModel` accept optional `messages`, and export a catalog-free `createZdpAuthSurfaceModel` with its related types from `zdp-auth-ui/components`; that entry requires `messages` and stays out of the initial 12-locale runtime.
