@@ -10,6 +10,7 @@ import {
 import { getAuthMessages, zdpAuthMessages, zdpAuthTargetLocales } from '../src/lib/i18n';
 import browserBuildConfig from '../vite.config';
 import serverBuildConfig from '../vite.server.config';
+import { findStyleTokenViolations } from './style-token-policy';
 
 interface PackageJson {
   readonly name?: string;
@@ -590,6 +591,12 @@ function checkSourceBoundary(sourceFiles: readonly SourceFile[]): void {
 
   checkDesignSystemConsumption(sourceFiles);
   checkRawColorUsage(sourceFiles);
+  for (const sourceFile of sourceFiles) {
+    if (!sourceFile.relativePath.endsWith('.svelte')) continue;
+    for (const violation of findStyleTokenViolations(sourceFile.source)) {
+      failures.push(`${sourceFile.relativePath}:${violation.line} must use design-system spacing, size or typography tokens: ${violation.property}: ${violation.value}.`);
+    }
+  }
 }
 
 function checkCleanConsumerExamples(exampleFiles: readonly SourceFile[]): void {

@@ -330,20 +330,33 @@
   .zdp-passkey-settings__editor { border-top: var(--zdp-control-border-width) solid var(--zdp-color-line-subtle); padding-top: var(--zdp-space-4); }
   fieldset { display: grid; gap: var(--zdp-space-3); border: 0; padding: 0; margin: 0; min-width: 0; }
   legend { margin-bottom: var(--zdp-space-3); font-weight: var(--zdp-font-weight-semibold); }
-  .zdp-passkey-settings--directory { gap:0; }
-  .zdp-passkey-settings--directory li { display:grid; grid-template-columns:minmax(0,42%) minmax(0,1fr) auto; gap:1.5rem; min-block-size:5rem; padding-block:1rem; box-sizing:border-box; }
-  .zdp-passkey-settings--directory li:last-child { border-bottom:var(--zdp-control-border-width) solid var(--zdp-color-line-subtle); }
-  .zdp-passkey-settings--directory li > .zdp-passkey-settings__directory-name { display:flex; align-items:center; gap:1.25rem; }
-  .zdp-passkey-settings__directory-name > div { display:grid; gap:0.25rem; min-inline-size:0; }
-  .zdp-passkey-settings__directory-name strong { font-size:1rem; font-weight:500; overflow-wrap:anywhere; }
-  .zdp-passkey-settings__directory-name small,.zdp-passkey-settings__last-used { font-size:0.875rem; color:var(--zdp-color-ink-muted); }
-  .zdp-passkey-settings__icon { display:flex; flex:0 0 1.5rem; color:var(--zdp-color-ink-normal); }
-  .zdp-passkey-settings__menu :global(.zdp-menu__trigger) { border-color:transparent; background:transparent; min-inline-size:2.75rem; min-block-size:2.75rem; padding:0.625rem; }
-  .zdp-passkey-settings__menu :global(.zdp-menu__trigger-mark) { display:none; }
-  @media (max-width:40rem) {
-    .zdp-passkey-settings--directory li { grid-template-columns:minmax(0,1fr) auto; gap:0.5rem 1rem; }
-    .zdp-passkey-settings__last-used { grid-column:1; padding-inline-start:2.75rem; }
-    .zdp-passkey-settings__menu { grid-column:2; grid-row:1 / span 2; align-self:center; }
+  .zdp-passkey-settings--directory { gap: 0; }
+  .zdp-passkey-settings--directory li {
+    display: grid;
+    grid-template-columns: minmax(0, 42%) minmax(0, 1fr) auto;
+    gap: var(--zdp-space-6);
+    min-block-size: calc(var(--zdp-space-10) * 2);
+    padding-block: var(--zdp-space-4);
+    box-sizing: border-box;
+  }
+  .zdp-passkey-settings--directory li:last-child { border-bottom: var(--zdp-control-border-width) solid var(--zdp-color-line-subtle); }
+  .zdp-passkey-settings--directory li > .zdp-passkey-settings__directory-name { display: flex; align-items: center; gap: var(--zdp-space-5); }
+  .zdp-passkey-settings__directory-name > div { display: grid; gap: var(--zdp-space-1); min-inline-size: 0; }
+  .zdp-passkey-settings__directory-name strong { font-size: var(--zdp-type-body-small-size); font-weight: var(--zdp-font-weight-medium); overflow-wrap: anywhere; }
+  .zdp-passkey-settings__directory-name small, .zdp-passkey-settings__last-used { font-size: var(--zdp-type-caption-size); color: var(--zdp-color-ink-muted); }
+  .zdp-passkey-settings__icon { display: flex; flex: 0 0 var(--zdp-space-6); color: var(--zdp-color-ink-normal); }
+  .zdp-passkey-settings__menu :global(.zdp-menu__trigger) {
+    border-color: transparent;
+    background: transparent;
+    min-inline-size: var(--zdp-control-icon-md);
+    min-block-size: var(--zdp-control-icon-md);
+    padding: calc((var(--zdp-control-icon-md) - var(--zdp-space-6)) / 2);
+  }
+  .zdp-passkey-settings__menu :global(.zdp-menu__trigger-mark) { display: none; }
+  @media (max-width: 40rem) {
+    .zdp-passkey-settings--directory li { grid-template-columns: minmax(0, 1fr) auto; gap: var(--zdp-space-2) var(--zdp-space-4); }
+    .zdp-passkey-settings__last-used { grid-column: 1; padding-inline-start: calc(var(--zdp-space-6) + var(--zdp-space-5)); }
+    .zdp-passkey-settings__menu { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
   }
   @media (max-width: 40rem) { li { align-items: flex-start; flex-direction: column; } li > .zdp-passkey-settings__actions { align-self: flex-end; } }
 </style>

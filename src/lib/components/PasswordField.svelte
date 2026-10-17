@@ -207,7 +207,7 @@
 
   .zdp-auth-password-field__toggle-icon {
     display: block;
-    height: 1.125rem;
-    width: 1.125rem;
+    height: var(--zdp-control-glyph-md);
+    width: var(--zdp-control-glyph-md);
   }
 </style>
