@@ -74,35 +74,18 @@
     ondecision?.({ challengeRef: request.challengeRef, decision }, event);
   }
 
-  function formatExpiry(value: string, requestedLocale: string): string {
+  function formatExpiry(value: string): string {
     const date = new Date(value);
     if (!Number.isFinite(date.getTime())) {
       return copy.productLink.status.invalid;
     }
 
-    try {
-      return new Intl.DateTimeFormat(requestedLocale, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZoneName: 'short'
-      }).format(date);
-    } catch {
-      return new Intl.DateTimeFormat('en', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZoneName: 'short'
-      }).format(date);
-    }
+    return dateFormatter.format(date);
   }
 
   function scheduleDeadlineRefresh(issuedAt: string, expiresAt: string, maxRequestAgeMs: number): void {
     clearDeadlineRefresh();
+    if (request?.state !== 'pending') return;
 
     const issuedAtMs = Date.parse(issuedAt);
     const expiresAtMs = Date.parse(expiresAt);
@@ -116,8 +99,13 @@
       return;
     }
 
-    const deadlineMs = Math.min(expiresAtMs, issuedAtMs + maxRequestAgeMs);
-    const delayMs = Math.max(0, deadlineMs - readClock().getTime() + 1);
+    const nowMs = readClock().getTime();
+    if (expiresAtMs <= nowMs) return;
+    // Expiry is inclusive; request age becomes stale only after the age limit.
+    const deadlines = [expiresAtMs, issuedAtMs + maxRequestAgeMs + 1]
+      .filter(deadline => Number.isSafeInteger(deadline) && deadline > nowMs);
+    if (deadlines.length === 0) return;
+    const delayMs = Math.min(...deadlines) - nowMs;
     deadlineTimer = setTimeout(() => {
       clockNow = readClock();
       deadlineTimer = null;
@@ -151,6 +139,14 @@
     statusElement?.focus();
   }
   let copy = $derived(messages);
+  let dateFormatter = $derived.by(() => {
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+    };
+    try { return new Intl.DateTimeFormat(locale, options); }
+    catch { return new Intl.DateTimeFormat('en', options); }
+  });
   $effect.pre(() => {
     if (mounted) {
       if (enabled && now === null) {
@@ -172,7 +168,7 @@
     : copy.productLink.status.disabled);
   let formattedExpiry = $derived(validation.disposition === 'invalid'
     ? copy.productLink.status.invalid
-    : formatExpiry(request.expiresAt, locale));
+    : formatExpiry(request.expiresAt));
   $effect.pre(() => {
     const nextDisposition = validation.disposition;
     if (
