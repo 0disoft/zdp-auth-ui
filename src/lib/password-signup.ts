@@ -1,4 +1,4 @@
-import { zdpAuthTargetLocales, type ZdpAuthLocale } from './i18n';
+import { zdpAuthTargetLocales, type ZdpAuthLocale } from './i18n/schema';
 
 export const zdpPasswordSignupFieldNames = Object.freeze({
   loginId: 'login_id',

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { resolve } from 'node:path';
 import { build } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { getAuthMessages, zdpAuthTargetLocales } from '../src/lib/i18n';
@@ -6,7 +7,7 @@ import { getPasskeySettingsMessages } from '../src/lib/passkey-settings-messages
 
 // Bundle the published Svelte surface, externalizing host runtimes so the byte
 // comparison measures this package rather than a consumer's framework version.
-async function consumerBundle(componentEntry: string, lazy: boolean, compileSvelte = true) {
+async function consumerBundle(componentEntry: string, lazy: boolean, compileSvelte = true, fixture?: string) {
   const entry = '\0auth-locale-consumer';
   const result = await build({
     configFile: false,
@@ -37,7 +38,7 @@ async function consumerBundle(componentEntry: string, lazy: boolean, compileSvel
       write: false,
       minify: false,
       rollupOptions: {
-        input: entry,
+        input: fixture ?? entry,
         preserveEntrySignatures: 'strict',
         external: /^(?:svelte(?:\/|$)|zdp-design-system(?:\/|$)|@simplewebauthn\/browser(?:\/|$))/,
         output: { format: 'es' }
@@ -77,8 +78,27 @@ const lazy = await consumerBundle('zdp-auth-ui/components', true);
 const legacy = await consumerBundle('zdp-auth-ui', false);
 const compiledFixed = await consumerBundle('zdp-auth-ui/components', false, false);
 const compiledLazy = await consumerBundle('zdp-auth-ui/components', true, false);
+const signup = await consumerBundle('zdp-auth-ui/components', false, true,
+  resolve('tests/bundles/KoreanPasswordSignup.svelte'));
 const fixedCode = fixed.initial.map(chunk => chunk.code).join('\n');
 const lazyCode = lazy.initial.map(chunk => chunk.code).join('\n');
+const signupCode = signup.initial.map(chunk => chunk.code).join('\n');
+assertCatalogsAbsent(signupCode, zdpAuthTargetLocales.filter(locale => locale !== 'ko'));
+assert.ok(signupCode.includes(getAuthMessages('ko').title.signup));
+const signupModules = signup.initial.flatMap(chunk => Object.keys(chunk.modules))
+  .map(id => id.replaceAll('\\', '/'));
+for (const module of ['components/AuthShell.svelte', 'components/PasswordSignupFields.svelte']) {
+  assert.ok(signupModules.some(id => id.endsWith(`/dist/svelte/${module}`)),
+    `Signup bundle must retain the actual component and contract composition: ${module}.`);
+}
+assert.ok(signupCode.includes('signup-bundle-terms-v1') && signupCode.includes('signup-bundle-age-v1'),
+  'Signup must retain the contract values passed to PasswordSignupFields.');
+for (const locale of zdpAuthTargetLocales.filter(locale => locale !== 'ko')) {
+  assert.ok(!signupModules.some(id => new RegExp(`/i18n/(?:auth/|passkey-settings/)?${locale}\\.js$`).test(id)),
+    `Korean signup must not retain the ${locale} catalog module.`);
+}
+assert.ok(!signupModules.some(id => /\/dist\/(?:svelte\/)?(?:i18n|index)\.js$/.test(id)),
+  'Signup contract must not pull in a synchronous compatibility entry.');
 assertCatalogsAbsent(fixedCode, zdpAuthTargetLocales.filter(locale => locale !== 'ko'));
 assertCatalogsAbsent(lazyCode, zdpAuthTargetLocales);
 assertCatalogsAbsent(compiledFixed.initial.map(chunk => chunk.code).join('\n'),
@@ -108,6 +128,7 @@ console.log(JSON.stringify({
   packageJavaScriptBytes: {
     compatibilityWithKorean: legacy.initialBytes,
     componentsWithKorean: fixed.initialBytes,
+    signupWithKoreanAndContract: signup.initialBytes,
     componentsWithLoaderInitial: lazy.initialBytes
   },
   precompiledJavaScriptBytes: {

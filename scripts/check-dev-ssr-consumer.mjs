@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { createServer } from 'vite';
 
@@ -49,6 +49,12 @@ try {
     assert.match(body, /id="dev-signup-login-id"/);
     assert.match(body, /href="https:\/\/example.test\/terms"/);
   }
+  const signup = await server.ssrLoadModule(resolve('tests/bundles/KoreanPasswordSignup.svelte'));
+  const { body: signupBody } = render(signup.default);
+  assert.match(signupBody, /id="bundle-signup-login-id"/);
+  assert.match(signupBody, /name="terms_consent_ref" value="signup-bundle-terms-v1"/);
+  assert.match(signupBody, /name="age_policy_ref" value="signup-bundle-age-v1"/);
+  assert.match(signupBody, /name="locale" value="ko"/);
   console.log('Public Svelte entries render legacy children and native snippets in dev SSR with shared terms context.');
 } finally {
   await server.close();

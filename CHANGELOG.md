@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Cover Korean password signup with the lean components, fixed catalog and public contract factory in bundle and SSR checks, and import the factory's locale constants from the schema to prevent other catalogs entering the initial bundle.
+
 - Focus the passkey removal confirmation title when no input is present, restore the row control on cancellation, and focus the settings region if the selected row disappears.
 
 - Reannounce repeated `waiting` and `registered` feedback by clearing and refilling the existing polite live region on a new sequence, preserve input focus, and cancel superseded or unmounted announcements.

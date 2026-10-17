@@ -40,6 +40,7 @@ Catalogs come from thin synchronous source entries, so any component that falls 
 - `createZdpAuthSurfaceModel` from `zdp-auth-ui/components` requires `messages` and imports no catalog runtime, so only the copy the caller supplies ships.
 - `zdp-auth-ui/components` with `loadAuthLocale` keeps every catalog out of the initial bundle; the selected locale arrives as a separate lazy chunk.
 - `zdp-auth-ui/components` with a fixed `zdp-auth-ui/i18n/<locale>` import includes that one locale's data in the initial bundle and leaves the other eleven catalogs out.
+- The same fixed-locale path supports `createZdpPasswordSignupContract` from `zdp-auth-ui/contract`: pass its created contract to `PasswordSignupFields`. The Korean signup bundle fixture checks this composition against all eleven other catalogs and renders it under SSR to verify the contract's hidden fields.
 - Root utilities such as `getAuthMessages` and `getPasskeySettingsMessages` stay synchronous, so using them pulls the whole auth catalog in.
 
 ## Compatibility
