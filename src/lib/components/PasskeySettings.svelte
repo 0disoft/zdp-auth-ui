@@ -56,9 +56,11 @@
   let actionSequence = $state(0);
   let submittedFeedback: ZdpPasskeySettingsFeedback = $state(null);
   let feedbackChanged = $state(false);
+  let settingsElement: HTMLElement | undefined = $state();
   let editorElement: HTMLDivElement | undefined = $state();
   let feedbackElement: HTMLParagraphElement | undefined = $state();
   let returnFocus: HTMLElement | null = null;
+  let focusRequest = 0;
   let menuId = $state<string | null>(null);
   const providerLabels = {
     windows_hello: 'providerWindowsHello',
@@ -81,19 +83,33 @@
 
   async function open(action: typeof editor, id = '', label = '', focusTarget?: HTMLElement | null) {
     if (locked || !action || !settingsState.capabilities[action]) return;
+    const request = ++focusRequest;
     returnFocus = focusTarget ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     menuId = null;
     editor = action; selectedId = id; enteredName = action === 'register' ? null : label;
     password = ''; touched = false; submitted = false;
     preferenceValue = zdpPasskeyRegistrationPreferenceDefault;
     await tick();
-    editorElement?.querySelector<HTMLInputElement>('input')?.focus();
+    if (request !== focusRequest || editor !== action || locked || !editorElement?.isConnected) return;
+    (editorElement.querySelector<HTMLElement>('input:not(:disabled)')
+      ?? editorElement.querySelector<HTMLElement>('legend'))?.focus();
+  }
+  async function restoreEditorFocus(request: number, target: HTMLElement | null) {
+    await tick();
+    if (request !== focusRequest || editor || !settingsElement?.isConnected) return;
+    const destination = target?.isConnected && settingsElement.contains(target) &&
+      !target.matches(':disabled') && !target.closest('[inert]') ? target : settingsElement;
+    destination.focus();
+    if (document.activeElement !== destination) settingsElement.focus();
   }
   function close(restoreFocus = true) {
     if (busy) return;
+    const request = ++focusRequest;
+    const target = returnFocus;
+    returnFocus = null;
     editor = null; selectedId = ''; enteredName = null; password = ''; touched = false; submitted = false;
     preferenceValue = zdpPasskeyRegistrationPreferenceDefault;
-    if (restoreFocus) returnFocus?.focus();
+    if (restoreFocus) void restoreEditorFocus(request, target);
   }
   function submit(event: SubmitEvent) {
     event.preventDefault();
@@ -163,7 +179,7 @@
       (feedbackSequence !== null ? feedbackSequence === actionSequence : feedbackChanged)) close(false);
   });
   $effect.pre(() => {
-    if (!busy && editor && (!ready || !permitted || !selectedExists)) close(false);
+    if (!busy && editor && (!ready || !permitted || !selectedExists)) close();
   });
   $effect.pre(() => {
     if (mounted && currentFeedback && !busy) {
@@ -177,7 +193,7 @@
 </script>
 
 <Surface padding="lg">
-  <section class="zdp-passkey-settings" class:zdp-passkey-settings--directory={layout === 'directory'} aria-labelledby={`${idPrefix}-title`} aria-busy={busy}>
+  <section bind:this={settingsElement} class="zdp-passkey-settings" class:zdp-passkey-settings--directory={layout === 'directory'} aria-labelledby={`${idPrefix}-title`} aria-busy={busy} tabindex="-1">
     {#if heading}
       {@render heading({add: () => { void open('register'); }, disabled: locked || !settingsState.capabilities.register, titleId: `${idPrefix}-title`})}
     {:else}
@@ -239,7 +255,7 @@
         <div class="zdp-passkey-settings__editor" bind:this={editorElement}>
           <form method="post" onsubmit={submit}>
             <fieldset disabled={locked}>
-              <legend>{editor === 'register' ? copy.add : editor === 'rename' ? copy.rename : `${copy.remove}: ${name}`}</legend>
+              <legend tabindex="-1">{editor === 'register' ? copy.add : editor === 'rename' ? copy.rename : `${copy.remove}: ${name}`}</legend>
               {#if editor === 'revoke'}<p>{copy.removeHelp}</p>{:else}
                 {#if editor === 'register'}
                   <Field>

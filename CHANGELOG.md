@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Focus the passkey removal confirmation title when no input is present, restore the row control on cancellation, and focus the settings region if the selected row disappears.
+
 - Reannounce repeated `waiting` and `registered` feedback by clearing and refilling the existing polite live region on a new sequence, preserve input focus, and cancel superseded or unmounted announcements.
 
 ## 0.11.0

@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
+import { checkPasskeyEditorFocus } from './check-passkey-editor-focus.mjs';
 
 const root = process.cwd();
 const cacheDir = await mkdtemp(join(tmpdir(), 'zdp-auth-ui-browser-'));
@@ -206,7 +207,7 @@ try {
   await passkeyReauth.locator('header button').click();
   assert.equal(await passkeyName.inputValue(), '이 기기 패스키', 'Reopening registration must restore an untouched default.');
   await passkeyReauth.locator('form .zdp-passkey-settings__actions button[type="button"]').click();
-  await passkeyReauth.locator('li').first().getByRole('button').click();
+  await passkeyReauth.locator('li').first().getByRole('button').first().click();
   assert.equal(await passkeyName.inputValue(), 'First key', 'Rename must use the saved key label instead of a registration suggestion.');
   await passkeyReauth.locator('form .zdp-passkey-settings__actions button[type="button"]').click();
 
@@ -221,6 +222,8 @@ try {
   assert.equal(await dateFormatCalls(), beforeFallback + 2, 'Refreshing records must also reuse the fallback formatter.');
   assert.ok((await passkeyReauth.locator('li').last().textContent()).includes('Passkeys are unavailable. Try again later.'),
     'An invalid stored timestamp must retain the unavailable label.');
+
+  await checkPasskeyEditorFocus(page, passkeyReauth);
   assert.equal(
     await page.getByTestId('literal-account-brand-fixture').locator('.zdp-auth-shell__summary').textContent(),
     'Continue with your ZDP $& $$ account.',
