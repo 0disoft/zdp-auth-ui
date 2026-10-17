@@ -4,6 +4,8 @@
   import { loadAuthLocale } from 'zdp-auth-ui/i18n/loader';
   import type { ZdpPasskeySettingsState } from '../../../src/lib/passkey-settings-contract';
 
+  export let testId = 'passkey-reauth-fixture';
+
   let state: ZdpPasskeySettingsState = {
     status: 'ready', passkeys: [
       { passkey_id: 'key-1', label: 'First key', created_at: '2026-10-02T12:00:00Z', last_used_at: '2026-10-03T12:00:00Z' },
@@ -13,12 +15,14 @@
     reauthentication: 'password'
   };
   let catalog = { locale: locale as string, messages, passkeySettingsMessages };
-  let layout: 'default' | 'directory' = 'default';
+  export let layout: 'default' | 'directory' = 'default';
 </script>
 
-<section data-testid="passkey-reauth-fixture">
+<section data-testid={testId}>
   <PasskeySettings idPrefix="reauth-settings" {state} {layout} locale={catalog.locale}
-    messages={catalog.passkeySettingsMessages} authMessages={catalog.messages} onaction={() => {}} />
+    messages={catalog.passkeySettingsMessages} authMessages={catalog.messages} onaction={() => {}}>
+    {#snippet actionIcon()}<span data-testid="passkey-action-icon" aria-hidden="true">⋯</span>{/snippet}
+  </PasskeySettings>
   <button type="button" data-testid="use-passkey" onclick={() => state = { ...state, reauthentication: 'passkey' }}>Use passkey</button>
   <button type="button" data-testid="use-password" onclick={() => state = { ...state, reauthentication: 'password' }}>Use password</button>
   <button type="button" onclick={async () => { catalog = await loadAuthLocale('ko'); }}>Load Korean</button>

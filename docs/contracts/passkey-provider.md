@@ -52,4 +52,6 @@ The component emits immediate add, rename or revoke intentions through `onaction
 
 Opening an editor focuses its first enabled input, or its confirmation legend when no input is present. Cancellation returns focus to the original row control, including a directory menu trigger. If the selected key disappears, the editor closes and focus returns to a surviving enabled origin or the labelled settings region when the origin is gone.
 
+Menu trigger lookup stays inside the selected row and focus checks use the component's own document or shadow root. Directory trigger content is passed as a named Svelte snippet, including when the design-system Menu uses its compatible named-slot API.
+
 Password input is cleared on cancellation and immediately after callback handoff. No password, grant, challenge, public key material or browser payload is persisted or included in metadata. A lost write response uses `unconfirmed` feedback, which disables mutation controls. The consumer must reload authoritative state before clearing that feedback for a new user-initiated attempt; do not automatically replay the change. Removing an account credential does not claim to remove its saved entry from the user's authenticator.

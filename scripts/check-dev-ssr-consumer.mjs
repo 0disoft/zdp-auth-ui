@@ -55,6 +55,10 @@ try {
   assert.match(signupBody, /name="terms_consent_ref" value="signup-bundle-terms-v1"/);
   assert.match(signupBody, /name="age_policy_ref" value="signup-bundle-age-v1"/);
   assert.match(signupBody, /name="locale" value="ko"/);
+  const passkeys = await server.ssrLoadModule(resolve('tests/browser/src/PasskeyReauthFixture.svelte'));
+  const { body: passkeyBody } = render(passkeys.default, { props: { layout: 'directory' } });
+  assert.equal((passkeyBody.match(/data-testid="passkey-action-icon"/g) ?? []).length, 3,
+    'The named trigger snippet must render each directory icon under SSR.');
   console.log('Public Svelte entries render legacy children and native snippets in dev SSR with shared terms context.');
 } finally {
   await server.close();

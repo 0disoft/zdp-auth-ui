@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Restore passkey editor focus within its own document or shadow root, resolve directory triggers from the selected menu instead of global IDs, and pass custom trigger content through a named snippet with browser and SSR coverage.
+
 - Export passkey settings contracts and `validateProductLinkRequest` from `zdp-auth-ui/contract`, add the catalog-free `zdp-auth-ui/passkey` browser helper entry, and check all seven existing lean Props aliases plus utility exports in type, bundle and packed-consumer checks.
 
 - Cover Korean password signup with the lean components, fixed catalog and public contract factory in bundle and SSR checks, and import the factory's locale constants from the schema to prevent other catalogs entering the initial bundle.

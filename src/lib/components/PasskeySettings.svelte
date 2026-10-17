@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Badge, Button, Field, HelpText, Input, Label, Menu, Select, Surface } from 'zdp-design-system';
-  import { onMount, tick, type Snippet } from 'svelte';
+  import { onMount, tick, type Component, type ComponentProps, type Snippet } from 'svelte';
   import type { ZdpAuthMessages } from '../i18n';
   import PasswordField from './PasswordField.svelte';
   import type { ZdpPasskeySettingsMessages } from '../passkey-settings-messages';
@@ -9,6 +9,9 @@
     zdpPasskeyRegistrationPreferences, type ZdpPasskeyAuthenticator,
     type ZdpPasskeySettingsAction, type ZdpPasskeySettingsFeedback,
     type ZdpPasskeySettingsState } from '../passkey-settings-contract';
+
+  // Menu supports Svelte's slot/snippet interop, but its published Props omit this named snippet.
+  const MenuWithTrigger: Component<ComponentProps<typeof Menu> & { trigger: Snippet }> = Menu;
 
   interface Props {
     messages: ZdpPasskeySettingsMessages;
@@ -81,10 +84,21 @@
   } as const;
   onMount(() => { mounted = true; });
 
+  function activeElement(): HTMLElement | null {
+    const root = settingsElement?.getRootNode();
+    const active = root && 'activeElement' in root ? root.activeElement : null;
+    return active instanceof HTMLElement ? active : null;
+  }
+  function menuTrigger(event: MouseEvent): HTMLElement | null {
+    const item = event.currentTarget;
+    const menu = item instanceof HTMLElement ? item.closest('.zdp-passkey-settings__menu') : null;
+    return menu && settingsElement?.contains(menu)
+      ? menu.querySelector<HTMLElement>('button[aria-haspopup="menu"]') : null;
+  }
   async function open(action: typeof editor, id = '', label = '', focusTarget?: HTMLElement | null) {
     if (locked || !action || !settingsState.capabilities[action]) return;
     const request = ++focusRequest;
-    returnFocus = focusTarget ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    returnFocus = focusTarget ?? activeElement();
     menuId = null;
     editor = action; selectedId = id; enteredName = action === 'register' ? null : label;
     password = ''; touched = false; submitted = false;
@@ -100,7 +114,7 @@
     const destination = target?.isConnected && settingsElement.contains(target) &&
       !target.matches(':disabled') && !target.closest('[inert]') ? target : settingsElement;
     destination.focus();
-    if (document.activeElement !== destination) settingsElement.focus();
+    if (activeElement() !== destination) settingsElement.focus();
   }
   function close(restoreFocus = true) {
     if (busy) return;
@@ -223,15 +237,17 @@
               </p>
               <div class="zdp-passkey-settings__menu" inert={locked}>
                 {#if settingsState.capabilities.rename || settingsState.capabilities.revoke}
-                  <Menu triggerLabel={`${key.label} · ${copy.title}`} idPrefix={`${idPrefix}-${key.passkey_id}`} open={menuId === key.passkey_id}
+                  <MenuWithTrigger triggerLabel={`${key.label} · ${copy.title}`} idPrefix={`${idPrefix}-${key.passkey_id}`} open={menuId === key.passkey_id}
                     onOpenChange={value => { menuId = value ? key.passkey_id : null; }}
                     items={[
                       ...(settingsState.capabilities.rename ? [{id:'rename',label:copy.rename,disabled:locked}] : []),
                       ...(settingsState.capabilities.revoke ? [{id:'revoke',label:copy.remove,disabled:locked,tone:'danger' as const}] : [])
                     ]}
-                    onSelect={(_event, item) => { if (item.id === 'rename' || item.id === 'revoke') void open(item.id, key.passkey_id, key.label, document.getElementById(`${idPrefix}-${key.passkey_id}-trigger`)); }}>
-                    <span slot="trigger">{#if actionIcon}{@render actionIcon()}{:else}{copy.title}{/if}</span>
-                  </Menu>
+                    onSelect={(event, item) => { if (item.id === 'rename' || item.id === 'revoke') void open(item.id, key.passkey_id, key.label, menuTrigger(event)); }}>
+                    {#snippet trigger()}
+                      <span>{#if actionIcon}{@render actionIcon()}{:else}{copy.title}{/if}</span>
+                    {/snippet}
+                  </MenuWithTrigger>
                 {/if}
               </div>
             {:else}

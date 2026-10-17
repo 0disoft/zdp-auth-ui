@@ -9,8 +9,8 @@ export async function checkPasskeyEditorFocus(page, passkeyReauth) {
     const target = await locator.elementHandle();
     assert.ok(target, reason);
     try {
-      await page.waitForFunction((element) => document.activeElement === element, target);
-      assert.equal(await locator.evaluate((element) => document.activeElement === element), true, reason);
+      await page.waitForFunction((element) => element.getRootNode().activeElement === element, target);
+      assert.equal(await locator.evaluate((element) => element.getRootNode().activeElement === element), true, reason);
     } finally {
       await target.dispose();
     }
@@ -41,6 +41,8 @@ export async function checkPasskeyEditorFocus(page, passkeyReauth) {
   await passkeyReauth.getByTestId('use-passkey').click();
   await passkeyReauth.getByTestId('directory-layout').click();
   const firstMenu = passkeyReauth.getByRole('button', { name: 'First key · Passkeys & security keys', exact: true });
+  assert.equal(await firstMenu.getByTestId('passkey-action-icon').count(), 1,
+    'The named trigger snippet must render its custom action icon.');
   async function openRemovalMenu(trigger) {
     await trigger.focus();
     await page.keyboard.press('ArrowUp');

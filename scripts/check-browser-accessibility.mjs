@@ -224,6 +224,16 @@ try {
     'An invalid stored timestamp must retain the unavailable label.');
 
   await checkPasskeyEditorFocus(page, passkeyReauth);
+  await page.evaluate(() => {
+    const outsideTrigger = document.createElement('button');
+    outsideTrigger.id = 'reauth-settings-key-1-trigger';
+    outsideTrigger.textContent = 'Outside trigger with the same ID';
+    document.body.append(outsideTrigger);
+    window.mountShadowPasskeyFixture();
+  });
+  await checkPasskeyEditorFocus(page, page.getByTestId('shadow-passkey-reauth-fixture'));
+  assert.equal(await page.locator('body > #reauth-settings-key-1-trigger').evaluate((element) =>
+    document.activeElement === element), false, 'Shadow editors must never restore focus to a same-ID document trigger.');
   assert.equal(
     await page.getByTestId('literal-account-brand-fixture').locator('.zdp-auth-shell__summary').textContent(),
     'Continue with your ZDP $& $$ account.',
