@@ -1,6 +1,6 @@
-export const zdpAuthTargetLocales = ['en', 'zh', 'es', 'fr', 'hi', 'ko', 'ja', 'vi', 'ru', 'id', 'ms', 'th'] as const;
-export const zdpAuthActiveLocales = ['ko', 'en'] as const;
-export const zdpAuthPlannedLocales = ['zh', 'es', 'fr', 'hi', 'ja', 'vi', 'ru', 'id', 'ms', 'th'] as const;
+export const zdpAuthTargetLocales = Object.freeze(['en', 'zh', 'es', 'fr', 'hi', 'ko', 'ja', 'vi', 'ru', 'id', 'ms', 'th'] as const);
+export const zdpAuthActiveLocales = Object.freeze(['ko', 'en'] as const);
+export const zdpAuthPlannedLocales = Object.freeze(['zh', 'es', 'fr', 'hi', 'ja', 'vi', 'ru', 'id', 'ms', 'th'] as const);
 
 /*
  * mf:anchor zdp.auth-ui.message-catalog
