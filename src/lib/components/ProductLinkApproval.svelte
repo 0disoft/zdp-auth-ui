@@ -109,6 +109,7 @@
     deadlineTimer = setTimeout(() => {
       clockNow = readClock();
       deadlineTimer = null;
+      scheduleDeadlineRefresh(issuedAt, expiresAt, maxRequestAgeMs);
     }, delayMs);
   }
 

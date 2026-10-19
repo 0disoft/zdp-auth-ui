@@ -53,6 +53,15 @@ try {
   await fresh.click(); await approve.waitFor(); await approve.click();
   assert.equal(await fixture.getByTestId('clock-decisions').textContent(), '1', 'a different newly issued challenge retains its own fresh lifetime');
 
+  await fixture.getByTestId('clock-aging-request').click(); await approve.waitFor();
+  await page.waitForTimeout(1250);
+  const agingStatus = fixture.getByRole('alert');
+  await agingStatus.waitFor();
+  const agingText = await agingStatus.textContent();
+  assert.equal(await approve.count(), 0, 'freshness expiry removes approval controls');
+  await page.waitForTimeout(1500);
+  assert.notEqual(await agingStatus.textContent(), agingText, 'a fresh request must pass through stale to expired without a parent refresh');
+
   await page.evaluate(() => { window.clockFixtureTimers = []; });
   await fixture.getByTestId('clock-stale-request').click();
   const status = fixture.getByRole('alert');
