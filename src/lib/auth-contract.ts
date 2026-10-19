@@ -4,7 +4,7 @@ export type ZdpAuthMode = (typeof zdpAuthModes)[number];
 export const zdpAuthAvailabilityStates = ['available', 'preparing'] as const;
 export type ZdpAuthAvailability = (typeof zdpAuthAvailabilityStates)[number];
 
-export const zdpAuthFeedbackCodes = [
+export const zdpAuthFeedbackCodes = Object.freeze([
   'waiting',
   'registered',
   'invalid_input',
@@ -12,16 +12,16 @@ export const zdpAuthFeedbackCodes = [
   'rate_limited',
   'expired',
   'unavailable'
-] as const;
+] as const);
 export type ZdpAuthFeedbackCode = (typeof zdpAuthFeedbackCodes)[number];
 
-export const zdpAuthFeedbackErrorCodes = [
+export const zdpAuthFeedbackErrorCodes = Object.freeze([
   'invalid_input',
   'invalid_credentials',
   'rate_limited',
   'expired',
   'unavailable'
-] as const;
+] as const);
 export type ZdpAuthFeedbackErrorCode = (typeof zdpAuthFeedbackErrorCodes)[number];
 
 export interface ZdpAuthFeedback {

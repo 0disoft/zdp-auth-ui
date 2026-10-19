@@ -15,7 +15,7 @@ import type {
 export const zdpPasskeyCeremonyKinds = ['authentication', 'registration'] as const;
 export type ZdpPasskeyCeremonyKind = (typeof zdpPasskeyCeremonyKinds)[number];
 
-export const zdpPasskeyAuthenticationMediationModes = ['modal', 'conditional'] as const;
+export const zdpPasskeyAuthenticationMediationModes = Object.freeze(['modal', 'conditional'] as const);
 export type ZdpPasskeyAuthenticationMediation =
   (typeof zdpPasskeyAuthenticationMediationModes)[number];
 

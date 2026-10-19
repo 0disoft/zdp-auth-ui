@@ -1,13 +1,13 @@
-export const zdpPasskeyAuthenticatorProviders = [
+export const zdpPasskeyAuthenticatorProviders = Object.freeze([
   'windows_hello',
   'google_password_manager',
   'bitwarden',
   'apple_passwords',
   'unknown'
-] as const;
+] as const);
 export type ZdpPasskeyAuthenticatorProvider = (typeof zdpPasskeyAuthenticatorProviders)[number];
 
-export const zdpPasskeyAuthenticatorStorages = ['synced', 'device_bound'] as const;
+export const zdpPasskeyAuthenticatorStorages = Object.freeze(['synced', 'device_bound'] as const);
 export type ZdpPasskeyAuthenticatorStorage = (typeof zdpPasskeyAuthenticatorStorages)[number];
 
 export interface ZdpPasskeyAuthenticator {
@@ -24,7 +24,7 @@ export interface ZdpManagedPasskey {
   readonly authenticator?: ZdpPasskeyAuthenticator;
 }
 
-export const zdpPasskeyRegistrationPreferences = ['device', 'manager', 'security_key', 'phone'] as const;
+export const zdpPasskeyRegistrationPreferences = Object.freeze(['device', 'manager', 'security_key', 'phone'] as const);
 export type ZdpPasskeyRegistrationPreference = (typeof zdpPasskeyRegistrationPreferences)[number];
 
 export const zdpPasskeyRegistrationPreferenceDefault: ZdpPasskeyRegistrationPreference = 'device';

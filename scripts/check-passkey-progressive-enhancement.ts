@@ -341,6 +341,18 @@ try {
     'Timeouts outside the public bounds must fail before a ceremony starts.'
   );
 
+  const mediationLength = zdpPasskeyAuthenticationMediationModes.length;
+  const changedMediation = Reflect.set(zdpPasskeyAuthenticationMediationModes, mediationLength, 'invalid');
+  const beforeInvalidMediation = getCapturedRequest();
+  try {
+    await assert.rejects(startPasskeyAuthentication(options, { mediation: 'invalid' as 'modal' }),
+      (error: unknown) => error instanceof ZdpPasskeyCeremonyError && error.reason === 'invalid-options',
+      'Consumer mutation must not extend the browser mediation policy.');
+    assert.equal(getCapturedRequest(), beforeInvalidMediation, 'Invalid mediation must not reach credentials.get.');
+    assert.equal(changedMediation, false);
+  } finally {
+    if (changedMediation) Reflect.set(zdpPasskeyAuthenticationMediationModes, 'length', mediationLength);
+  }
   credentialGet = waitForAbort;
   await assert.rejects(
     () => startPasskeyAuthentication(options, { mediation: 'invalid' as 'modal' }),

@@ -1,5 +1,5 @@
-export const zdpProductLinkStates = ['pending', 'approved', 'denied', 'expired', 'consumed'] as const;
-export const zdpProductLinkItemKinds = ['scope', 'capability'] as const;
+export const zdpProductLinkStates = Object.freeze(['pending', 'approved', 'denied', 'expired', 'consumed'] as const);
+export const zdpProductLinkItemKinds = Object.freeze(['scope', 'capability'] as const);
 export const zdpProductLinkDecisions = ['approve', 'deny'] as const;
 
 export type ZdpProductLinkState = (typeof zdpProductLinkStates)[number];
