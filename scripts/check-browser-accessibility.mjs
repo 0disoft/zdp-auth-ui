@@ -440,6 +440,38 @@ try {
   assert.equal(await signupFixture.getByRole('checkbox', { name: 'I confirm I am at least 18 years old.', exact: true }).isChecked(),
     false, 'New minimum age requires fresh confirmation.');
 
+  await resetFixture.evaluate(form => {
+    const host = document.createElement('div');
+    host.id = 'signup-reset-shadow-host';
+    form.after(host);
+    host.attachShadow({ mode: 'open' }).append(form);
+  });
+  await resetConfirmation.fill('shadow-confirmation-without-password'); await resetConfirmation.blur();
+  assert.equal(await resetConfirmation.evaluate(input => input.validity.customError), true);
+  await resetFixture.evaluate(form => {
+    form.addEventListener('reset', event => event.preventDefault(), { once: true });
+    form.reset();
+  });
+  await resetConfirmation.evaluate(() => new Promise(resolve => setTimeout(resolve, 0)));
+  assert.equal(await resetConfirmation.inputValue(), 'shadow-confirmation-without-password');
+  assert.equal(await mismatchMessage.count(), 1, 'Cancelled Shadow DOM reset preserves the mismatch.');
+  await resetFixture.evaluate(form => form.reset());
+  await resetConfirmation.evaluate(() => new Promise(resolve => setTimeout(resolve, 0)));
+  assert.equal(await resetConfirmation.evaluate(input => input.validity.customError), false,
+    'Reset after moving a signup form into Shadow DOM must clear custom validity.');
+  assert.equal(await mismatchMessage.count(), 0, 'Shadow DOM reset must also clear reactive mismatch state.');
+  await resetConfirmation.fill('fresh-confirmation');
+  assert.equal(await mismatchMessage.count(), 0, 'A reset must clear touched state in the new root.');
+  await resetFixture.evaluate(form => {
+    const host = form.getRootNode().host;
+    host.after(form);
+    host.remove();
+  });
+  await resetFixture.evaluate(form => form.reset());
+  await resetConfirmation.evaluate(() => new Promise(resolve => setTimeout(resolve, 0)));
+  assert.equal(await resetConfirmation.evaluate(input => input.validity.customError), false,
+    'Returning to the document must restore its reset listener too.');
+
   await password.fill('valid-browser-fixture-password');
   await submit.click();
   assert.equal(
