@@ -6,6 +6,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
 import { checkPasskeyEditorFocus } from './check-passkey-editor-focus.mjs';
+import { checkPasskeyFeedbackFocus } from './check-passkey-feedback-focus.mjs';
 
 const root = process.cwd();
 const cacheDir = await mkdtemp(join(tmpdir(), 'zdp-auth-ui-browser-'));
@@ -232,6 +233,8 @@ try {
     window.mountShadowPasskeyFixture();
   });
   await checkPasskeyEditorFocus(page, page.getByTestId('shadow-passkey-reauth-fixture'));
+  await page.evaluate(() => { window.mountPasskeyFeedbackFixture(); });
+  await checkPasskeyFeedbackFocus(page.getByTestId('passkey-feedback-fixture'));
   assert.equal(await page.locator('body > #reauth-settings-key-1-trigger').evaluate((element) =>
     document.activeElement === element), false, 'Shadow editors must never restore focus to a same-ID document trigger.');
   assert.equal(

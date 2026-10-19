@@ -56,6 +56,7 @@
   let mounted = $state(false);
   let sameTask = false;
   let submitted = $state(false);
+  let feedbackFocusRequested = $state(false);
   let actionSequence = $state(0);
   let submittedFeedback: ZdpPasskeySettingsFeedback = $state(null);
   let feedbackChanged = $state(false);
@@ -98,6 +99,7 @@
   async function open(action: typeof editor, id = '', label = '', focusTarget?: HTMLElement | null) {
     if (locked || !action || !settingsState.capabilities[action]) return;
     const request = ++focusRequest;
+    feedbackFocusRequested = false;
     returnFocus = focusTarget ?? activeElement();
     menuId = null;
     editor = action; selectedId = id; enteredName = action === 'register' ? null : label;
@@ -123,7 +125,10 @@
     returnFocus = null;
     editor = null; selectedId = ''; enteredName = null; password = ''; touched = false; submitted = false;
     preferenceValue = zdpPasskeyRegistrationPreferenceDefault;
-    if (restoreFocus) void restoreEditorFocus(request, target);
+    if (restoreFocus) {
+      feedbackFocusRequested = false;
+      void restoreEditorFocus(request, target);
+    }
   }
   function submit(event: SubmitEvent) {
     event.preventDefault();
@@ -144,6 +149,7 @@
     submittedFeedback = currentFeedback;
     feedbackChanged = false;
     submitted = true;
+    feedbackFocusRequested = true;
     onaction?.({ ...detail, sequence: ++actionSequence }, event);
   }
   function date(value: string): string {
@@ -196,11 +202,14 @@
     if (!busy && editor && (!ready || !permitted || !selectedExists)) close();
   });
   $effect.pre(() => {
-    if (mounted && currentFeedback && !busy) {
+    if (mounted && feedbackFocusRequested && currentFeedback && !busy) {
       const expectedSequence = actionSequence;
       const expectedFeedback = currentFeedback;
       void tick().then(() => {
-        if (!busy && expectedSequence === actionSequence && currentFeedback === expectedFeedback) feedbackElement?.focus();
+        if (feedbackFocusRequested && !busy && expectedSequence === actionSequence && currentFeedback === expectedFeedback) {
+          feedbackFocusRequested = false;
+          feedbackElement?.focus();
+        }
       });
     }
   });

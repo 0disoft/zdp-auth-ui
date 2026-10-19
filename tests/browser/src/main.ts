@@ -4,6 +4,7 @@ import AuthBrowserFixture from './AuthBrowserFixture.svelte';
 import AuthFeedbackFixture from './AuthFeedbackFixture.svelte';
 import PasskeyReauthFixture from './PasskeyReauthFixture.svelte';
 import ProductLinkClockFixture from './ProductLinkClockFixture.svelte';
+import PasskeyFeedbackFixture from './PasskeyFeedbackFixture.svelte';
 
 mount(AuthBrowserFixture, {
   target: document.getElementById('app') as HTMLElement
@@ -18,6 +19,11 @@ mount(AuthFeedbackFixture, {
 });
 
 Object.assign(window, {
+  mountPasskeyFeedbackFixture() {
+    const host = document.createElement('div');
+    document.body.append(host);
+    return mount(PasskeyFeedbackFixture, { target: host });
+  },
   mountShadowProductLinkClockFixture() {
     const host = document.createElement('div');
     host.id = 'shadow-product-link-host';
