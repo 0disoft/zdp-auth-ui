@@ -252,6 +252,20 @@ try {
   assert.equal(legacyResponse.response.publicKey, undefined);
   assert.equal(legacyResponse.response.transports, undefined);
 
+  for (const result of [null, { id: 'unexpected-credential', type: 'password' } as Credential]) {
+    credentialGet = credentialCreate = async () => result;
+    const expectMissingPublicKey = (error: unknown) => {
+      assert.ok(error instanceof ZdpPasskeyCeremonyError);
+      assert.equal(error.reason, 'unknown',
+        'Missing or unexpected browser credentials do not establish invalid request options.');
+      assert.ok(error.cause instanceof Error);
+      return true;
+    };
+    await assert.rejects(startPasskeyAuthentication(options), expectMissingPublicKey);
+    await assert.rejects(startPasskeyAuthentication(options, { mediation: 'conditional' }), expectMissingPublicKey);
+    await assert.rejects(startPasskeyRegistration(registrationOptions), expectMissingPublicKey);
+  }
+
   // Exercise the public helpers through native API failures, including their
   // diagnostic cause chain. No SDK start method participates in these tests.
   function expectNativeError(

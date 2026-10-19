@@ -89,7 +89,8 @@ export async function startRegistration(
 
 function requirePublicKeyCredential(credential: Credential | null): PublicKeyCredential {
   if (!credential || credential.type !== 'public-key') {
-    throw new TypeError('The browser did not return a public-key credential.');
+    // Missing or unexpected credentials do not prove the request options invalid.
+    throw new Error('The browser did not return a public-key credential.');
   }
   return credential as PublicKeyCredential;
 }
