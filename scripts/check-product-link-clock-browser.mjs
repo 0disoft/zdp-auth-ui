@@ -40,10 +40,13 @@ try {
   const approve = fixture.getByRole('button', { name: 'Approve connection', exact: true });
   await fresh.click(); await approve.waitFor();
   assert.deepEqual(await page.evaluate(() => window.clockFixtureFormatters), ['en']);
+  await approve.focus();
   await page.clock.setFixedTime('2026-07-15T04:04:55.000Z');
   // Real timers and performance.now continue while only the wall clock moves back.
   await page.waitForTimeout(1400);
   assert.equal(await approve.count(), 0, 'wall-clock rollback must not extend the one-second request lifetime');
+  assert.equal(await fixture.getByRole('alert').evaluate(status => status.ownerDocument.activeElement === status), true,
+    'expiry preserves keyboard focus on the status in light DOM');
   assert.equal(await fixture.getByTestId('clock-decisions').textContent(), '0');
   await fresh.click(); await approve.waitFor();
   await page.clock.setFixedTime('2026-07-15T04:04:57.000Z'); await refresh.click();
@@ -94,6 +97,17 @@ try {
   const fallbackCount = await page.evaluate(() => window.clockFixtureFormatters.length);
   await fixture.getByTestId('clock-format-request').click(); await refresh.click();
   assert.equal(await page.evaluate(() => window.clockFixtureFormatters.length), fallbackCount, 'fallback formatter is also reused');
+  await page.evaluate(() => { window.mountShadowProductLinkClockFixture(); });
+  const shadow = page.locator('#shadow-product-link-host').getByTestId('link-clock-fixture');
+  await shadow.getByTestId('clock-new-request').click();
+  const shadowApprove = shadow.getByRole('button', { name: 'Approve connection', exact: true });
+  await shadowApprove.focus();
+  assert.equal(await shadowApprove.evaluate(button => button.getRootNode().activeElement === button), true);
+  await page.waitForTimeout(1400);
+  const shadowStatus = shadow.getByRole('alert');
+  await shadowStatus.waitFor();
+  assert.equal(await shadowStatus.evaluate(status => status.getRootNode().activeElement === status), true,
+    'expiry must move focus from a disappearing approval control to its status inside Shadow DOM');
   assert.deepEqual(errors, []);
-  console.log('Product-link monotonic expiry, future-only deadlines and locale formatter reuse browser check passed.');
+  console.log('Product-link chained expiry, light/Shadow DOM focus, future-only deadlines and formatter reuse browser check passed.');
 } finally { await browser?.close(); await server.close(); await rm(cacheDir, { recursive: true, force: true }); }

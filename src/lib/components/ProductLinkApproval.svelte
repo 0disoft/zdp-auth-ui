@@ -176,7 +176,7 @@
       mounted
       && previousDisposition === 'ready'
       && nextDisposition !== 'ready'
-      && (decisionFocusRequested || sectionElement?.contains(document.activeElement))
+      && (decisionFocusRequested || sectionElement?.matches(':focus-within'))
     ) {
       focusStatusAfterUpdate();
     }
