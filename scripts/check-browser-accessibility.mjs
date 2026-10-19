@@ -7,6 +7,7 @@ import { chromium } from 'playwright-core';
 import { createServer } from 'vite';
 import { checkPasskeyEditorFocus } from './check-passkey-editor-focus.mjs';
 import { checkPasskeyFeedbackFocus } from './check-passkey-feedback-focus.mjs';
+import { checkFormResetLifecycle } from './check-form-reset-lifecycle.mjs';
 
 const root = process.cwd();
 const cacheDir = await mkdtemp(join(tmpdir(), 'zdp-auth-ui-browser-'));
@@ -62,6 +63,7 @@ try {
     waitUntil: 'domcontentloaded'
   });
   assert.deepEqual(browserErrors, [], `Auth browser fixture must load without browser errors: ${browserErrors.join(' | ')}`);
+  await checkFormResetLifecycle(page, root);
 
   const loginFixture = page.getByTestId('login-fixture');
   const password = loginFixture.locator('#browser-password');
