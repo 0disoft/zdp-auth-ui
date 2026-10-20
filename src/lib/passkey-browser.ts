@@ -15,7 +15,7 @@ export async function startAuthentication(
   const request: CredentialRequestOptions = {
     publicKey: {
       ...options,
-      challenge: base64URLStringToBuffer(options.challenge),
+      challenge: decodeOption(options.challenge),
       extensions: options.extensions as AuthenticationExtensionsClientInputs | undefined,
       allowCredentials: conditional ? [] : options.allowCredentials?.length
         ? options.allowCredentials.map(credentialDescriptor) : undefined
@@ -53,9 +53,9 @@ export async function startRegistration(
   const request: CredentialCreationOptions = {
     publicKey: {
       ...options,
-      challenge: base64URLStringToBuffer(options.challenge),
+      challenge: decodeOption(options.challenge),
       extensions: options.extensions as AuthenticationExtensionsClientInputs | undefined,
-      user: { ...options.user, id: base64URLStringToBuffer(options.user.id) },
+      user: { ...options.user, id: decodeOption(options.user.id) },
       excludeCredentials: options.excludeCredentials?.map(credentialDescriptor)
     },
     signal
@@ -97,10 +97,19 @@ function requirePublicKeyCredential(credential: Credential | null): PublicKeyCre
 
 function credentialDescriptor(item: { id: string; type: string; transports?: string[] }): PublicKeyCredentialDescriptor {
   return {
-    ...item, id: base64URLStringToBuffer(item.id), type: item.type as PublicKeyCredentialType,
+    ...item, id: decodeOption(item.id), type: item.type as PublicKeyCredentialType,
     // Preserve newer transport hints even when the DOM typings lag the browser.
     transports: item.transports as AuthenticatorTransport[] | undefined
   };
+}
+
+function decodeOption(value: string): ArrayBuffer {
+  try {
+    return base64URLStringToBuffer(value);
+  } catch (cause) {
+    // Option conversion failures are input errors, not native ceremony failures.
+    throw new TypeError('The passkey options contain an invalid Base64URL value.', { cause });
+  }
 }
 
 function attachment(credential: PublicKeyCredential): 'platform' | 'cross-platform' | undefined {

@@ -329,6 +329,40 @@ try {
       rp: { ...registrationOptions.rp, id: rpId } }), expectNativeError('security-error', security));
   }
   setTestGlobal('location', { hostname: 'localhost' });
+  let invalidEncodingNativeCalls = 0;
+  credentialGet = credentialCreate = async () => {
+    invalidEncodingNativeCalls++;
+    throw new Error('Malformed encoded options must fail before browser transport.');
+  };
+  for (const invalidEncoding of ['!', 'A']) {
+    const invalidAuthenticationOptions = [
+      { ...options, challenge: invalidEncoding },
+      { ...options, allowCredentials: [{ id: invalidEncoding, type: 'public-key' as const }] }
+    ];
+    const invalidRegistrationOptions = [
+      { ...registrationOptions, challenge: invalidEncoding },
+      { ...registrationOptions, user: { ...registrationOptions.user, id: invalidEncoding } },
+      { ...registrationOptions, excludeCredentials: [{ id: invalidEncoding, type: 'public-key' as const }] }
+    ];
+    for (const [ceremony, requests] of [
+      ['authentication', invalidAuthenticationOptions], ['registration', invalidRegistrationOptions]
+    ] as const) {
+      for (const request of requests) {
+        await assert.rejects(ceremony === 'authentication'
+          ? startPasskeyAuthentication(request as PublicKeyCredentialRequestOptionsJSON)
+          : startPasskeyRegistration(request as PublicKeyCredentialCreationOptionsJSON), (error: unknown) => {
+          assert.ok(error instanceof ZdpPasskeyCeremonyError);
+          assert.equal(error.ceremony, ceremony);
+          assert.equal(error.reason, 'invalid-options');
+          assert.ok(error.cause instanceof TypeError);
+          assert.ok(error.cause.cause instanceof Error);
+          assert.equal(error.cause.cause.name, 'InvalidCharacterError', 'Keep the original decoder failure as the cause.');
+          return true;
+        });
+      }
+    }
+  }
+  assert.equal(invalidEncodingNativeCalls, 0, 'Malformed option encoding must never reach credentials.get/create.');
   credentialGet = async () => createAuthenticationCredential();
 
   await assert.rejects(
