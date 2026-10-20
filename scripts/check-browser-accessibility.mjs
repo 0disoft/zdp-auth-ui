@@ -181,10 +181,10 @@ try {
   await passkeyReauth.locator('header button').click();
   const passkeyName = passkeyReauth.locator('#reauth-settings-name');
   const passkeyPreference = passkeyReauth.locator('#reauth-settings-preference');
-  assert.equal(await passkeyName.inputValue(), 'This device passkey');
-  await passkeyPreference.selectOption('manager');
-  assert.equal(await passkeyName.inputValue(), 'Password manager', 'An untouched name must follow the selected preference.');
+  assert.equal(await passkeyPreference.inputValue(), 'manager');
+  assert.equal(await passkeyName.inputValue(), 'New passkey');
   await passkeyPreference.selectOption('device');
+  assert.equal(await passkeyName.inputValue(), 'This device passkey', 'An untouched name must follow the selected preference.');
   const reauthPassword = passkeyReauth.locator('#reauth-settings-password');
   await reauthPassword.fill('fixture-current-password');
   await passkeyReauth.getByTestId('use-passkey').click();
@@ -212,7 +212,8 @@ try {
   assert.equal(await passkeyName.inputValue(), '', 'An intentionally cleared name must stay empty across preference and locale changes.');
   await passkeyReauth.locator('form .zdp-passkey-settings__actions button[type="button"]').click();
   await passkeyReauth.locator('header button').click();
-  assert.equal(await passkeyName.inputValue(), '이 기기 패스키', 'Reopening registration must restore an untouched default.');
+  assert.equal(await passkeyPreference.inputValue(), 'manager');
+  assert.equal(await passkeyName.inputValue(), '새 패스키', 'Reopening registration must restore an untouched default.');
   await passkeyReauth.locator('form .zdp-passkey-settings__actions button[type="button"]').click();
   await passkeyReauth.locator('li').first().getByRole('button').first().click();
   assert.equal(await passkeyName.inputValue(), 'First key', 'Rename must use the saved key label instead of a registration suggestion.');

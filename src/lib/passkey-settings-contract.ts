@@ -24,10 +24,10 @@ export interface ZdpManagedPasskey {
   readonly authenticator?: ZdpPasskeyAuthenticator;
 }
 
-export const zdpPasskeyRegistrationPreferences = Object.freeze(['device', 'manager', 'security_key', 'phone'] as const);
+export const zdpPasskeyRegistrationPreferences = Object.freeze(['manager', 'device', 'security_key', 'phone'] as const);
 export type ZdpPasskeyRegistrationPreference = (typeof zdpPasskeyRegistrationPreferences)[number];
 
-export const zdpPasskeyRegistrationPreferenceDefault: ZdpPasskeyRegistrationPreference = 'device';
+export const zdpPasskeyRegistrationPreferenceDefault: ZdpPasskeyRegistrationPreference = 'manager';
 
 export interface ZdpPasskeySettingsState {
   readonly status: 'ready' | 'preparing' | 'unavailable';

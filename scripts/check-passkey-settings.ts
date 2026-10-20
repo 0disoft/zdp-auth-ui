@@ -31,8 +31,8 @@ for (const locale of ['__proto__', 'constructor', 'toString']) {
 assert.deepEqual(zdpPasskeyAuthenticatorProviders,
   ['windows_hello', 'google_password_manager', 'bitwarden', 'apple_passwords', 'unknown']);
 assert.deepEqual(zdpPasskeyAuthenticatorStorages, ['synced', 'device_bound']);
-assert.deepEqual(zdpPasskeyRegistrationPreferences, ['device', 'manager', 'security_key', 'phone']);
-assert.equal(zdpPasskeyRegistrationPreferenceDefault, 'device');
+assert.deepEqual(zdpPasskeyRegistrationPreferences, ['manager', 'device', 'security_key', 'phone']);
+assert.equal(zdpPasskeyRegistrationPreferenceDefault, 'manager');
 
 for (const provider of zdpPasskeyAuthenticatorProviders) {
   assert.equal(isZdpPasskeyAuthenticatorProvider(provider), true);
@@ -54,7 +54,7 @@ for (const preference of ['', 'device_passkey', 'usb', null]) {
 }
 
 assert.equal(getPasskeyRegistrationDefaultLabel('ko', 'device'), '이 기기 패스키');
-assert.equal(getPasskeyRegistrationDefaultLabel('ko', 'manager'), '비밀번호 관리자');
+assert.equal(getPasskeyRegistrationDefaultLabel('ko', 'manager'), '새 패스키');
 assert.equal(getPasskeyRegistrationDefaultLabel('ko', 'security_key'), '보안 키');
 assert.equal(getPasskeyRegistrationDefaultLabel('ko', 'phone'), '휴대폰 패스키');
 assert.deepEqual(getPasskeyRegistrationDefaultLabel('unknown', 'device'),
