@@ -136,8 +136,29 @@
   }
 
   async function focusStatusAfterUpdate(): Promise<void> {
-    await tick();
-    statusElement?.focus();
+    const expectedRequest = request;
+    const expectedChallenge = request?.challengeRef;
+    const expectedDisposition = validation.disposition;
+    const status = statusElement;
+    const section = sectionElement;
+    if (!status || !section) return;
+    const root = section.getRootNode();
+    const activeBefore = 'activeElement' in root ? root.activeElement : null;
+    const document = section.ownerDocument;
+    let focusMoved = false;
+    const markFocusMoved = () => { focusMoved = true; };
+    document.addEventListener('focusin', markFocusMoved, true);
+    try {
+      await tick();
+      if (focusMoved || request !== expectedRequest || request?.challengeRef !== expectedChallenge ||
+        validation.disposition !== expectedDisposition || statusElement !== status ||
+        !status.isConnected || !section.isConnected) return;
+      const active = 'activeElement' in root ? root.activeElement : null;
+      if (active && active !== activeBefore && active !== document.body) return;
+      status.focus();
+    } finally {
+      document.removeEventListener('focusin', markFocusMoved, true);
+    }
   }
   let copy = $derived(messages);
   let dateFormatter = $derived.by(() => {
