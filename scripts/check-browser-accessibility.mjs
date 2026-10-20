@@ -9,6 +9,7 @@ import { checkPasskeyEditorFocus } from './check-passkey-editor-focus.mjs';
 import { checkPasskeyFeedbackFocus } from './check-passkey-feedback-focus.mjs';
 import { checkFormResetLifecycle } from './check-form-reset-lifecycle.mjs';
 import { checkAuthShellTransitions } from './check-auth-shell-transitions.mjs';
+import { checkPasskeyPolicyFocus } from './check-passkey-policy-focus.mjs';
 
 const root = process.cwd();
 const cacheDir = await mkdtemp(join(tmpdir(), 'zdp-auth-ui-browser-'));
@@ -743,6 +744,8 @@ try {
     await clockPage.close();
   }
 
+  await checkPasskeyPolicyFocus(page);
+  assert.deepEqual(browserErrors, [], 'Policy transition fixtures must not introduce browser errors.');
   console.log('Auth UI browser accessibility, login/signup handoff, and product-link flow check passed.');
 } finally {
   await browser?.close();

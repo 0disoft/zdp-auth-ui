@@ -96,6 +96,27 @@
     return menu && settingsElement?.contains(menu)
       ? menu.querySelector<HTMLElement>('button[aria-haspopup="menu"]') : null;
   }
+  function focusEditorContent() {
+    (editorElement?.querySelector<HTMLElement>('input:not(:disabled)')
+      ?? editorElement?.querySelector<HTMLElement>('legend'))?.focus();
+  }
+  async function retainEditorFocus(removedInput: HTMLInputElement) {
+    const request = ++focusRequest;
+    const document = removedInput.ownerDocument;
+    let focusMoved = false;
+    const markFocusMoved = () => { focusMoved = true; };
+    document.addEventListener('focusin', markFocusMoved, true);
+    try {
+      await tick();
+      if (focusMoved || request !== focusRequest || removedInput.isConnected ||
+        locked || !editor || !editorElement?.isConnected) return;
+      const active = activeElement();
+      if (active && active !== document.body) return;
+      focusEditorContent();
+    } finally {
+      document.removeEventListener('focusin', markFocusMoved, true);
+    }
+  }
   async function open(action: typeof editor, id = '', label = '', focusTarget?: HTMLElement | null) {
     if (locked || !action || !settingsState.capabilities[action]) return;
     const request = ++focusRequest;
@@ -107,8 +128,7 @@
     preferenceValue = zdpPasskeyRegistrationPreferenceDefault;
     await tick();
     if (request !== focusRequest || editor !== action || locked || !editorElement?.isConnected) return;
-    (editorElement.querySelector<HTMLElement>('input:not(:disabled)')
-      ?? editorElement.querySelector<HTMLElement>('legend'))?.focus();
+    focusEditorContent();
   }
   async function restoreEditorFocus(request: number, target: HTMLElement | null) {
     await tick();
@@ -182,7 +202,11 @@
   });
   let ready = $derived(settingsState.status === 'ready');
   $effect.pre(() => {
-    if (settingsState.reauthentication !== 'password') password = '';
+    if (settingsState.reauthentication !== 'password') {
+      const input = editorElement?.querySelector<HTMLInputElement>('input[name="current_password"]');
+      if (input && activeElement() === input) void retainEditorFocus(input);
+      password = '';
+    }
   });
   let currentFeedback = $derived(feedbackSequence === null || feedbackSequence === actionSequence ? feedback : null);
   let locked = $derived(busy || !ready || !onaction || currentFeedback === 'unconfirmed');
