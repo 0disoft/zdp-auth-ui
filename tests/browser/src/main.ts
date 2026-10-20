@@ -5,6 +5,7 @@ import AuthFeedbackFixture from './AuthFeedbackFixture.svelte';
 import PasskeyReauthFixture from './PasskeyReauthFixture.svelte';
 import ProductLinkClockFixture from './ProductLinkClockFixture.svelte';
 import PasskeyFeedbackFixture from './PasskeyFeedbackFixture.svelte';
+import AuthShellTransitionsFixture from './AuthShellTransitionsFixture.svelte';
 
 mount(AuthBrowserFixture, {
   target: document.getElementById('app') as HTMLElement
@@ -19,6 +20,11 @@ mount(AuthFeedbackFixture, {
 });
 
 Object.assign(window, {
+  mountAuthShellTransitionsFixture() {
+    const host = document.createElement('div');
+    document.body.append(host);
+    return mount(AuthShellTransitionsFixture, { target: host });
+  },
   mountPasskeyFeedbackFixture() {
     const host = document.createElement('div');
     document.body.append(host);

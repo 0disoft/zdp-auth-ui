@@ -8,6 +8,7 @@ import { createServer } from 'vite';
 import { checkPasskeyEditorFocus } from './check-passkey-editor-focus.mjs';
 import { checkPasskeyFeedbackFocus } from './check-passkey-feedback-focus.mjs';
 import { checkFormResetLifecycle } from './check-form-reset-lifecycle.mjs';
+import { checkAuthShellTransitions } from './check-auth-shell-transitions.mjs';
 
 const root = process.cwd();
 const cacheDir = await mkdtemp(join(tmpdir(), 'zdp-auth-ui-browser-'));
@@ -64,6 +65,7 @@ try {
   });
   assert.deepEqual(browserErrors, [], `Auth browser fixture must load without browser errors: ${browserErrors.join(' | ')}`);
   await checkFormResetLifecycle(page, root);
+  await checkAuthShellTransitions(page);
 
   const loginFixture = page.getByTestId('login-fixture');
   const password = loginFixture.locator('#browser-password');

@@ -219,7 +219,7 @@
   let nextMode = $derived(getNextMode(mode));
   let nextModeLabel = $derived(mode === 'login' ? copy.links.signup : copy.links.login);
   let formMethod = $derived(getFormMethod(method));
-  let normalizedReferralCode = $derived(normalizeOptionalFormValue(referralCode));
+  let normalizedReferralCode = $derived(mode === 'signup' ? normalizeOptionalFormValue(referralCode) : null);
   let normalizedReferralCodeFieldName = $derived(normalizeOptionalFormValue(referralCodeFieldName) ?? 'referral_code');
   let normalizedRecoveryHref = $derived(normalizeOptionalFormValue(recoveryHref));
   let typedFeedback = $derived(resolveTypedFeedback(feedback, copy, mode));
