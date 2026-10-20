@@ -363,6 +363,28 @@ try {
     }
   }
   assert.equal(invalidEncodingNativeCalls, 0, 'Malformed option encoding must never reach credentials.get/create.');
+  credentialGet = credentialCreate = waitForAbort;
+  for (const activeKind of ['authentication', 'registration'] as const) {
+    const active = activeKind === 'authentication'
+      ? startPasskeyAuthentication(options) : startPasskeyRegistration(registrationOptions);
+    const activeRequest = activeKind === 'authentication' ? getCapturedRequest() : getCapturedCreation();
+    const activeCheck = assert.rejects(active, (error: unknown) =>
+      error instanceof ZdpPasskeyCeremonyError && error.reason === 'cancelled');
+    try {
+      for (const invalidKind of ['authentication', 'registration'] as const) {
+        await assert.rejects(invalidKind === 'authentication'
+          ? startPasskeyAuthentication({ ...options, challenge: '!' })
+          : startPasskeyRegistration({ ...registrationOptions, challenge: '!' }), (error: unknown) =>
+          error instanceof ZdpPasskeyCeremonyError && error.reason === 'invalid-options');
+        assert.equal(activeRequest?.signal?.aborted, false,
+          'Malformed replacement options must leave the current browser ceremony active.');
+      }
+    } finally {
+      cancelPasskeyCeremony();
+      await activeCheck;
+    }
+    assert.equal(activeRequest?.signal?.aborted, true, 'Explicit cancellation must still reach the original ceremony.');
+  }
   credentialGet = async () => createAuthenticationCredential();
 
   await assert.rejects(

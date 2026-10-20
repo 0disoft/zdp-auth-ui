@@ -7,19 +7,38 @@ import type {
 
 // Keep JSON conversion compatible with SimpleWebAuthn while passing the owner's
 // signal directly to the browser, without the SDK's global abort service.
-export async function startAuthentication(
+export function prepareAuthenticationOptions(
   options: PublicKeyCredentialRequestOptionsJSON,
+  conditional: boolean
+): PublicKeyCredentialRequestOptions {
+  return {
+    ...options,
+    challenge: decodeOption(options.challenge),
+    extensions: options.extensions as AuthenticationExtensionsClientInputs | undefined,
+    allowCredentials: conditional ? [] : options.allowCredentials?.length
+      ? options.allowCredentials.map(credentialDescriptor) : undefined
+  };
+}
+
+export function prepareRegistrationOptions(
+  options: PublicKeyCredentialCreationOptionsJSON
+): PublicKeyCredentialCreationOptions {
+  return {
+    ...options,
+    challenge: decodeOption(options.challenge),
+    extensions: options.extensions as AuthenticationExtensionsClientInputs | undefined,
+    user: { ...options.user, id: decodeOption(options.user.id) },
+    excludeCredentials: options.excludeCredentials?.map(credentialDescriptor)
+  };
+}
+
+export async function startAuthentication(
+  options: PublicKeyCredentialRequestOptions,
   signal: AbortSignal,
   conditional: boolean
 ): Promise<AuthenticationResponseJSON> {
   const request: CredentialRequestOptions = {
-    publicKey: {
-      ...options,
-      challenge: decodeOption(options.challenge),
-      extensions: options.extensions as AuthenticationExtensionsClientInputs | undefined,
-      allowCredentials: conditional ? [] : options.allowCredentials?.length
-        ? options.allowCredentials.map(credentialDescriptor) : undefined
-    },
+    publicKey: options,
     signal,
     ...(conditional ? { mediation: 'conditional' as const } : {})
   };
@@ -47,17 +66,11 @@ export async function startAuthentication(
 }
 
 export async function startRegistration(
-  options: PublicKeyCredentialCreationOptionsJSON,
+  options: PublicKeyCredentialCreationOptions,
   signal: AbortSignal
 ): Promise<RegistrationResponseJSON> {
   const request: CredentialCreationOptions = {
-    publicKey: {
-      ...options,
-      challenge: decodeOption(options.challenge),
-      extensions: options.extensions as AuthenticationExtensionsClientInputs | undefined,
-      user: { ...options.user, id: decodeOption(options.user.id) },
-      excludeCredentials: options.excludeCredentials?.map(credentialDescriptor)
-    },
+    publicKey: options,
     signal
   };
   let result: Credential | null;

@@ -4,7 +4,8 @@ import {
   browserSupportsWebAuthnAutofill,
   platformAuthenticatorIsAvailable
 } from '@simplewebauthn/browser';
-import { startAuthentication, startRegistration } from './passkey-browser';
+import { prepareAuthenticationOptions, prepareRegistrationOptions,
+  startAuthentication, startRegistration } from './passkey-browser';
 import type {
   AuthenticationResponseJSON,
   PublicKeyCredentialCreationOptionsJSON,
@@ -104,6 +105,8 @@ export async function startPasskeyRegistration(
 ): Promise<RegistrationResponseJSON> {
   ensurePasskeySupported('registration');
   const timeoutMs = validateTimeout('registration', ceremonyOptions.timeoutMs);
+  const requestOptions = prepareCeremonyOptions('registration', ceremonyOptions.signal,
+    () => prepareRegistrationOptions(structuredClone(options)));
 
   return runPasskeyCeremony(
     'registration',
@@ -111,7 +114,7 @@ export async function startPasskeyRegistration(
     ceremonyOptions.signal,
     async (assertActive, signal) => {
       assertActive();
-      return startRegistration(structuredClone(options), signal);
+      return startRegistration(requestOptions, signal);
     }
   );
 }
@@ -128,10 +131,11 @@ export async function startPasskeyAuthentication(
     throw new ZdpPasskeyCeremonyError('authentication', 'invalid-options');
   }
   const useBrowserAutofill = mediation === 'conditional';
+  // Complete synchronous input conversion before replacing another caller's prompt.
+  const requestOptions = prepareCeremonyOptions('authentication', ceremonyOptions.signal,
+    () => prepareAuthenticationOptions(structuredClone(options), useBrowserAutofill));
 
   return runPasskeyCeremony('authentication', timeoutMs, ceremonyOptions.signal, async (assertActive, signal) => {
-    // Capture server-issued ceremony data before awaiting browser capability probes.
-    const requestOptions = structuredClone(options);
     if (useBrowserAutofill) {
       const conditionalUi = await safeCapabilityProbe(browserSupportsWebAuthnAutofill);
       assertActive();
@@ -202,6 +206,21 @@ function validateTimeout(
 function hasBrowserAutofillInput(container?: ParentNode): boolean {
   const root = container ?? (typeof document === 'undefined' ? undefined : document);
   return root?.querySelector("input[autocomplete$='webauthn']") != null;
+}
+
+function prepareCeremonyOptions<Options>(
+  ceremony: ZdpPasskeyCeremonyKind,
+  signal: AbortSignal | undefined,
+  prepare: () => Options
+): Options {
+  if (signal?.aborted) {
+    throw new ZdpPasskeyCeremonyError(ceremony, 'cancelled', signal.reason);
+  }
+  try {
+    return prepare();
+  } catch (error) {
+    throw normalizePasskeyError(ceremony, error, false);
+  }
 }
 
 async function runPasskeyCeremony<Response>(
