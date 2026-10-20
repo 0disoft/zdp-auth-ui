@@ -12,7 +12,7 @@ const messages = {
   "confirmRemove": "移除通行密钥",
   "reauthPassword": "请验证当前密码后继续。",
   "reauthPasskey": "请使用已有通行密钥验证身份后继续。",
-  "removeHelp": "这会移除此密钥的账户访问权限。密码管理器中保存的密钥可能仍会保留。",
+  "removeHelp": "移除后，此密钥将无法再登录你的账户。如果设备或密码管理器没有自动清除条目，也请在那里删除。",
   "empty": "尚未添加通行密钥。",
   "preparing": "通行密钥管理正在准备中。",
   "unavailable": "无法加载通行密钥，请稍后重试。",

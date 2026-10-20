@@ -12,7 +12,7 @@ const messages = {
   "confirmRemove": "Xóa passkey",
   "reauthPassword": "Xác nhận mật khẩu hiện tại để tiếp tục.",
   "reauthPasskey": "Xác minh danh tính bằng passkey đã có để tiếp tục.",
-  "removeHelp": "Quyền truy cập tài khoản của khóa này sẽ bị xóa. Khóa có thể vẫn còn trong trình quản lý mật khẩu.",
+  "removeHelp": "Sau khi xóa, bạn không thể dùng khóa này để đăng nhập vào tài khoản. Nếu thiết bị hoặc trình quản lý mật khẩu không tự xóa mục này, hãy xóa cả ở đó.",
   "empty": "Chưa có passkey.",
   "preparing": "Đang chuẩn bị tính năng quản lý passkey.",
   "unavailable": "Không thể tải passkey. Vui lòng thử lại sau.",

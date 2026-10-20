@@ -12,7 +12,7 @@ const messages = {
   "confirmRemove": "Supprimer la clé",
   "reauthPassword": "Confirmez votre mot de passe actuel pour continuer.",
   "reauthPasskey": "Confirmez votre identité avec une clé existante pour continuer.",
-  "removeHelp": "L’accès de cette clé à votre compte sera supprimé. Elle peut rester dans votre gestionnaire de mots de passe.",
+  "removeHelp": "La suppression met fin à l’accès de cette clé à votre compte. Si votre appareil ou votre gestionnaire de mots de passe ne supprime pas l’entrée automatiquement, supprimez-la aussi à cet endroit.",
   "empty": "Aucune clé d’accès ajoutée.",
   "preparing": "La gestion des clés est en préparation.",
   "unavailable": "Impossible de charger les clés. Réessayez plus tard.",
