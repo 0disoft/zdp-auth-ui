@@ -161,10 +161,10 @@ export async function startPasskeyAuthentication(
 }
 
 export function cancelPasskeyCeremony(): void {
-  if (activeCeremony) {
-    activeCeremony.controller.abort(new ZdpPasskeyCeremonyError(activeCeremony.ceremony, 'cancelled'));
-    activeCeremony = null;
-  }
+  const current = activeCeremony;
+  // Abort listeners run synchronously and may start another ceremony.
+  activeCeremony = null;
+  current?.controller.abort(new ZdpPasskeyCeremonyError(current.ceremony, 'cancelled'));
 }
 
 async function safeCapabilityProbe(probe: () => Promise<boolean>): Promise<boolean> {
@@ -233,7 +233,7 @@ async function runPasskeyCeremony<Response>(
   if (signal?.aborted) {
     throw new ZdpPasskeyCeremonyError(ceremony, 'cancelled', signal.reason);
   }
-  cancelPasskeyCeremony();
+  const previous = activeCeremony;
   const current = { controller: new AbortController(), ceremony };
   activeCeremony = current;
   const assertActive = () => {
@@ -259,7 +259,13 @@ async function runPasskeyCeremony<Response>(
   }
 
   try {
-    return await Promise.race([start(assertActive, current.controller.signal), cancelled]);
+    // Publish this owner and install cancellation before notifying the old one.
+    // A newer call from an abort listener must be able to supersede this call.
+    previous?.controller.abort(new ZdpPasskeyCeremonyError(previous.ceremony, 'cancelled'));
+    return await Promise.race([
+      current.controller.signal.aborted ? cancelled : start(assertActive, current.controller.signal),
+      cancelled
+    ]);
   } catch (error) {
     throw normalizePasskeyError(ceremony, error, timedOut);
   } finally {
