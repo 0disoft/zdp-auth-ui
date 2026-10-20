@@ -12,7 +12,7 @@ const messages = {
   "confirmRemove": "Eliminar clave",
   "reauthPassword": "Verifica tu contraseña actual para continuar.",
   "reauthPasskey": "Verifica tu identidad con una clave existente para continuar.",
-  "removeHelp": "Al eliminarla, esta clave ya no permitirá iniciar sesión en tu cuenta. Si el dispositivo o el gestor de contraseñas no borra la entrada automáticamente, elimínala también allí.",
+  "removeHelp": "Una vez eliminada, ya no podrás iniciar sesión con esta clave. Si sigue apareciendo en tu dispositivo o gestor de contraseñas, elimínala también allí.",
   "empty": "No hay claves de acceso.",
   "preparing": "Estamos preparando la gestión de claves.",
   "unavailable": "No se pueden cargar las claves. Inténtalo más tarde.",

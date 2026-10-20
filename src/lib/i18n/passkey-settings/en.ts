@@ -12,7 +12,7 @@ const messages = {
   "confirmRemove": "Remove passkey",
   "reauthPassword": "Confirm your current password before continuing.",
   "reauthPasskey": "Confirm with an existing passkey before continuing.",
-  "removeHelp": "Removing it ends this passkey's sign-in access to your account. If your device or password manager does not clear the entry automatically, delete it there too.",
+  "removeHelp": "Once removed, this passkey can no longer be used to sign in. If it still appears on your device or in your password manager, delete it there too.",
   "empty": "No passkeys added.",
   "preparing": "Passkey management is being prepared.",
   "unavailable": "Passkeys are unavailable. Try again later.",

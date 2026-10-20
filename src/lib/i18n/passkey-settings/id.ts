@@ -12,7 +12,7 @@ const messages = {
   "confirmRemove": "Hapus passkey",
   "reauthPassword": "Konfirmasi kata sandi saat ini untuk melanjutkan.",
   "reauthPasskey": "Konfirmasi identitas dengan passkey yang sudah ada.",
-  "removeHelp": "Setelah dihapus, kunci ini tidak dapat lagi digunakan untuk masuk ke akun Anda. Jika perangkat atau pengelola kata sandi tidak menghapus entrinya secara otomatis, hapus juga di sana.",
+  "removeHelp": "Setelah dihapus, passkey ini tidak dapat lagi digunakan untuk masuk. Jika masih muncul di perangkat atau pengelola kata sandi Anda, hapus juga di sana.",
   "empty": "Belum ada passkey.",
   "preparing": "Pengelolaan passkey sedang disiapkan.",
   "unavailable": "Passkey tidak dapat dimuat. Coba lagi nanti.",

@@ -12,7 +12,7 @@ const messages = {
   "confirmRemove": "Buang passkey",
   "reauthPassword": "Sahkan kata laluan semasa untuk meneruskan.",
   "reauthPasskey": "Sahkan identiti dengan passkey sedia ada untuk meneruskan.",
-  "removeHelp": "Selepas dibuang, kunci ini tidak lagi boleh digunakan untuk log masuk ke akaun anda. Jika peranti atau pengurus kata laluan tidak membuang entri itu secara automatik, buangkannya juga di sana.",
+  "removeHelp": "Selepas dibuang, passkey ini tidak lagi boleh digunakan untuk log masuk. Jika masih dipaparkan pada peranti atau dalam pengurus kata laluan anda, buangkannya juga di sana.",
   "empty": "Belum ada passkey.",
   "preparing": "Pengurusan passkey sedang disediakan.",
   "unavailable": "Passkey tidak dapat dimuatkan. Cuba lagi nanti.",
