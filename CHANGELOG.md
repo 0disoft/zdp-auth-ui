@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.11.1
+
+- Adopt Design System 0.67.0 and its nested overlay and external-close focus fixes.
+- Preserve form resets after document and shadow-root moves, isolate locale and validation policy lists, and keep product-link focus and expiry tied to the active interaction.
+- Preserve passkey ceremony ownership during cancellation, validate options before replacing active requests, and let browsers select credential storage by default.
+
 - Restore passkey editor focus within its own document or shadow root, resolve directory triggers from the selected menu instead of global IDs, and pass custom trigger content through a named snippet with browser and SSR coverage.
 
 - Export passkey settings contracts and `validateProductLinkRequest` from `zdp-auth-ui/contract`, add the catalog-free `zdp-auth-ui/passkey` browser helper entry, and check all seven existing lean Props aliases plus utility exports in type, bundle and packed-consumer checks.
