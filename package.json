@@ -142,7 +142,7 @@
   },
   "dependencies": {
     "@simplewebauthn/browser": "^14.0.0",
-    "zdp-design-system": "^0.67.0"
+    "zdp-design-system": "^0.67.2"
   },
   "devDependencies": {
     "@sveltejs/package": "^3",
