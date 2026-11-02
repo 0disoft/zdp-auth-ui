@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.11.2
+
+- Require Design System 0.67.2 and rebuild the packaged browser and SSR entries against it.
+- Include the shared focus traversal, modal focus-cache invalidation, form reset scheduling, and confirmation deadline fixes without changing the authentication UI API.
+
 ## 0.11.1
 
 - Adopt Design System 0.67.0 and its nested overlay and external-close focus fixes.
