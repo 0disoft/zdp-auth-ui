@@ -9,6 +9,8 @@
   } from 'zdp-design-system';
   import type { ZdpAuthMessages, ZdpAuthLocale } from '../i18n';
   import { onInputFormReset } from '../form-reset';
+  import SquareAsterisk from 'lucide-svelte/icons/square-asterisk';
+  import CaseSensitive from 'lucide-svelte/icons/case-sensitive';
 
   // Keep locale accepted for compatibility; injected messages select the copy.
 
@@ -84,63 +86,21 @@
       ariaPressed={visible}
       ariaControls={id}
       ariaLabel={toggleLabel}
+      title={toggleLabel}
       onclick={() => (visible = !visible)}
     >
       {#if visible}
-        <svg
+        <CaseSensitive
           class="zdp-auth-password-field__toggle-icon"
-          viewBox="0 0 24 24"
           aria-hidden="true"
           focusable="false"
-        >
-          <path
-            d="M3 12s3.25-6 9-6 9 6 9 6-3.25 6-9 6-9-6-9-6Z"
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-          />
-          <path
-            d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-          />
-          <path
-            d="M4 4l16 16"
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-width="2"
-          />
-        </svg>
+        />
       {:else}
-        <svg
+        <SquareAsterisk
           class="zdp-auth-password-field__toggle-icon"
-          viewBox="0 0 24 24"
           aria-hidden="true"
           focusable="false"
-        >
-          <path
-            d="M3 12s3.25-6 9-6 9 6 9 6-3.25 6-9 6-9-6-9-6Z"
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-          />
-          <path
-            d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-            fill="none"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-          />
-        </svg>
+        />
       {/if}
     </IconButton>
   </div>
@@ -170,7 +130,7 @@
     min-block-size: var(--zdp-control-height-md);
   }
 
-  .zdp-auth-password-field__toggle-icon {
+  .zdp-auth-password-field__control :global(.zdp-auth-password-field__toggle-icon) {
     display: block;
     height: var(--zdp-control-glyph-md);
     width: var(--zdp-control-glyph-md);
