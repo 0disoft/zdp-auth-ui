@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.11.3
+
+- Replace password visibility eye icons with SquareAsterisk and CaseSensitive from Lucide.
+- Render the visibility icons at 85% opacity to match surrounding controls.
+
 ## 0.11.2
 
 - Require Design System 0.67.2 and rebuild the packaged browser and SSR entries against it.
