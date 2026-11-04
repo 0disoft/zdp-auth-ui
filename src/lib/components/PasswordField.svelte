@@ -132,6 +132,7 @@
 
   .zdp-auth-password-field__control :global(.zdp-auth-password-field__toggle-icon) {
     display: block;
+    opacity: 0.85;
     height: var(--zdp-control-glyph-md);
     width: var(--zdp-control-glyph-md);
   }
