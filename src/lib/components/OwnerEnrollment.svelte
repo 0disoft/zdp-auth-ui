@@ -59,7 +59,7 @@
           {#if item.status === 'pending' && item.delivery_status !== 'rejected'}
             <form method="post" action="" autocomplete="off" onsubmit={event => submit(event, 'confirm', slot, item.attempt_id)}>
               <fieldset disabled={!mounted || busy || blocked}>
-                <label>{m.code}<input name="code" type="text" inputmode="numeric" required pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="off" /></label>
+                <label>{m.code}<input name="code" type="text" inputmode="numeric" required pattern={'[0-9]{6}'} minlength="6" maxlength="6" autocomplete="off" /></label>
                 <Button type="submit">{m.confirm}</Button>
               </fieldset>
             </form>
