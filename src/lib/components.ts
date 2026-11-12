@@ -1,4 +1,5 @@
 import type { ComponentProps } from 'svelte';
+export { default as OwnerEnrollmentForm } from './components/OwnerEnrollment.svelte';
 
 export { default as AuthShell } from './components/AuthShell.svelte';
 export { default as LoginIdField } from './components/LoginIdField.svelte';

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.12.0
+
+- Add shared Doubloon owner recovery-contact verification and existing-passkey binding forms, with Korean and English fallback copy.
+- Add a closed owner enrollment projection parser; wallet key generation, signing and publication stay disabled.
+
 ## 0.11.3
 
 - Replace password visibility eye icons with SquareAsterisk and CaseSensitive from Lucide.
