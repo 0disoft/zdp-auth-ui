@@ -1,6 +1,6 @@
 const en = {
   title:'Owner approval and recovery',
-  intro:'Confirm the transaction candidate hash before using the bound owner passkey. Recovery requires two different verified contacts, acceptance by all four contacts, and a 24-hour waiting period before binding an existing new passkey.',
+  intro:'Confirm the transaction candidate hash before using the bound owner passkey. Recovery requires any two different verified contacts and a 24-hour waiting period after all required security notices are accepted before an existing new passkey can be bound. New requests send security notices to both recovery emails; phone codes verify contacts only.',
   unavailable:'Owner access is not available for this account.',
   preview:'Local preview · synthetic approval and recovery data only. No message is delivered.',
   approval:'Candidate approval', approvalIntro:'Load the approval package supplied for this exact operation, inspect the draft hash, then confirm it before the passkey prompt.',
@@ -9,10 +9,12 @@ const en = {
   refreshApproval:'Refresh approval status', reprepareApproval:'Prepare this same candidate again',
   approvalPendingHelp:'Check this same attempt after a lost response. If it is pending, you can explicitly prepare a new passkey prompt for the same candidate. Approval is never retried automatically.',
   approvalStates:{pending:'Awaiting passkey',approved:'Approved',consumed:'Consumed',cancelled:'Cancelled',expired:'Expired'},
-  recovery:'Recovery', recoveryIntro:'Contact verification and recovery notifications are separate. The waiting period starts only after all four notifications are accepted.',
+  recovery:'Recovery', recoveryIntro:"Contact verification and security notices are separate. The waiting period starts only after every notice required by this recovery's policy is accepted.",
   notStarted:'No recovery is active.', start:'Start recovery', refresh:'Refresh status', state:'Recovery state',
   states:{none:'Not started',collecting:'Collecting contact proofs',notifying:'Notifying contacts',countdown:'Waiting period',cancelled:'Cancelled',completed:'Completed'},
-  proofSlots:'Verified contacts', notifications:'Notifications', countdown:'24-hour countdown', ready:'Passkey binding available after',
+  proofSlots:'Verified contacts', notifications:'Security notices', notificationPolicy:'Notice policy',
+  notificationPolicies:{'email-pair-v1':'Both recovery emails receive security notices. Phone codes verify contacts only.','all-contacts-v1':'Both recovery emails and both recovery phone numbers receive security notices.'},
+  countdown:'24-hour countdown', ready:'Passkey binding available after',
   email_a:'Recovery email 1', email_b:'Recovery email 2', phone_a:'Recovery phone 1', phone_b:'Recovery phone 2',
   requestCode:'Request contact verification', code:'Verification code', sendCode:'Send verification code', recheckSend:'Recheck original send', confirmCode:'Verify contact',
   pending:'Pending', accepted:'Accepted', unknown:'Outcome unknown', rejected:'Rejected',
@@ -21,12 +23,12 @@ const en = {
   veto:'Cancel recovery', vetoHelp:'A recovery pending receipt from an owner contact can stop the request while the countdown or passkey-binding window is active.', slot:'Contact', vetoToken:'Recovery cancellation token', vetoContact:'Cancel with contact receipt',
   passkeyVeto:'Cancel with current owner passkey', passkeyRebind:'Bind existing new passkey', label:'New passkey label', bind:'Use passkey to bind',
   noWalletReset:'This changes owner passkey access only. Wallet keys, encrypted backups, signing material, and transaction authority are not reset or granted.',
-  saved:'Status updated.', failed:'The request was rejected. Check the details and try again.', unconfirmed:'The outcome is unknown. Refresh the status; no notification is resent automatically.', rate_limited:'The delivery limit was reached. Wait before trying again.', expired:'Your session or ceremony expired. Refresh the status or sign in again.', unavailableMessage:'The owner access service is not available yet.', wait:'Please wait…', retryAfter:'Retry after (seconds):', duration24h:'At least 24 hours after the last accepted notification.'
+  saved:'Status updated.', failed:'The request was rejected. Check the details and try again.', unconfirmed:'The outcome is unknown. Refresh the status; no notification is resent automatically.', rate_limited:'The delivery limit was reached. Wait before trying again.', expired:'Your session or ceremony expired. Refresh the status or sign in again.', unavailableMessage:'The owner access service is not available yet.', wait:'Please wait…', retryAfter:'Retry after (seconds):', duration24h:'At least 24 hours after the last required security notice is accepted.'
 };
 export type OwnerAccessMessages = typeof en;
 const ko: OwnerAccessMessages = {
   title:'소유자 승인과 복구',
-  intro:'연결된 소유자 패스키를 사용하기 전에 transaction candidate hash를 확인하세요. 복구는 서로 다른 연락처 2개의 검증, 4개 연락처의 알림 수락, 기존 새 패스키를 연결하기까지 24시간 대기가 필요합니다.',
+  intro:'연결된 소유자 패스키를 사용하기 전에 transaction candidate hash를 확인하세요. 복구는 서로 다른 연락처 2개의 검증과 필요한 보안 알림의 수락, 기존 새 패스키를 연결하기까지 24시간 대기가 필요합니다. 새 요청의 보안 알림은 복구 이메일 2곳으로만 발송되며, 전화 인증번호는 연락처 검증에만 사용합니다.',
   unavailable:'이 계정에서는 소유자 접근 승인과 복구를 사용할 수 없습니다.',
   preview:'로컬 미리보기 · 승인과 복구는 가상 데이터만 사용합니다. 메시지는 발송되지 않습니다.',
   approval:'Candidate 승인', approvalIntro:'이 작업에 제공된 승인 패키지를 불러오고 draft hash를 확인한 뒤 패스키를 시작하세요.',
@@ -35,10 +37,12 @@ const ko: OwnerAccessMessages = {
   refreshApproval:'승인 상태 새로 확인', reprepareApproval:'같은 후보로 다시 준비',
   approvalPendingHelp:'응답을 확인하지 못했다면 같은 시도의 상태를 먼저 확인하세요. 대기 중이면 같은 후보 ID로 패스키 확인을 직접 다시 준비할 수 있고, 승인은 자동 재시도되지 않습니다.',
   approvalStates:{pending:'패스키 대기',approved:'승인됨',consumed:'사용됨',cancelled:'취소됨',expired:'만료됨'},
-  recovery:'복구', recoveryIntro:'연락처 검증과 복구 알림은 별개입니다. 네 알림이 모두 수락된 뒤에만 대기 시간이 시작됩니다.',
+  recovery:'복구', recoveryIntro:'연락처 검증과 보안 알림은 별개입니다. 이 복구 정책에 필요한 알림이 모두 수락된 뒤에만 대기 시간이 시작됩니다.',
   notStarted:'진행 중인 복구가 없습니다.', start:'복구 시작', refresh:'상태 새로 확인', state:'복구 상태',
   states:{none:'시작 전',collecting:'연락처 증명 수집 중',notifying:'연락처 알림 중',countdown:'대기 중',cancelled:'취소됨',completed:'완료됨'},
-  proofSlots:'검증된 연락처', notifications:'알림 수락 상태', countdown:'24시간 대기', ready:'패스키 연결 가능 시각',
+  proofSlots:'검증된 연락처', notifications:'보안 알림', notificationPolicy:'알림 정책',
+  notificationPolicies:{'email-pair-v1':'복구 이메일 2곳에만 보안 알림을 보냅니다. 전화 인증번호는 연락처 검증에만 사용합니다.','all-contacts-v1':'복구 이메일 2곳과 복구 전화번호 2곳 모두에 보안 알림을 보냅니다.'},
+  countdown:'24시간 대기', ready:'패스키 연결 가능 시각',
   email_a:'복구 이메일 1', email_b:'복구 이메일 2', phone_a:'복구 전화번호 1', phone_b:'복구 전화번호 2',
   requestCode:'연락처 인증 시작', code:'인증번호', sendCode:'인증번호 보내기', recheckSend:'원래 발송 결과 확인', confirmCode:'연락처 인증 확인',
   pending:'대기', accepted:'수락됨', unknown:'결과 확인 필요', rejected:'거절됨',
@@ -47,6 +51,6 @@ const ko: OwnerAccessMessages = {
   veto:'복구 취소', vetoHelp:'소유자 연락처의 복구 대기 영수증으로 대기 또는 새 패스키 연결 기간의 복구를 중지할 수 있습니다.', slot:'연락처', vetoToken:'복구 취소 토큰', vetoContact:'연락처 영수증으로 취소',
   passkeyVeto:'현재 소유자 패스키로 취소', passkeyRebind:'기존 새 패스키 연결', label:'새 패스키 이름', bind:'패스키로 연결',
   noWalletReset:'소유자 패스키 접근만 변경합니다. 지갑 키, 암호화 백업, 서명 자료, transaction 권한은 재설정되거나 부여되지 않습니다.',
-  saved:'상태를 확인했습니다.', failed:'요청이 거절됐습니다. 세부 내용을 확인하고 다시 시도하세요.', unconfirmed:'처리 결과를 확인하지 못했습니다. 상태를 새로 확인하세요. 알림은 자동으로 다시 보내지 않습니다.', rate_limited:'발송 한도에 도달했습니다. 잠시 기다린 뒤 다시 시도하세요.', expired:'로그인이나 ceremony가 만료됐습니다. 상태를 새로 확인하거나 다시 로그인하세요.', unavailableMessage:'소유자 접근 서비스가 아직 연결되지 않았습니다.', wait:'처리 중…', retryAfter:'다시 시도하기까지 남은 초:', duration24h:'마지막 알림 수락 후 최소 24시간입니다.'
+  saved:'상태를 확인했습니다.', failed:'요청이 거절됐습니다. 세부 내용을 확인하고 다시 시도하세요.', unconfirmed:'처리 결과를 확인하지 못했습니다. 상태를 새로 확인하세요. 알림은 자동으로 다시 보내지 않습니다.', rate_limited:'발송 한도에 도달했습니다. 잠시 기다린 뒤 다시 시도하세요.', expired:'로그인이나 ceremony가 만료됐습니다. 상태를 새로 확인하거나 다시 로그인하세요.', unavailableMessage:'소유자 접근 서비스가 아직 연결되지 않았습니다.', wait:'처리 중…', retryAfter:'다시 시도하기까지 남은 초:', duration24h:'마지막 필수 보안 알림을 수락한 뒤 최소 24시간입니다.'
 };
 export function getOwnerAccessMessages(locale:string):OwnerAccessMessages { return locale === 'ko' ? ko : en; }

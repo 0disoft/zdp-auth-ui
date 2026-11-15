@@ -39,10 +39,9 @@ test('approval rejects raw/extra fields and malformed candidate pins',()=>{
 });
 
 test('Core recovery projection is exact, redacted and fail-closed',()=>{
-  const status = {recovery_id:'recovery-opaque',state:'countdown',proof_slots:['email_a','phone_b'],
-    notifications:[{slot:'email_a',status:'accepted'},{slot:'email_b',status:'unknown'},
-      {slot:'phone_a',status:'pending'},{slot:'phone_b',status:'rejected'}],
-    countdown_at:'2026-11-15T12:00:00.000Z',ready_at:'2026-11-16T12:00:00.000Z'};
+  const status = {recovery_id:'recovery-opaque',state:'collecting',notification_policy:'email-pair-v1',
+    proof_slots:['email_a','phone_b'],notifications:[{slot:'email_a',status:'accepted'},
+      {slot:'email_b',status:'pending'}],countdown_at:null,ready_at:null};
   expect(parseOwnerAccessRecoveryStatus(status)).toEqual(status);
   expect(parseOwnerAccessRecoveryStatus({...status,contact:'raw@example.test'})).toBeNull();
   expect(parseOwnerAccessRecoveryStatus({...status,proof_slots:['email_a','email_a']})).toBeNull();
@@ -50,6 +49,32 @@ test('Core recovery projection is exact, redacted and fail-closed',()=>{
   expect(parseOwnerAccessRecoveryStatus({...status,recovery_id:null})).toBeNull();
   expect(parseOwnerAccessRecoveryStatus({recovery_id:null,state:'none',proof_slots:[],notifications:[],
     countdown_at:null,ready_at:null})?.state).toBe('none');
+  expect(parseOwnerAccessRecoveryStatus({...status,notification_policy:'email-pair-v2'})).toBeNull();
+});
+
+test('policy-aware countdown requires two proofs, exact accepted notices and a full delay',()=>{
+  const readyAt='2026-11-16T12:00:00.000Z',countdown_at='2026-11-15T12:00:00.000Z';
+  const emailPair={recovery_id:'recovery-opaque',state:'countdown',notification_policy:'email-pair-v1',
+    proof_slots:['email_a','phone_a'],notifications:[{slot:'email_a',status:'accepted'},
+      {slot:'email_b',status:'accepted'}],countdown_at,ready_at:readyAt};
+  expect(parseOwnerAccessRecoveryStatus(emailPair)).toEqual(emailPair);
+  expect(parseOwnerAccessRecoveryStatus({...emailPair,state:'completed'})).toEqual({...emailPair,state:'completed'});
+  expect(parseOwnerAccessRecoveryStatus({...emailPair,proof_slots:['email_a']})).toBeNull();
+  expect(parseOwnerAccessRecoveryStatus({...emailPair,notifications:[{slot:'email_a',status:'accepted'}]})).toBeNull();
+  expect(parseOwnerAccessRecoveryStatus({...emailPair,notifications:[{slot:'email_a',status:'accepted'},
+    {slot:'phone_a',status:'accepted'}]})).toBeNull();
+  expect(parseOwnerAccessRecoveryStatus({...emailPair,ready_at:'2026-11-16T11:59:59.999Z'})).toBeNull();
+  expect(parseOwnerAccessRecoveryStatus({...emailPair,countdown_at:null})).toBeNull();
+});
+
+test('legacy projections default to all-contact notices without weakening terminal checks',()=>{
+  const legacy={recovery_id:'recovery-opaque',state:'countdown',proof_slots:['email_a','phone_b'],
+    notifications:[{slot:'email_a',status:'accepted'},{slot:'email_b',status:'accepted'},
+      {slot:'phone_a',status:'accepted'},{slot:'phone_b',status:'accepted'}],
+    countdown_at:'2026-11-15T12:00:00.000Z',ready_at:'2026-11-16T12:00:00.000Z'};
+  expect(parseOwnerAccessRecoveryStatus(legacy)).toEqual({...legacy,notification_policy:'all-contacts-v1'});
+  expect(parseOwnerAccessRecoveryStatus({...legacy,notifications:legacy.notifications.slice(0,2)})).toBeNull();
+  expect(parseOwnerAccessRecoveryStatus({...legacy,notification_policy:'email-pair-v1'})).toBeNull();
 });
 
 test('Core passkey options retain the expected RP and required user verification',()=>{

@@ -22,6 +22,7 @@ export const ownerAccessRecoveryStates = Object.freeze([
 ] as const);
 export const ownerAccessDeliveryStatuses = Object.freeze(['pending','accepted','unknown','rejected'] as const);
 export const ownerAccessNotificationStatuses = Object.freeze(['pending','accepted','unknown','rejected'] as const);
+export const ownerAccessNotificationPolicies = Object.freeze(['all-contacts-v1','email-pair-v1'] as const);
 
 export type OwnerAccessCandidate = Readonly<{schema:'doubloon.mainnet-owner-passkey-candidate/v1';
   profile:'mainnet:owner-passkey-contact-recovery:20261112';network:'sui_mainnet';
@@ -40,7 +41,9 @@ export type OwnerAccessApprovalStatus = Readonly<{candidate_id:string;candidate_
   expires_at:string;state:'pending'|'approved'|'consumed'|'cancelled'|'expired';approval_ref:string|null}>;
 export type OwnerAccessRecoveryState = typeof ownerAccessRecoveryStates[number];
 export type OwnerAccessContactSlot = 'email_a'|'email_b'|'phone_a'|'phone_b';
+export type OwnerAccessNotificationPolicy = typeof ownerAccessNotificationPolicies[number];
 export type OwnerAccessRecoveryStatus = Readonly<{recovery_id:string|null;state:OwnerAccessRecoveryState;
+  notification_policy:OwnerAccessNotificationPolicy;
   proof_slots:readonly OwnerAccessContactSlot[];notifications:readonly Readonly<{
     slot:OwnerAccessContactSlot;status:typeof ownerAccessNotificationStatuses[number]}>[];
   countdown_at:string|null;ready_at:string|null}>;
@@ -90,6 +93,8 @@ const profile = 'mainnet:owner-passkey-contact-recovery:20261112';
 const sha = /^sha256:[a-f0-9]{64}$/u,hex40 = /^[a-f0-9]{40}$/u,address = /^0x[a-f0-9]{64}$/u;
 const transactionDigest = /^(?:sha256:[a-f0-9]{64}|[1-9A-HJ-NP-Za-km-z]{43,44})$/u;
 const base64 = /^[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]=$/u;
+const legacyRecoveryStatusFields = ['recovery_id','state','proof_slots','notifications','countdown_at','ready_at'] as const;
+const recoveryStatusFields = [...legacyRecoveryStatusFields,'notification_policy'] as const;
 const opaque = (value:unknown,maximum=512) => typeof value === 'string' && value.length > 0 && value.length <= maximum &&
   !/[\u0000-\u001f\u007f]/u.test(value);
 const record = (value:unknown):value is Record<string,unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
@@ -135,7 +140,10 @@ export function parseOwnerAccessApprovalInput(value:unknown):OwnerAccessApproval
 }
 
 export function parseOwnerAccessRecoveryStatus(value:unknown):OwnerAccessRecoveryStatus|null {
-  if (!record(value) || !exact(value,['recovery_id','state','proof_slots','notifications','countdown_at','ready_at']) ||
+  if (!record(value)) return null;
+  const hasPolicy = Object.hasOwn(value,'notification_policy');
+  if (!exact(value,hasPolicy ? recoveryStatusFields : legacyRecoveryStatusFields) ||
+    hasPolicy && !ownerAccessNotificationPolicies.includes(value.notification_policy as OwnerAccessNotificationPolicy) ||
     !ownerAccessRecoveryStates.includes(value.state as OwnerAccessRecoveryState) ||
     !(value.recovery_id === null || opaque(value.recovery_id,256)) ||
     !Array.isArray(value.proof_slots) || value.proof_slots.length > 4 ||
@@ -143,14 +151,25 @@ export function parseOwnerAccessRecoveryStatus(value:unknown):OwnerAccessRecover
     !Array.isArray(value.notifications) || value.notifications.length > 4 ||
     !(value.countdown_at === null || time(value.countdown_at)) || !(value.ready_at === null || time(value.ready_at))) return null;
   if (value.state === 'none' ? value.recovery_id !== null : value.recovery_id === null) return null;
-  const seen = new Set<string>(), notifications = [];
+  const seen = new Set<string>(), notifications: Array<{slot:OwnerAccessContactSlot;
+    status:typeof ownerAccessNotificationStatuses[number]}> = [];
   for (const item of value.notifications) {
     if (!record(item) || !exact(item,['slot','status']) || !slot(item.slot) || seen.has(item.slot) ||
       !ownerAccessNotificationStatuses.includes(item.status as typeof ownerAccessNotificationStatuses[number])) return null;
     seen.add(item.slot); notifications.push(Object.freeze({slot:item.slot,
       status:item.status as typeof ownerAccessNotificationStatuses[number]}));
   }
+  const policy = hasPolicy ? value.notification_policy as OwnerAccessNotificationPolicy : 'all-contacts-v1';
+  const requiredNotices:readonly OwnerAccessContactSlot[] = policy === 'email-pair-v1' ? ['email_a','email_b'] : slots;
+  if (!notifications.every(item => requiredNotices.includes(item.slot))) return null;
+  if (value.state === 'countdown' || value.state === 'completed') {
+    if (value.proof_slots.length < 2 || notifications.length !== requiredNotices.length ||
+      !requiredNotices.every(required => notifications.some(item => item.slot === required && item.status === 'accepted')) ||
+      value.countdown_at === null || value.ready_at === null ||
+      Date.parse(value.ready_at) - Date.parse(value.countdown_at) < 86_400_000) return null;
+  }
   return Object.freeze({recovery_id:value.recovery_id as string|null,state:value.state as OwnerAccessRecoveryState,
+    notification_policy:policy,
     proof_slots:Object.freeze([...value.proof_slots]) as unknown as readonly OwnerAccessContactSlot[],
     notifications:Object.freeze(notifications),countdown_at:value.countdown_at,ready_at:value.ready_at});
 }

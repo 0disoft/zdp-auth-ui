@@ -250,6 +250,7 @@
     {:else}
       <dl><dt>{m.state}</dt><dd>{m.states[recovery.state]}</dd><dt>{m.proofSlots}</dt><dd>{recovery.proof_slots.length ? recovery.proof_slots.map(slot => m[slot]).join(', ') : '—'}</dd>
         <dt>{m.notifications}</dt><dd>{recovery.notifications.length ? recovery.notifications.map(item => `${m[item.slot]} ${m[item.status]}`).join(', ') : '—'}</dd>
+        <dt>{m.notificationPolicy}</dt><dd>{m.notificationPolicies[recovery.notification_policy]}</dd>
         <dt>{m.countdown}</dt><dd>{recovery.countdown_at ?? m.duration24h}</dd><dt>{m.ready}</dt><dd>{recovery.ready_at ?? '—'}</dd></dl>
       <div class="contacts">
         {#each slots as slot}
