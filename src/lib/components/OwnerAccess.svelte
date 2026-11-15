@@ -29,10 +29,25 @@
   let approvalAttemptId = $state<string|null>(null), approvalStatus = $state<OwnerAccessApprovalStatus|null>(null);
   let rebindLabel = $state('');
   let approvalReady = $derived(!!approvalDraft && !!approvalDigest && confirmation.trim() === approvalDigest);
+  let approvalCanReprepare = $derived(!!approvalAttemptId && approvalStatus?.state === 'pending' &&
+    Date.parse(approvalStatus.expires_at) > Date.now());
   let rebindAvailable = $derived(!!recovery?.ready_at && Date.parse(recovery.ready_at) <= Date.now());
   let hasPendingNotifications = $derived(!!recovery?.notifications.some(item => item.status === 'pending'));
 
   onDestroy(cancelPasskeyCeremony);
+
+  function attemptStorageKey(digest:string) { return `zdp.owner-approval.${digest}`; }
+  function rememberAttempt(digest:string,candidateId:string) {
+    try { sessionStorage.setItem(attemptStorageKey(digest),candidateId); } catch {}
+  }
+  function recallAttempt(digest:string) {
+    try { const value = sessionStorage.getItem(attemptStorageKey(digest));
+      return value && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u.test(value) ? value : null;
+    } catch { return null; }
+  }
+  function forgetAttempt(digest:string) {
+    try { sessionStorage.removeItem(attemptStorageKey(digest)); } catch {}
+  }
 
   async function inspectPackage(event:SubmitEvent) {
     event.preventDefault();
@@ -44,19 +59,17 @@
       const draft = parseOwnerAccessApprovalDraft(JSON.parse(source));
       if (!draft || Date.parse(draft.candidate.expires_at) <= Date.now()) { packageError = true; return; }
       approvalDraft = draft; approvalDigest = await ownerAccessCandidateDigest(draft.candidate);
+      approvalAttemptId = recallAttempt(approvalDigest);
     } catch { packageError = true; }
   }
 
-  async function submitApproval() {
-    if (!approvalDraft || !approvalReady || busy) return;
-    const input = parseOwnerAccessApprovalInput({...approvalDraft,candidate_digest_confirmation:confirmation.trim()});
-    if (!input || !await ownerAccessApprovalMatches(input)) { feedback = 'failed'; return; }
-    busy = true; feedback = null; retryAfter = null;
+  async function runApproval(input:NonNullable<ReturnType<typeof parseOwnerAccessApprovalInput>>,candidateId:string) {
+    approvalAttemptId = candidateId; rememberAttempt(input.candidate_digest_confirmation,candidateId);
+    busy = true; feedback = null; retryAfter = null; approvalStatus = null;
     try {
-      const candidateId = approvalAttemptId ?? crypto.randomUUID(); approvalAttemptId = candidateId;
       const begin = await port.beginApproval(input,candidateId);
       if (!begin.ok) { feedback = begin.feedback; retryAfter = begin.retryAfter; return; }
-      approvalAttemptId = begin.value.candidate_id;
+      approvalAttemptId = begin.value.candidate_id; rememberAttempt(input.candidate_digest_confirmation,begin.value.candidate_id);
       let credential;
       try { credential = await authenticate(begin.value.options,{timeoutMs:60000}); }
       catch (error) {
@@ -67,8 +80,22 @@
         ceremony_id:begin.value.ceremony_id,credential});
       credential = undefined;
       if (!complete.ok) { feedback = complete.feedback; retryAfter = complete.retryAfter; return; }
+      forgetAttempt(input.candidate_digest_confirmation);
       approvalComplete = complete.value; approvalDraft = null; approvalDigest = ''; confirmation = ''; feedback = 'saved';
     } finally { busy = false; }
+  }
+
+  async function submitApproval() {
+    if (!approvalDraft || !approvalReady || busy || approvalAttemptId) return;
+    const input = parseOwnerAccessApprovalInput({...approvalDraft,candidate_digest_confirmation:confirmation.trim()});
+    if (!input || !await ownerAccessApprovalMatches(input)) { feedback = 'failed'; return; }
+    await runApproval(input,crypto.randomUUID());
+  }
+  async function reprepareApproval() {
+    if (!approvalDraft || !approvalCanReprepare || !approvalAttemptId || busy) return;
+    const input = parseOwnerAccessApprovalInput({...approvalDraft,candidate_digest_confirmation:confirmation.trim()});
+    if (!input || !await ownerAccessApprovalMatches(input)) { feedback = 'failed'; return; }
+    await runApproval(input,approvalAttemptId);
   }
   async function refreshApproval() {
     if (!approvalAttemptId || busy) return;
@@ -78,6 +105,7 @@
       if (!result.ok) { feedback = result.feedback; retryAfter = result.retryAfter; return; }
       approvalStatus = result.value; retryAfter = null;
       if ((result.value.state === 'approved' || result.value.state === 'consumed') && result.value.approval_ref) {
+        forgetAttempt(approvalDigest);
         approvalComplete = {candidate_id:result.value.candidate_id,approval_ref:result.value.approval_ref,
           candidate_digest:result.value.candidate_digest,expires_at:result.value.expires_at};
         approvalDraft = null; approvalDigest = ''; confirmation = ''; feedback = 'saved';
@@ -155,7 +183,7 @@
   async function runCeremony(operation:OwnerAccessRecoveryCeremony) {
     if (busy || !recovery?.recovery_id) return;
     const label = operation === 'rebind' ? rebindLabel.trim() : undefined;
-    if (operation === 'rebind' && (!label || Array.from(label).length > 64)) return;
+    if (operation === 'rebind' && (!label || Array.from(label).length > 80)) return;
     busy = true; feedback = null;
     try {
       const begin = await port.beginRecoveryCeremony({operation,recovery_id:recovery.recovery_id});
@@ -198,9 +226,10 @@
         {#if approvalAttemptId && !approvalComplete}<div class="approval-recovery"><p>{m.approvalPendingHelp}</p>
           {#if approvalStatus}<p role="status">{m.approvalStates[approvalStatus.state]}{#if approvalStatus.approval_ref} · <code>{approvalStatus.approval_ref}</code>{/if}</p>{/if}
           <Button type="button" disabled={busy} onclick={() => void refreshApproval()}>{busy ? m.wait : m.refreshApproval}</Button>
+          {#if approvalCanReprepare}<Button type="button" disabled={busy} onclick={() => void reprepareApproval()}>{m.reprepareApproval}</Button>{/if}
         </div>{/if}
         <label>{m.confirmDigest}<input bind:value={confirmation} type="text" autocomplete="off" spellcheck="false" pattern="sha256:[a-f0-9]{64}" maxlength="71" /></label>
-        <Button type="button" disabled={busy || !approvalReady} onclick={() => void submitApproval()}>{busy ? m.wait : m.approve}</Button>
+        <Button type="button" disabled={busy || !approvalReady || !!approvalAttemptId} onclick={() => void submitApproval()}>{busy ? m.wait : m.approve}</Button>
       {/if}
     {/if}
   </Surface>
@@ -240,7 +269,7 @@
       {#if recovery.recovery_id}
         <div class="recovery-actions">
           <Button type="button" disabled={busy} onclick={() => void runCeremony('veto')}>{m.passkeyVeto}</Button>
-          {#if rebindAvailable}<label>{m.label}<input bind:value={rebindLabel} type="text" maxlength="64" autocomplete="off" /></label><Button type="button" disabled={busy || !rebindLabel.trim()} onclick={() => void runCeremony('rebind')}>{m.bind}</Button>{/if}
+          {#if rebindAvailable}<label>{m.label}<input bind:value={rebindLabel} type="text" maxlength="80" autocomplete="off" /></label><Button type="button" disabled={busy || !rebindLabel.trim()} onclick={() => void runCeremony('rebind')}>{m.bind}</Button>{/if}
         </div>
         <details><summary>{m.veto}</summary><p>{m.vetoHelp}</p>
           <form method="post" action="" autocomplete="off" onsubmit={vetoContact}><fieldset disabled={busy}>
