@@ -1,11 +1,13 @@
 import { render } from 'svelte/server';
+import assert from 'node:assert/strict';
 import type { Component } from 'svelte';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const { AuthShell, LoginIdField } = await import(pathToFileURL(resolve('dist/index.server.js')).href) as {
+const { AuthShell, LoginIdField, OwnerAccessPanel } = await import(pathToFileURL(resolve('dist/index.server.js')).href) as {
   AuthShell: Component<Record<string, unknown>>;
   LoginIdField: Component<Record<string, unknown>>;
+  OwnerAccessPanel: Component<Record<string, unknown>>;
 };
 
 const { body: autofillBody } = render(LoginIdField, {
@@ -64,3 +66,19 @@ if (!leanSettings.body.includes(catalog.passkeySettingsMessages.preparing)) {
   throw new Error('Lean passkey settings SSR must render the injected settings catalog.');
 }
 process.stdout.write('zdp-auth-ui injected locale SSR check passed\n');
+
+// Missing backend state must not look like a confirmed empty recovery record.
+const ownerProps = { locale: 'ko', expectedRpId: '8ailors.xyz',
+  port: new Proxy({}, {get() { throw new Error('SSR must not call the owner-access service.'); }}) };
+const startButton = /<button\b([^>]*)>(?:(?!<\/button>)[\s\S])*?복구 시작(?:(?!<\/button>)[\s\S])*?<\/button>/u;
+const unavailable = render(OwnerAccessPanel, {props: ownerProps}).body;
+assert.ok(unavailable.includes('소유자 접근 서비스가 아직 연결되지 않았습니다.'));
+assert.ok(!unavailable.includes('진행 중인 복구가 없습니다.'));
+assert.match(startButton.exec(unavailable)?.[1] ?? '', /(?:^|\s)disabled(?:\s|=|$)/u);
+const confirmedEmpty = render(OwnerAccessPanel, {props: {...ownerProps, initialRecovery: {
+  recovery_id: null, state: 'none', proof_slots: [], notifications: [], countdown_at: null, ready_at: null
+}}}).body;
+assert.ok(confirmedEmpty.includes('진행 중인 복구가 없습니다.'));
+assert.ok(startButton.test(confirmedEmpty));
+assert.doesNotMatch(startButton.exec(confirmedEmpty)?.[1] ?? '', /(?:^|\s)disabled(?:\s|=|$)/u);
+process.stdout.write('zdp-auth-ui owner recovery availability SSR check passed\n');

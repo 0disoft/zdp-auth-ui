@@ -124,7 +124,7 @@
     try { acceptRecovery(await port.readRecovery()); } finally { busy = false; }
   }
   async function startRecovery() {
-    if (busy) return; busy = true; feedback = null;
+    if (busy || !recovery) return; busy = true; feedback = null;
     try { if (acceptRecovery(await port.startRecovery())) delivery = {}; } finally { busy = false; }
   }
   async function continueNotifications() {
@@ -240,10 +240,12 @@
     <h3>{m.recovery}</h3><p>{m.recoveryIntro}</p>
     <div class="actions"><Button type="button" disabled={busy} onclick={() => void refresh()}>{busy ? m.wait : m.refresh}</Button>
       {#if !recovery || recovery.state === 'none' || recovery.state === 'cancelled' || recovery.state === 'completed'}
-        <Button type="button" disabled={busy} onclick={() => void startRecovery()}>{m.start}</Button>
+        <Button type="button" disabled={busy || !recovery} onclick={() => void startRecovery()}>{m.start}</Button>
       {/if}
     </div>
-    {#if !recovery || recovery.state === 'none'}
+    {#if !recovery}
+      <p role="status">{m.unavailableMessage}</p>
+    {:else if recovery.state === 'none'}
       <p role="status">{m.notStarted}</p>
     {:else}
       <dl><dt>{m.state}</dt><dd>{m.states[recovery.state]}</dd><dt>{m.proofSlots}</dt><dd>{recovery.proof_slots.length ? recovery.proof_slots.map(slot => m[slot]).join(', ') : '—'}</dd>

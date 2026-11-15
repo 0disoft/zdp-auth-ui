@@ -2,6 +2,19 @@
 
 이 문서는 `zdp-auth-ui` 변경 후 확인할 기준을 모은다. 관련 package scripts와 저장소 명령을 직접 실행한다.
 
+## 2026-11-15 Owner recovery unavailable state
+
+The production account screen received no recovery projection while the backend
+was disabled. It must show the unavailable message and disable recovery start,
+instead of claiming that no recovery exists. A confirmed `state=none` projection
+still permits start. `check-ssr-package-surface.ts` renders both states from the
+built package and verifies the button's actual disabled attribute without API
+calls. The component also refuses start when no projection is available.
+
+`bun run build`, `bun run check` (51 tests; zero Svelte errors/warnings), and the
+built-package SSR check passed. No recovery, message delivery or passkey ceremony
+was started by these local checks.
+
 ## Direct Validation Commands
 
 | Change scope | Check |
