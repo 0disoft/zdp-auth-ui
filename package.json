@@ -15,6 +15,10 @@
   },
   "homepage": "https://github.com/0disoft/zdp-auth-ui#readme",
   "exports": {
+    "./owner-access": {
+      "types": "./dist/svelte/owner-access.d.ts",
+      "import": "./dist/owner-access.js"
+    },
     "./owner-enrollment": {
       "types": "./dist/svelte/owner-enrollment.d.ts",
       "import": "./dist/owner-enrollment.js"

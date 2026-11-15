@@ -1,7 +1,10 @@
 import type { ComponentProps } from 'svelte';
 export { default as OwnerEnrollmentForm } from './components/OwnerEnrollment.svelte';
+export { default as OwnerAccessPanel } from './components/OwnerAccess.svelte';
 export * from './owner-enrollment';
+export * from './owner-access';
 export { getOwnerEnrollmentMessages } from './owner-enrollment-messages';
+export { getOwnerAccessMessages } from './owner-access-messages';
 
 export { default as AuthShell } from './compat/AuthShell.svelte';
 export { default as LoginIdField } from './compat/LoginIdField.svelte';
@@ -126,3 +129,4 @@ export type PasswordSignupFieldsProps = ComponentProps<typeof import('./compat/P
 export type ProductLinkApprovalProps = ComponentProps<typeof import('./compat/ProductLinkApproval.svelte').default>;
 export type ProviderButtonProps = ComponentProps<typeof import('./components/ProviderButton.svelte').default>;
 export type PasskeySettingsProps = ComponentProps<typeof import('./compat/PasskeySettings.svelte').default>;
+export type OwnerAccessPanelProps = ComponentProps<typeof import('./components/OwnerAccess.svelte').default>;
