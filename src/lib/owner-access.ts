@@ -54,6 +54,13 @@ export type OwnerAccessFeedback = 'saved'|'failed'|'unconfirmed'|'rate_limited'|
 export type OwnerAccessResult<T> = Readonly<{ok:true;value:T}> |
   Readonly<{ok:false;feedback:Exclude<OwnerAccessFeedback,null>;retryAfter:number|null}>;
 
+/** Consumer-owned persistence for the opaque approval candidate id. */
+export interface OwnerAccessApprovalAttemptPort {
+  read(digest:string):string|null|Promise<string|null>;
+  remember(digest:string,candidateId:string):void|Promise<void>;
+  forget(digest:string):void|Promise<void>;
+}
+
 /** Browser UI calls only this consumer-owned port. It never receives Core credentials or cookies. */
 export interface OwnerAccessClientPort {
   readRecovery(): Promise<OwnerAccessResult<OwnerAccessRecoveryStatus>>;

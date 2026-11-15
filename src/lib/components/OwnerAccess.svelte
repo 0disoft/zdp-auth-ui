@@ -8,16 +8,19 @@
     parseOwnerAccessApprovalInput, type OwnerAccessApprovalComplete, type OwnerAccessApprovalDraft,
     type OwnerAccessApprovalStatus,
     type OwnerAccessClientPort, type OwnerAccessContactDelivery, type OwnerAccessContactSlot,
-    type OwnerAccessFeedback, type OwnerAccessRecoveryCeremony, type OwnerAccessRecoveryStatus
+    type OwnerAccessApprovalAttemptPort, type OwnerAccessFeedback, type OwnerAccessRecoveryCeremony,
+    type OwnerAccessRecoveryStatus
   } from '../owner-access';
   import { getOwnerAccessMessages } from '../owner-access-messages';
   interface Props {
     port: OwnerAccessClientPort; expectedRpId: string; locale?: string;
     initialRecovery?: OwnerAccessRecoveryStatus | null; localPreview?: boolean;
     authenticate?: typeof startPasskeyAuthentication; register?: typeof startPasskeyRegistration;
+    approvalAttempts?: OwnerAccessApprovalAttemptPort;
   }
   let { port, expectedRpId, locale = 'en', initialRecovery = null, localPreview = false,
-    authenticate = startPasskeyAuthentication, register = startPasskeyRegistration }: Props = $props();
+    authenticate = startPasskeyAuthentication, register = startPasskeyRegistration,
+    approvalAttempts }: Props = $props();
   const m = $derived(getOwnerAccessMessages(locale));
   const slots = ['email_a','email_b','phone_a','phone_b'] as const;
   let recovery = $state<OwnerAccessRecoveryStatus | null>(untrack(() => initialRecovery));
@@ -36,17 +39,16 @@
 
   onDestroy(cancelPasskeyCeremony);
 
-  function attemptStorageKey(digest:string) { return `zdp.owner-approval.${digest}`; }
-  function rememberAttempt(digest:string,candidateId:string) {
-    try { sessionStorage.setItem(attemptStorageKey(digest),candidateId); } catch {}
+  async function rememberAttempt(digest:string,candidateId:string) {
+    try { await approvalAttempts?.remember(digest,candidateId); } catch {}
   }
-  function recallAttempt(digest:string) {
-    try { const value = sessionStorage.getItem(attemptStorageKey(digest));
+  async function recallAttempt(digest:string) {
+    try { const value = await approvalAttempts?.read(digest);
       return value && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u.test(value) ? value : null;
     } catch { return null; }
   }
-  function forgetAttempt(digest:string) {
-    try { sessionStorage.removeItem(attemptStorageKey(digest)); } catch {}
+  async function forgetAttempt(digest:string) {
+    try { await approvalAttempts?.forget(digest); } catch {}
   }
 
   async function inspectPackage(event:SubmitEvent) {
@@ -59,17 +61,17 @@
       const draft = parseOwnerAccessApprovalDraft(JSON.parse(source));
       if (!draft || Date.parse(draft.candidate.expires_at) <= Date.now()) { packageError = true; return; }
       approvalDraft = draft; approvalDigest = await ownerAccessCandidateDigest(draft.candidate);
-      approvalAttemptId = recallAttempt(approvalDigest);
+      approvalAttemptId = await recallAttempt(approvalDigest);
     } catch { packageError = true; }
   }
 
   async function runApproval(input:NonNullable<ReturnType<typeof parseOwnerAccessApprovalInput>>,candidateId:string) {
-    approvalAttemptId = candidateId; rememberAttempt(input.candidate_digest_confirmation,candidateId);
+    approvalAttemptId = candidateId; await rememberAttempt(input.candidate_digest_confirmation,candidateId);
     busy = true; feedback = null; retryAfter = null; approvalStatus = null;
     try {
       const begin = await port.beginApproval(input,candidateId);
       if (!begin.ok) { feedback = begin.feedback; retryAfter = begin.retryAfter; return; }
-      approvalAttemptId = begin.value.candidate_id; rememberAttempt(input.candidate_digest_confirmation,begin.value.candidate_id);
+      approvalAttemptId = begin.value.candidate_id; await rememberAttempt(input.candidate_digest_confirmation,begin.value.candidate_id);
       let credential;
       try { credential = await authenticate(begin.value.options,{timeoutMs:60000}); }
       catch (error) {
@@ -80,7 +82,7 @@
         ceremony_id:begin.value.ceremony_id,credential});
       credential = undefined;
       if (!complete.ok) { feedback = complete.feedback; retryAfter = complete.retryAfter; return; }
-      forgetAttempt(input.candidate_digest_confirmation);
+      await forgetAttempt(input.candidate_digest_confirmation);
       approvalComplete = complete.value; approvalDraft = null; approvalDigest = ''; confirmation = ''; feedback = 'saved';
     } finally { busy = false; }
   }
@@ -105,7 +107,7 @@
       if (!result.ok) { feedback = result.feedback; retryAfter = result.retryAfter; return; }
       approvalStatus = result.value; retryAfter = null;
       if ((result.value.state === 'approved' || result.value.state === 'consumed') && result.value.approval_ref) {
-        forgetAttempt(approvalDigest);
+        await forgetAttempt(approvalDigest);
         approvalComplete = {candidate_id:result.value.candidate_id,approval_ref:result.value.approval_ref,
           candidate_digest:result.value.candidate_digest,expires_at:result.value.expires_at};
         approvalDraft = null; approvalDigest = ''; confirmation = ''; feedback = 'saved';
@@ -288,7 +290,7 @@
   fieldset { border:0; padding:0; display:grid; gap:var(--zdp-space-3); min-width:0; }
   label { display:grid; gap:var(--zdp-space-2); }
   input,select,textarea { font:inherit; padding:var(--zdp-space-3); max-width:100%; color:inherit; background:var(--zdp-color-surface); border:var(--zdp-border-width,thin) solid var(--zdp-color-border); border-radius:var(--zdp-radius-sm); }
-  textarea { min-block-size:10rem; resize:vertical; }
+  textarea { min-block-size:calc(var(--zdp-space-10) * 2); resize:vertical; }
   dl { display:grid; grid-template-columns:minmax(8rem,auto) minmax(0,1fr); gap:var(--zdp-space-2) var(--zdp-space-3); overflow-wrap:anywhere; }
   .actions,.recovery-actions,.notification-resume,.approval-recovery { display:flex; flex-wrap:wrap; align-items:end; gap:var(--zdp-space-3); }
   .contacts { display:grid; gap:var(--zdp-space-3); }
