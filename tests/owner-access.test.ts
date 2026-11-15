@@ -1,7 +1,9 @@
 import {expect,test} from 'bun:test';
 import {
   ownerAccessApprovalMatches, ownerAccessCandidateDigest, parseOwnerAccessApprovalDraft,
-  parseOwnerAccessApprovalInput, parseOwnerAccessApprovalCeremony, parseOwnerAccessRecoveryStatus
+  parseOwnerAccessApprovalInput, parseOwnerAccessApprovalCeremony, parseOwnerAccessApprovalStatus,
+  parseOwnerAccessCeremony,
+  parseOwnerAccessRecoveryStatus
 } from '../src/lib/owner-access';
 
 const sha = (char:string) => 'sha256:'+char.repeat(64);
@@ -31,6 +33,9 @@ test('approval rejects raw/extra fields and malformed candidate pins',()=>{
     (v:any)=>v.expected_approval_revision='',(v:any)=>v.candidate.expires_at='soon']) {
     const value=draft();mutate(value);expect(parseOwnerAccessApprovalDraft(value)).toBeNull();
   }
+  const transaction=draft();transaction.transaction_binding_digest='1'.repeat(43);
+  expect(parseOwnerAccessApprovalDraft(transaction)).not.toBeNull();
+  expect(parseOwnerAccessApprovalDraft({...transaction,transaction_binding_digest:'raw'})).toBeNull();
 });
 
 test('Core recovery projection is exact, redacted and fail-closed',()=>{
@@ -53,4 +58,23 @@ test('Core passkey options retain the expected RP and required user verification
   expect(parseOwnerAccessApprovalCeremony(ceremony,'8ailors.xyz')?.options.rpId).toBe('8ailors.xyz');
   expect(parseOwnerAccessApprovalCeremony(ceremony,'evil.example')).toBeNull();
   expect(parseOwnerAccessApprovalCeremony({...ceremony,options:{...ceremony.options,publicKey:{...ceremony.options.publicKey,userVerification:'preferred'}}},'8ailors.xyz')).toBeNull();
+});
+
+test('approval recovery status never turns a pending attempt into approval',()=>{
+  const pending={candidate_id:'candidate-opaque',candidate_digest:sha('a'),expires_at:'2026-11-15T12:00:00.000Z',
+    state:'pending',approval_ref:null};
+  expect(parseOwnerAccessApprovalStatus(pending)).toEqual(pending);
+  expect(parseOwnerAccessApprovalStatus({...pending,state:'approved'})).toBeNull();
+  expect(parseOwnerAccessApprovalStatus({...pending,state:'approved',approval_ref:'approval:synthetic'})).not.toBeNull();
+  expect(parseOwnerAccessApprovalStatus({...pending,approved:true})).toBeNull();
+});
+
+test('rebind accepts only registration options bound to the owner RP',()=>{
+  const value={ceremony_id:'ceremony-opaque',options:{publicKey:{challenge:'synthetic-challenge-at-least-16',
+    rp:{id:'8ailors.xyz',name:'8ailors'},user:{id:'synthetic-user-id',name:'owner',displayName:'Owner'},
+    pubKeyCredParams:[{type:'public-key',alg:-7}],authenticatorSelection:{userVerification:'required'}}}};
+  expect(parseOwnerAccessCeremony(value,'8ailors.xyz','registration')?.kind).toBe('registration');
+  expect(parseOwnerAccessCeremony(value,'evil.example','registration')).toBeNull();
+  expect(parseOwnerAccessCeremony({...value,options:{publicKey:{...value.options.publicKey,
+    authenticatorSelection:{userVerification:'preferred'}}}},'8ailors.xyz','registration')).toBeNull();
 });

@@ -1,10 +1,12 @@
 <script lang="ts">
   import { Button, Surface } from 'zdp-design-system';
   import { onDestroy, untrack } from 'svelte';
-  import { startPasskeyAuthentication, cancelPasskeyCeremony, ZdpPasskeyCeremonyError } from '../passkey';
+  import { startPasskeyAuthentication, startPasskeyRegistration, cancelPasskeyCeremony,
+    ZdpPasskeyCeremonyError } from '../passkey';
   import {
     ownerAccessCandidateDigest, ownerAccessApprovalMatches, parseOwnerAccessApprovalDraft,
     parseOwnerAccessApprovalInput, type OwnerAccessApprovalComplete, type OwnerAccessApprovalDraft,
+    type OwnerAccessApprovalStatus,
     type OwnerAccessClientPort, type OwnerAccessContactDelivery, type OwnerAccessContactSlot,
     type OwnerAccessFeedback, type OwnerAccessRecoveryCeremony, type OwnerAccessRecoveryStatus
   } from '../owner-access';
@@ -12,20 +14,23 @@
   interface Props {
     port: OwnerAccessClientPort; expectedRpId: string; locale?: string;
     initialRecovery?: OwnerAccessRecoveryStatus | null; localPreview?: boolean;
-    authenticate?: typeof startPasskeyAuthentication;
+    authenticate?: typeof startPasskeyAuthentication; register?: typeof startPasskeyRegistration;
   }
   let { port, expectedRpId, locale = 'en', initialRecovery = null, localPreview = false,
-    authenticate = startPasskeyAuthentication }: Props = $props();
+    authenticate = startPasskeyAuthentication, register = startPasskeyRegistration }: Props = $props();
   const m = $derived(getOwnerAccessMessages(locale));
   const slots = ['email_a','email_b','phone_a','phone_b'] as const;
   let recovery = $state<OwnerAccessRecoveryStatus | null>(untrack(() => initialRecovery));
   let delivery = $state<Partial<Record<OwnerAccessContactSlot,OwnerAccessContactDelivery>>>({});
+  let pendingDeliveries = $state<OwnerAccessContactSlot[]>([]);
   let busy = $state(false), feedback = $state<OwnerAccessFeedback>(null), retryAfter = $state<number|null>(null);
   let approvalDraft = $state<OwnerAccessApprovalDraft|null>(null), approvalDigest = $state(''), confirmation = $state('');
   let approvalComplete = $state<OwnerAccessApprovalComplete|null>(null), packageError = $state(false);
+  let approvalAttemptId = $state<string|null>(null), approvalStatus = $state<OwnerAccessApprovalStatus|null>(null);
   let rebindLabel = $state('');
   let approvalReady = $derived(!!approvalDraft && !!approvalDigest && confirmation.trim() === approvalDigest);
   let rebindAvailable = $derived(!!recovery?.ready_at && Date.parse(recovery.ready_at) <= Date.now());
+  let hasPendingNotifications = $derived(!!recovery?.notifications.some(item => item.status === 'pending'));
 
   onDestroy(cancelPasskeyCeremony);
 
@@ -34,6 +39,7 @@
     const form = event.currentTarget as HTMLFormElement, values = new FormData(form);
     const source = String(values.get('approval_package') ?? ''); form.reset(); values.forEach((_v,key)=>values.delete(key));
     packageError = false; approvalDraft = null; approvalDigest = ''; confirmation = ''; approvalComplete = null;
+    approvalAttemptId = null; approvalStatus = null;
     try {
       const draft = parseOwnerAccessApprovalDraft(JSON.parse(source));
       if (!draft || Date.parse(draft.candidate.expires_at) <= Date.now()) { packageError = true; return; }
@@ -47,8 +53,10 @@
     if (!input || !await ownerAccessApprovalMatches(input)) { feedback = 'failed'; return; }
     busy = true; feedback = null; retryAfter = null;
     try {
-      const begin = await port.beginApproval(input);
+      const candidateId = approvalAttemptId ?? crypto.randomUUID(); approvalAttemptId = candidateId;
+      const begin = await port.beginApproval(input,candidateId);
       if (!begin.ok) { feedback = begin.feedback; retryAfter = begin.retryAfter; return; }
+      approvalAttemptId = begin.value.candidate_id;
       let credential;
       try { credential = await authenticate(begin.value.options,{timeoutMs:60000}); }
       catch (error) {
@@ -60,6 +68,20 @@
       credential = undefined;
       if (!complete.ok) { feedback = complete.feedback; retryAfter = complete.retryAfter; return; }
       approvalComplete = complete.value; approvalDraft = null; approvalDigest = ''; confirmation = ''; feedback = 'saved';
+    } finally { busy = false; }
+  }
+  async function refreshApproval() {
+    if (!approvalAttemptId || busy) return;
+    busy = true; feedback = null;
+    try {
+      const result = await port.approvalStatus({candidate_id:approvalAttemptId});
+      if (!result.ok) { feedback = result.feedback; retryAfter = result.retryAfter; return; }
+      approvalStatus = result.value; retryAfter = null;
+      if ((result.value.state === 'approved' || result.value.state === 'consumed') && result.value.approval_ref) {
+        approvalComplete = {candidate_id:result.value.candidate_id,approval_ref:result.value.approval_ref,
+          candidate_digest:result.value.candidate_digest,expires_at:result.value.expires_at};
+        approvalDraft = null; approvalDigest = ''; confirmation = ''; feedback = 'saved';
+      } else feedback = result.value.state === 'expired' ? 'expired' : result.value.state === 'cancelled' ? 'failed' : 'unconfirmed';
     } finally { busy = false; }
   }
 
@@ -75,11 +97,21 @@
     if (busy) return; busy = true; feedback = null;
     try { if (acceptRecovery(await port.startRecovery())) delivery = {}; } finally { busy = false; }
   }
+  async function continueNotifications() {
+    if (busy || !recovery?.recovery_id || !hasPendingNotifications) return;
+    busy = true; feedback = null;
+    try { acceptRecovery(await port.continueRecoveryNotifications({recovery_id:recovery.recovery_id})); }
+    finally { busy = false; }
+  }
   async function requestContact(slot:OwnerAccessContactSlot) {
     if (busy || !recovery?.recovery_id) return; busy = true; feedback = null;
     try {
       const result = await port.requestContact({recovery_id:recovery.recovery_id,slot});
-      if (!result.ok) { feedback = result.feedback; retryAfter = result.retryAfter; return; }
+      if (!result.ok) {
+        if (result.feedback === 'unconfirmed' && !pendingDeliveries.includes(slot)) pendingDeliveries = [...pendingDeliveries,slot];
+        feedback = result.feedback; retryAfter = result.retryAfter; return;
+      }
+      pendingDeliveries = pendingDeliveries.filter(item => item !== slot);
       delivery = {...delivery,[slot]:result.value};
       feedback = result.value.delivery_status === 'unknown' ? 'unconfirmed' : 'saved';
     } finally { busy = false; }
@@ -103,7 +135,8 @@
       const result = await port.confirmContact({recovery_id:recovery.recovery_id,slot,
         challenge_id:challenge.challenge_id,code});
       code = ''; if (!result.ok) { feedback = result.feedback; retryAfter = result.retryAfter; return; }
-      recovery = result.value; delete delivery[slot]; delivery = {...delivery}; feedback = 'saved';
+      recovery = result.value; delete delivery[slot]; delivery = {...delivery};
+      pendingDeliveries = pendingDeliveries.filter(item => item !== slot); feedback = 'saved';
     } finally { busy = false; }
   }
   async function vetoContact(event:SubmitEvent) {
@@ -128,7 +161,9 @@
       const begin = await port.beginRecoveryCeremony({operation,recovery_id:recovery.recovery_id});
       if (!begin.ok) { feedback = begin.feedback; retryAfter = begin.retryAfter; return; }
       let credential;
-      try { credential = await authenticate(begin.value.options,{timeoutMs:60000}); }
+      try { credential = begin.value.kind === 'registration'
+        ? await register(begin.value.options,{timeoutMs:60000})
+        : await authenticate(begin.value.options,{timeoutMs:60000}); }
       catch (error) {
         feedback = error instanceof ZdpPasskeyCeremonyError && ['cancelled','not-allowed'].includes(error.reason) ? null : 'failed';
         return;
@@ -160,6 +195,10 @@
       {#if packageError}<p role="alert">{m.failed}</p>{/if}
       {#if approvalDraft}
         <dl><dt>{m.digest}</dt><dd><code>{approvalDigest}</code></dd><dt>{m.expires}</dt><dd>{approvalDraft.candidate.expires_at}</dd></dl>
+        {#if approvalAttemptId && !approvalComplete}<div class="approval-recovery"><p>{m.approvalPendingHelp}</p>
+          {#if approvalStatus}<p role="status">{m.approvalStates[approvalStatus.state]}{#if approvalStatus.approval_ref} · <code>{approvalStatus.approval_ref}</code>{/if}</p>{/if}
+          <Button type="button" disabled={busy} onclick={() => void refreshApproval()}>{busy ? m.wait : m.refreshApproval}</Button>
+        </div>{/if}
         <label>{m.confirmDigest}<input bind:value={confirmation} type="text" autocomplete="off" spellcheck="false" pattern="sha256:[a-f0-9]{64}" maxlength="71" /></label>
         <Button type="button" disabled={busy || !approvalReady} onclick={() => void submitApproval()}>{busy ? m.wait : m.approve}</Button>
       {/if}
@@ -183,7 +222,7 @@
         {#each slots as slot}
           {@const proof = recovery.proof_slots.includes(slot)}<div class="contact"><strong>{m[slot]}</strong>
             {#if proof}<span>{m.accepted}</span>{:else if recovery.recovery_id}
-              <Button type="button" disabled={busy || delivery[slot]?.delivery_status === 'unknown'} onclick={() => void requestContact(slot)}>{m.sendCode}</Button>
+              <Button type="button" disabled={busy || delivery[slot]?.delivery_status === 'unknown'} onclick={() => void requestContact(slot)}>{pendingDeliveries.includes(slot) ? m.recheckSend : m.sendCode}</Button>
               {#if delivery[slot]}<span>{m[delivery[slot].delivery_status!]}</span>{/if}
               {#if delivery[slot]?.delivery_status === 'unknown'}<p role="alert">{m.noAutoResend}</p><Button type="button" disabled={busy} onclick={() => void deliveryStatus(slot)}>{m.refresh}</Button>{/if}
               {#if delivery[slot] && delivery[slot]?.delivery_status !== 'unknown' && delivery[slot]?.delivery_status !== 'rejected'}
@@ -193,6 +232,11 @@
           </div>
         {/each}
       </div>
+      {#if recovery.recovery_id && hasPendingNotifications}
+        <div class="notification-resume"><p>{m.continueNotificationsHelp}</p>
+          <Button type="button" disabled={busy} onclick={() => void continueNotifications()}>{busy ? m.wait : m.continueNotifications}</Button>
+        </div>
+      {/if}
       {#if recovery.recovery_id}
         <div class="recovery-actions">
           <Button type="button" disabled={busy} onclick={() => void runCeremony('veto')}>{m.passkeyVeto}</Button>
@@ -217,7 +261,7 @@
   input,select,textarea { font:inherit; padding:var(--zdp-space-3); max-width:100%; color:inherit; background:var(--zdp-color-surface); border:var(--zdp-border-width,thin) solid var(--zdp-color-border); border-radius:var(--zdp-radius-sm); }
   textarea { min-block-size:10rem; resize:vertical; }
   dl { display:grid; grid-template-columns:minmax(8rem,auto) minmax(0,1fr); gap:var(--zdp-space-2) var(--zdp-space-3); overflow-wrap:anywhere; }
-  .actions,.recovery-actions { display:flex; flex-wrap:wrap; align-items:end; gap:var(--zdp-space-3); }
+  .actions,.recovery-actions,.notification-resume,.approval-recovery { display:flex; flex-wrap:wrap; align-items:end; gap:var(--zdp-space-3); }
   .contacts { display:grid; gap:var(--zdp-space-3); }
   .contact { display:grid; gap:var(--zdp-space-2); padding-block:var(--zdp-space-3); border-block-end:var(--zdp-border-width,thin) solid var(--zdp-color-border); }
   code { overflow-wrap:anywhere; }

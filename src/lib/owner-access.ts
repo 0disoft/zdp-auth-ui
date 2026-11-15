@@ -1,6 +1,8 @@
 import type {
   AuthenticationResponseJSON,
-  PublicKeyCredentialRequestOptionsJSON
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+  RegistrationResponseJSON
 } from '@simplewebauthn/browser';
 
 export const ownerAccessCandidateFields = Object.freeze([
@@ -34,6 +36,8 @@ export type OwnerAccessApprovalCeremony = Readonly<{candidate_id:string;ceremony
   options:PublicKeyCredentialRequestOptionsJSON}>;
 export type OwnerAccessApprovalComplete = Readonly<{candidate_id:string;approval_ref:string;
   candidate_digest:string;expires_at:string}>;
+export type OwnerAccessApprovalStatus = Readonly<{candidate_id:string;candidate_digest:string;
+  expires_at:string;state:'pending'|'approved'|'consumed'|'cancelled'|'expired';approval_ref:string|null}>;
 export type OwnerAccessRecoveryState = typeof ownerAccessRecoveryStates[number];
 export type OwnerAccessContactSlot = 'email_a'|'email_b'|'phone_a'|'phone_b';
 export type OwnerAccessRecoveryStatus = Readonly<{recovery_id:string|null;state:OwnerAccessRecoveryState;
@@ -42,8 +46,9 @@ export type OwnerAccessRecoveryStatus = Readonly<{recovery_id:string|null;state:
   countdown_at:string|null;ready_at:string|null}>;
 export type OwnerAccessContactDelivery = Readonly<{recovery_id:string;slot:OwnerAccessContactSlot;
   challenge_id:string;expires_at:string;delivery_status:typeof ownerAccessDeliveryStatuses[number]}>;
-export type OwnerAccessCeremony = Readonly<{ceremony_id:string;
-  options:PublicKeyCredentialRequestOptionsJSON}>;
+export type OwnerAccessCeremony =
+  | Readonly<{ceremony_id:string;kind:'authentication';options:PublicKeyCredentialRequestOptionsJSON}>
+  | Readonly<{ceremony_id:string;kind:'registration';options:PublicKeyCredentialCreationOptionsJSON}>;
 export type OwnerAccessRecoveryCeremony = 'veto'|'rebind';
 export type OwnerAccessFeedback = 'saved'|'failed'|'unconfirmed'|'rate_limited'|'expired'|'unavailable'|null;
 export type OwnerAccessResult<T> = Readonly<{ok:true;value:T}> |
@@ -52,10 +57,12 @@ export type OwnerAccessResult<T> = Readonly<{ok:true;value:T}> |
 /** Browser UI calls only this consumer-owned port. It never receives Core credentials or cookies. */
 export interface OwnerAccessClientPort {
   readRecovery(): Promise<OwnerAccessResult<OwnerAccessRecoveryStatus>>;
-  beginApproval(input:OwnerAccessApprovalInput): Promise<OwnerAccessResult<OwnerAccessApprovalCeremony>>;
+  beginApproval(input:OwnerAccessApprovalInput,candidateId?:string): Promise<OwnerAccessResult<OwnerAccessApprovalCeremony>>;
   completeApproval(input:{candidate_id:string;ceremony_id:string;credential:AuthenticationResponseJSON}):
     Promise<OwnerAccessResult<OwnerAccessApprovalComplete>>;
+  approvalStatus(input:{candidate_id:string}):Promise<OwnerAccessResult<OwnerAccessApprovalStatus>>;
   startRecovery(): Promise<OwnerAccessResult<OwnerAccessRecoveryStatus>>;
+  continueRecoveryNotifications(input:{recovery_id:string}):Promise<OwnerAccessResult<OwnerAccessRecoveryStatus>>;
   requestContact(input:{recovery_id:string;slot:OwnerAccessContactSlot}): Promise<OwnerAccessResult<OwnerAccessContactDelivery>>;
   contactDeliveryStatus(input:{recovery_id:string;slot:OwnerAccessContactSlot;challenge_id:string}):
     Promise<OwnerAccessResult<OwnerAccessContactDelivery>>;
@@ -66,7 +73,7 @@ export interface OwnerAccessClientPort {
   beginRecoveryCeremony(input:{operation:OwnerAccessRecoveryCeremony;recovery_id:string}):
     Promise<OwnerAccessResult<OwnerAccessCeremony>>;
   completeRecoveryCeremony(input:{operation:OwnerAccessRecoveryCeremony;recovery_id:string;
-    ceremony_id:string;credential:AuthenticationResponseJSON;label?:string}):
+    ceremony_id:string;credential:AuthenticationResponseJSON | RegistrationResponseJSON;label?:string}):
     Promise<OwnerAccessResult<OwnerAccessRecoveryStatus>>;
 }
 
@@ -74,6 +81,7 @@ const slots = Object.freeze(['email_a','email_b','phone_a','phone_b'] as const);
 const candidateSchema = 'doubloon.mainnet-owner-passkey-candidate/v1';
 const profile = 'mainnet:owner-passkey-contact-recovery:20261112';
 const sha = /^sha256:[a-f0-9]{64}$/u,hex40 = /^[a-f0-9]{40}$/u,address = /^0x[a-f0-9]{64}$/u;
+const transactionDigest = /^(?:sha256:[a-f0-9]{64}|[1-9A-HJ-NP-Za-km-z]{43,44})$/u;
 const base64 = /^[A-Za-z0-9+/]{42}[AEIMQUYcgkosw048]=$/u;
 const opaque = (value:unknown,maximum=512) => typeof value === 'string' && value.length > 0 && value.length <= maximum &&
   !/[\u0000-\u001f\u007f]/u.test(value);
@@ -103,7 +111,7 @@ export function parseOwnerAccessApprovalDraft(value:unknown):OwnerAccessApproval
   if (!record(value) || !exact(value,ownerAccessApprovalDraftFields)) return null;
   const candidate = parseOwnerAccessCandidate(value.candidate);
   if (!candidate || !sha.test(String(value.binding_digest)) || !opaque(value.receipt_ref) ||
-    !opaque(value.expected_approval_revision,128) || !sha.test(String(value.transaction_binding_digest)) ||
+    !opaque(value.expected_approval_revision,128) || !transactionDigest.test(String(value.transaction_binding_digest)) ||
     !sha.test(String(value.evidence_manifest_digest))) return null;
   return Object.freeze({candidate,binding_digest:String(value.binding_digest),receipt_ref:String(value.receipt_ref),
     expected_approval_revision:String(value.expected_approval_revision),
@@ -157,6 +165,23 @@ function requestOptions(value:unknown,expectedRpId:string):PublicKeyCredentialRe
   return structuredClone(publicKey) as unknown as PublicKeyCredentialRequestOptionsJSON;
 }
 
+function creationOptions(value:unknown,expectedRpId:string):PublicKeyCredentialCreationOptionsJSON|null {
+  if (!record(value)) return null;
+  const publicKey = value.publicKey;
+  if (!record(publicKey) || typeof publicKey.challenge !== 'string' || publicKey.challenge.length < 16 ||
+    !record(publicKey.rp) || publicKey.rp.id !== expectedRpId || !record(publicKey.user) ||
+    typeof publicKey.user.id !== 'string' || !publicKey.user.id || typeof publicKey.user.name !== 'string' ||
+    typeof publicKey.user.displayName !== 'string' || !Array.isArray(publicKey.pubKeyCredParams) ||
+    !publicKey.pubKeyCredParams.length || publicKey.pubKeyCredParams.length > 16 ||
+    publicKey.pubKeyCredParams.some(item => !record(item) || item.type !== 'public-key' ||
+      !Number.isSafeInteger(item.alg)) || !record(publicKey.authenticatorSelection) ||
+    publicKey.authenticatorSelection.userVerification !== 'required' ||
+    publicKey.excludeCredentials !== undefined && (!Array.isArray(publicKey.excludeCredentials) ||
+      publicKey.excludeCredentials.some(item => !record(item) || typeof item.id !== 'string' ||
+        item.type !== 'public-key'))) return null;
+  return structuredClone(publicKey) as unknown as PublicKeyCredentialCreationOptionsJSON;
+}
+
 export function parseOwnerAccessApprovalCeremony(value:unknown,expectedRpId:string):OwnerAccessApprovalCeremony|null {
   if (!record(value) || !exact(value,['candidate_id','ceremony_id','options']) || !opaque(value.candidate_id,256) ||
     !opaque(value.ceremony_id,256)) return null;
@@ -165,10 +190,11 @@ export function parseOwnerAccessApprovalCeremony(value:unknown,expectedRpId:stri
     ceremony_id:value.ceremony_id as string,options}) : null;
 }
 
-export function parseOwnerAccessCeremony(value:unknown,expectedRpId:string):OwnerAccessCeremony|null {
+export function parseOwnerAccessCeremony(value:unknown,expectedRpId:string,
+  kind:'authentication'|'registration'='authentication'):OwnerAccessCeremony|null {
   if (!record(value) || !exact(value,['ceremony_id','options']) || !opaque(value.ceremony_id,256)) return null;
-  const options = requestOptions(value.options,expectedRpId);
-  return options ? Object.freeze({ceremony_id:value.ceremony_id as string,options}) : null;
+  const options = kind === 'registration' ? creationOptions(value.options,expectedRpId) : requestOptions(value.options,expectedRpId);
+  return options ? Object.freeze({ceremony_id:value.ceremony_id as string,kind,options}) as OwnerAccessCeremony : null;
 }
 
 export function parseOwnerAccessApprovalComplete(value:unknown):OwnerAccessApprovalComplete|null {
@@ -176,6 +202,15 @@ export function parseOwnerAccessApprovalComplete(value:unknown):OwnerAccessAppro
     !opaque(value.candidate_id,256) || !opaque(value.approval_ref,256) ||
     typeof value.candidate_digest !== 'string' || !sha.test(value.candidate_digest) || !time(value.expires_at)) return null;
   return Object.freeze(value as unknown as OwnerAccessApprovalComplete);
+}
+
+export function parseOwnerAccessApprovalStatus(value:unknown):OwnerAccessApprovalStatus|null {
+  if (!record(value) || !exact(value,['candidate_id','candidate_digest','expires_at','state','approval_ref']) ||
+    !opaque(value.candidate_id,256) || typeof value.candidate_digest !== 'string' || !sha.test(value.candidate_digest) ||
+    !time(value.expires_at) || !['pending','approved','consumed','cancelled','expired'].includes(String(value.state))) return null;
+  const terminal = value.state === 'approved' || value.state === 'consumed';
+  if (terminal ? !opaque(value.approval_ref,256) : value.approval_ref !== null) return null;
+  return Object.freeze(value as unknown as OwnerAccessApprovalStatus);
 }
 
 export function ownerAccessCanonicalJson(value:unknown):string {
