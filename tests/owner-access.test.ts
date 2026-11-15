@@ -36,7 +36,7 @@ test('approval rejects raw/extra fields and malformed candidate pins',()=>{
 test('Core recovery projection is exact, redacted and fail-closed',()=>{
   const status = {recovery_id:'recovery-opaque',state:'countdown',proof_slots:['email_a','phone_b'],
     notifications:[{slot:'email_a',status:'accepted'},{slot:'email_b',status:'unknown'},
-      {slot:'phone_a',status:'pending'},{slot:'phone_b',status:'accepted'}],
+      {slot:'phone_a',status:'pending'},{slot:'phone_b',status:'rejected'}],
     countdown_at:'2026-11-15T12:00:00.000Z',ready_at:'2026-11-16T12:00:00.000Z'};
   expect(parseOwnerAccessRecoveryStatus(status)).toEqual(status);
   expect(parseOwnerAccessRecoveryStatus({...status,contact:'raw@example.test'})).toBeNull();

@@ -19,7 +19,7 @@ export const ownerAccessRecoveryStates = Object.freeze([
   'none','collecting','notifying','countdown','cancelled','completed'
 ] as const);
 export const ownerAccessDeliveryStatuses = Object.freeze(['pending','accepted','unknown','rejected'] as const);
-export const ownerAccessNotificationStatuses = Object.freeze(['pending','accepted','unknown'] as const);
+export const ownerAccessNotificationStatuses = Object.freeze(['pending','accepted','unknown','rejected'] as const);
 
 export type OwnerAccessCandidate = Readonly<{schema:'doubloon.mainnet-owner-passkey-candidate/v1';
   profile:'mainnet:owner-passkey-contact-recovery:20261112';network:'sui_mainnet';
