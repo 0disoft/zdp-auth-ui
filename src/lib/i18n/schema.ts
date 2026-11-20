@@ -86,6 +86,7 @@ export interface ZdpAuthMessages {
       readonly expires: string;
     };
     readonly requestedTitle: string;
+    readonly permissionDetails: string;
     readonly itemKinds: {
       readonly scope: string;
       readonly capability: string;

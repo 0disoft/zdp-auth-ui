@@ -72,6 +72,7 @@ const messages = {
       "expires": "Hạn của yêu cầu"
     },
     "requestedTitle": "Quyền truy cập được yêu cầu",
+    "permissionDetails": "Chi tiết quyền truy cập",
     "itemKinds": {
       "scope": "Phạm vi",
       "capability": "Khả năng"

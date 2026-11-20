@@ -11,6 +11,7 @@ export interface ZdpProductLinkRequestedItem {
   readonly kind: ZdpProductLinkItemKind;
   readonly label: string;
   readonly description: string;
+  readonly groupLabel?: string;
 }
 
 export interface ZdpProductLinkRequest {
@@ -163,6 +164,7 @@ function isValidRequestedItem(item: ZdpProductLinkRequestedItem): boolean {
     && isBoundedText(item.ref, displayTextMaxLength)
     && (zdpProductLinkItemKinds as readonly string[]).includes(item.kind)
     && isBoundedText(item.label, displayTextMaxLength)
+    && (item.groupLabel === undefined || isBoundedText(item.groupLabel, displayTextMaxLength))
     && isBoundedText(item.description, detailTextMaxLength);
 }
 

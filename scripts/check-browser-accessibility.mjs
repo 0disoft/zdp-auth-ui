@@ -636,6 +636,13 @@ try {
 
   const approveButton = approveFixture.getByRole('button', { name: 'Approve connection', exact: true });
   const denyButton = approveFixture.getByRole('button', { name: 'Deny', exact: true });
+  const permissionSummary = approveFixture.locator('summary', { hasText: 'Permission details' });
+  const permissionId = approveFixture.getByText('workspace_read_012345', { exact: true });
+  assert.equal(await permissionId.isVisible(), false, 'Permission IDs must be hidden initially.');
+  await permissionSummary.press('Enter');
+  assert.equal(await permissionId.isVisible(), true, 'The disclosure must reveal the exact permission ID.');
+  await permissionSummary.press('Enter');
+  assert.equal(await permissionId.isVisible(), false, 'Closing the disclosure must hide the ID again.');
   assert.equal(await approveButton.count(), 1, 'A trusted pending request must expose an explicit approve button.');
   assert.equal(await denyButton.count(), 1, 'A trusted pending request must expose an explicit deny button.');
   assert.equal(await approveFixture.locator('a').count(), 0, 'The product-link approval surface must not expose callback navigation.');

@@ -28,7 +28,7 @@
     flushSync(() => { request = { ...request, state: 'approved' }; });
     if (next === 'replace') {
       flushSync(replace);
-      fixture.querySelector<HTMLButtonElement>('.zdp-product-link button')?.focus();
+      fixture.querySelector<HTMLButtonElement>('.zdp-product-link .zdp-button--primary')?.focus();
     } else if (next === 'remove') {
       flushSync(() => { show = false; });
       outside.focus();

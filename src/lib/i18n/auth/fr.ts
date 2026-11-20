@@ -72,6 +72,7 @@ const messages = {
       "expires": "Expiration de la demande"
     },
     "requestedTitle": "Accès demandé",
+    "permissionDetails": "Détail des autorisations",
     "itemKinds": {
       "scope": "Portée",
       "capability": "Capacité"

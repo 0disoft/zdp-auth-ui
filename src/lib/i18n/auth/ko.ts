@@ -72,6 +72,7 @@ const messages = {
       "expires": "요청 만료"
     },
     "requestedTitle": "요청한 접근",
+    "permissionDetails": "권한 상세",
     "itemKinds": {
       "scope": "범위",
       "capability": "기능"

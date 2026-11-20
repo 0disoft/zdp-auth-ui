@@ -72,6 +72,7 @@ const messages = {
       "expires": "Request expires"
     },
     "requestedTitle": "Requested access",
+    "permissionDetails": "Permission details",
     "itemKinds": {
       "scope": "Scope",
       "capability": "Capability"

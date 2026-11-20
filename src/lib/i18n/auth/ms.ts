@@ -72,6 +72,7 @@ const messages = {
       "expires": "Tamat tempoh permintaan"
     },
     "requestedTitle": "Akses yang diminta",
+    "permissionDetails": "Butiran kebenaran",
     "itemKinds": {
       "scope": "Skop",
       "capability": "Keupayaan"

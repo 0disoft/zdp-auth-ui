@@ -72,6 +72,7 @@ const messages = {
       "expires": "Срок действия запроса"
     },
     "requestedTitle": "Запрашиваемый доступ",
+    "permissionDetails": "Сведения о разрешениях",
     "itemKinds": {
       "scope": "Область",
       "capability": "Возможность"

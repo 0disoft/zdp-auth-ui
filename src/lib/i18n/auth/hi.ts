@@ -72,6 +72,7 @@ const messages = {
       "expires": "अनुरोध की समय-सीमा"
     },
     "requestedTitle": "अनुरोधित पहुँच",
+    "permissionDetails": "अनुमतियों का विवरण",
     "itemKinds": {
       "scope": "दायरा",
       "capability": "क्षमता"

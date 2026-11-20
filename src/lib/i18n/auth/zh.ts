@@ -72,6 +72,7 @@ const messages = {
       "expires": "请求有效期"
     },
     "requestedTitle": "请求的访问权限",
+    "permissionDetails": "权限详情",
     "itemKinds": {
       "scope": "范围",
       "capability": "功能"

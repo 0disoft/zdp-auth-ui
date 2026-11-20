@@ -72,6 +72,7 @@ const messages = {
       "expires": "要求の有効期限"
     },
     "requestedTitle": "要求されたアクセス",
+    "permissionDetails": "権限の詳細",
     "itemKinds": {
       "scope": "範囲",
       "capability": "機能"

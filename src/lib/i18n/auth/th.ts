@@ -72,6 +72,7 @@ const messages = {
       "expires": "วันหมดอายุของคำขอ"
     },
     "requestedTitle": "สิทธิ์การเข้าถึงที่ขอ",
+    "permissionDetails": "รายละเอียดสิทธิ์",
     "itemKinds": {
       "scope": "ขอบเขต",
       "capability": "ความสามารถ"

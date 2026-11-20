@@ -8,6 +8,7 @@
     type ZdpProductLinkDecisionDetail,
     type ZdpProductLinkDisposition,
     type ZdpProductLinkRequest,
+    type ZdpProductLinkRequestedItem,
     type ZdpProductLinkTrustPolicy
   } from '../product-link';
 
@@ -183,6 +184,17 @@
   let validation = $derived(enabled
     ? validateProductLinkRequest(request, trust, effectiveNow)
     : { disposition: 'invalid' as const, actionable: false });
+  let reviewRows = $derived.by(() => {
+    const rows = new Map<string, { title: string; items: [ZdpProductLinkRequestedItem, ...ZdpProductLinkRequestedItem[]] }>();
+    if (validation.disposition === 'invalid') return rows;
+    for (const item of request.requestedItems) {
+      const key = item.groupLabel === undefined ? `item:${item.ref}` : `group:${item.groupLabel}`;
+      const row = rows.get(key);
+      if (row) row.items.push(item);
+      else rows.set(key, { title: item.groupLabel ?? item.label, items: [item] });
+    }
+    return rows;
+  });
   let titleId = $derived(`${id}-title`);
   let detailsId = $derived(`${id}-details`);
   let statusMessage = $derived(enabled
@@ -213,9 +225,9 @@
   });
 </script>
 
-<Surface padding="lg">
+<Surface padding="none">
   <section bind:this={sectionElement} class="zdp-product-link" aria-labelledby={titleId} aria-describedby={detailsId}>
-    <Stack gap="md">
+    <Stack gap="lg">
       <header class="zdp-product-link__header">
         <p class="zdp-product-link__eyebrow">{copy.brand}</p>
         <h1 id={titleId}>{copy.productLink.title}</h1>
@@ -232,6 +244,8 @@
             <dt>{copy.productLink.fields.account}</dt>
             <dd>{request.accountLabel}</dd>
           </div>
+        </dl>
+        <dl class="zdp-product-link__metadata">
           <div>
             <dt>{copy.productLink.fields.workspace}</dt>
             <dd>{request.workspaceLabel ?? copy.productLink.noWorkspace}</dd>
@@ -244,15 +258,33 @@
 
         <section class="zdp-product-link__requested" aria-labelledby={`${id}-requested-title`}>
           <h2 id={`${id}-requested-title`}>{copy.productLink.requestedTitle}</h2>
-          <ul>
-            {#each request.requestedItems as item (item.ref)}
+          <ul class="zdp-product-link__permissions">
+            {#each reviewRows as [key, row] (key)}
               <li>
-                <span class="zdp-product-link__item-kind">{copy.productLink.itemKinds[item.kind]}</span>
-                <strong>{item.label}</strong>
-                <p>{item.description}</p>
+                <h3>{row.title}</h3>
+                {#if row.items.length === 1}
+                  <p>{row.items[0].description}</p>
+                {:else}
+                  <ul>
+                    {#each row.items as item (item.ref)}
+                      <li>{item.description}</li>
+                    {/each}
+                  </ul>
+                {/if}
               </li>
             {/each}
           </ul>
+          <details class="zdp-product-link__details">
+            <summary>{copy.productLink.permissionDetails}</summary>
+            <ul>
+              {#each request.requestedItems as item (item.ref)}
+                <li>
+                  <span>{item.label} · {copy.productLink.itemKinds[item.kind]}</span>
+                  <code>{item.ref}</code>
+                </li>
+              {/each}
+            </ul>
+          </details>
         </section>
 
         <section class="zdp-product-link__consent" aria-labelledby={`${id}-consent-title`}>
@@ -267,18 +299,21 @@
       {/if}
 
       {#if validation.actionable}
-        <Inline gap="sm" align="stretch" justify="between">
-          <Button type="button" disabled={busy} onclick={(event: MouseEvent) => handleDecision('approve', event)}>
-            {copy.productLink.actions.approve}
-          </Button>
-          <Button type="button" variant="secondary" disabled={busy} onclick={(event: MouseEvent) => handleDecision('deny', event)}>
-            {copy.productLink.actions.deny}
-          </Button>
-        </Inline>
+        <footer class="zdp-product-link__actions">
+          <Inline gap="sm" align="stretch" justify="end">
+            <Button type="button" variant="secondary" disabled={busy} onclick={(event: MouseEvent) => handleDecision('deny', event)}>
+              {copy.productLink.actions.deny}
+            </Button>
+            <Button type="button" disabled={busy} onclick={(event: MouseEvent) => handleDecision('approve', event)}>
+              {copy.productLink.actions.approve}
+            </Button>
+          </Inline>
+        </footer>
       {/if}
 
       <p
         bind:this={statusElement}
+        class:zdp-product-link__status--idle={validation.actionable && !busy}
         class:zdp-product-link__status--error={validation.disposition === 'invalid' || validation.disposition === 'stale' || validation.disposition === 'expired'}
         class="zdp-product-link__status"
         role={validation.disposition === 'invalid' || validation.disposition === 'stale' || validation.disposition === 'expired' ? 'alert' : 'status'}
@@ -293,8 +328,11 @@
 
 <style>
   .zdp-product-link {
+    border: 1px solid var(--zdp-color-line-subtle);
+    border-radius: var(--zdp-radius-lg);
     color: var(--zdp-color-ink-normal);
     min-width: 0;
+    padding: clamp(var(--zdp-space-4), 4vw, var(--zdp-space-8));
     overflow-wrap: var(--zdp-i18n-overflow-wrap);
     text-wrap: var(--zdp-i18n-text-wrap);
     word-break: var(--zdp-i18n-word-break);
@@ -310,6 +348,7 @@
 
   .zdp-product-link h1,
   .zdp-product-link h2,
+  .zdp-product-link h3,
   .zdp-product-link p,
   .zdp-product-link ul,
   .zdp-product-link dl,
@@ -319,8 +358,8 @@
 
   .zdp-product-link h1 {
     color: var(--zdp-color-ink-strong);
-    font-size: var(--zdp-font-size-xl);
-    line-height: var(--zdp-font-line-height-tight);
+    font-size: var(--zdp-type-page-title-compact-size);
+    line-height: var(--zdp-type-page-title-line-height);
   }
 
   .zdp-product-link h2 {
@@ -329,46 +368,117 @@
     line-height: var(--zdp-font-line-height-tight);
   }
 
-  .zdp-product-link__eyebrow,
-  .zdp-product-link__item-kind {
+  .zdp-product-link__eyebrow {
     color: var(--zdp-color-ink-muted);
     font-size: var(--zdp-type-label-size);
     line-height: var(--zdp-type-label-line-height);
+    font-weight: var(--zdp-font-weight-semibold);
   }
 
   .zdp-product-link__context {
     display: grid;
-    gap: var(--zdp-space-3);
+    background: var(--zdp-color-accent-primary-soft);
+    border: 1px solid var(--zdp-color-line-subtle);
+    border-radius: var(--zdp-radius-lg);
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .zdp-product-link__context div {
+  .zdp-product-link__context > div {
+    padding: var(--zdp-space-4);
+  }
+
+  .zdp-product-link__context > div + div {
+    border-inline-start: 1px solid var(--zdp-color-line-subtle);
+  }
+
+  .zdp-product-link__context > div,
+  .zdp-product-link__metadata > div {
     display: grid;
     gap: var(--zdp-space-1);
     min-width: 0;
   }
 
-  .zdp-product-link__context dt {
+  .zdp-product-link dt {
     color: var(--zdp-color-ink-muted);
     font-size: var(--zdp-type-caption-size);
   }
 
-  .zdp-product-link__context dd {
+  .zdp-product-link dd {
     color: var(--zdp-color-ink-strong);
-    min-width: 0;
     overflow-wrap: anywhere;
   }
 
-  .zdp-product-link__requested ul,
-  .zdp-product-link__consent ul {
+  .zdp-product-link__context dd {
+    font-size: var(--zdp-font-size-lg);
+    font-weight: var(--zdp-font-weight-semibold);
+  }
+
+  .zdp-product-link__metadata {
     display: grid;
-    gap: var(--zdp-space-2);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--zdp-space-3);
+  }
+
+  .zdp-product-link__permissions,
+  .zdp-product-link__details ul {
+    padding: 0;
+    list-style: none;
+  }
+
+  .zdp-product-link__permissions > li {
+    display: grid;
+    gap: var(--zdp-space-1);
+    padding-block: var(--zdp-space-3);
+    border-block-end: 1px solid var(--zdp-color-line-subtle);
+  }
+
+  .zdp-product-link__permissions h3 {
+    color: var(--zdp-color-ink-strong);
+    font-size: var(--zdp-font-size-md);
+  }
+
+  .zdp-product-link__permissions ul,
+  .zdp-product-link__consent ul {
     padding-inline-start: var(--zdp-space-5);
   }
 
-  .zdp-product-link__requested li {
+  .zdp-product-link__details summary {
+    min-block-size: var(--zdp-control-height-sm);
+    align-content: center;
+    cursor: pointer;
+    font-weight: var(--zdp-font-weight-semibold);
+  }
+
+  .zdp-product-link__details summary:focus-visible {
+    outline: 2px solid var(--zdp-color-line-focus);
+    outline-offset: 3px;
+  }
+
+  .zdp-product-link__details li {
     display: grid;
     gap: var(--zdp-space-1);
+    padding-block: var(--zdp-space-2);
+    overflow-wrap: anywhere;
+  }
+
+  .zdp-product-link__details code {
+    font-family: var(--zdp-font-family-mono);
+    font-size: var(--zdp-type-caption-size);
+  }
+
+  .zdp-product-link__consent {
+    background: var(--zdp-color-surface-raised);
+    border-radius: var(--zdp-radius-lg);
+    padding: var(--zdp-space-4);
+  }
+
+  .zdp-product-link__consent p {
+    color: var(--zdp-color-ink-muted);
+  }
+
+  .zdp-product-link__actions {
+    border-block-start: 1px solid var(--zdp-color-line-subtle);
+    padding-block-start: var(--zdp-space-4);
   }
 
   .zdp-product-link__status {
@@ -381,8 +491,16 @@
     color: var(--zdp-color-accent-danger);
   }
 
-  @media (max-width: 40rem) {
-    .zdp-product-link__context {
+  .zdp-product-link__status--idle {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  @media (max-width: 28rem) {
+    .zdp-product-link__metadata {
       grid-template-columns: minmax(0, 1fr);
     }
   }

@@ -72,6 +72,7 @@ const messages = {
       "expires": "Caducidad de la solicitud"
     },
     "requestedTitle": "Acceso solicitado",
+    "permissionDetails": "Detalles de los permisos",
     "itemKinds": {
       "scope": "Ámbito",
       "capability": "Capacidad"
