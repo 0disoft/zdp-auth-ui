@@ -255,7 +255,7 @@
             <dd class="zdp-product-link__account-name" dir="auto">{request.accountLabel}</dd>
           </div>
           <div class="zdp-product-link__connection">
-            <dt class="zdp-product-link__sr-only">{copy.productLink.fields.product}</dt>
+            <dt class="zdp-visually-hidden">{copy.productLink.fields.product}</dt>
             <dd>
               <span class="zdp-product-link__party">
                 <span class="zdp-product-link__icon"><AppWindow size={22} aria-hidden="true" /></span>
@@ -348,7 +348,7 @@
       {/if}
       <p
         bind:this={statusElement}
-        class:zdp-product-link__sr-only={validation.actionable && !busy}
+        class:zdp-visually-hidden={validation.actionable && !busy}
         class:zdp-product-link__status--error={validation.disposition === 'invalid' || validation.disposition === 'stale' || validation.disposition === 'expired'}
         class="zdp-product-link__status"
         role={validation.disposition === 'invalid' || validation.disposition === 'stale' || validation.disposition === 'expired' ? 'alert' : 'status'}
@@ -577,14 +577,6 @@
   }
 
   .zdp-product-link__status--error { color: var(--zdp-color-accent-danger); }
-
-  .zdp-product-link__sr-only {
-    position: absolute;
-    inline-size: 1px;
-    block-size: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-  }
 
   @container (min-width: 48rem) {
     .zdp-product-link__layout--review {

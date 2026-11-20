@@ -6,7 +6,9 @@ test.each([
   ['padding-inline', '0 1rem'], ['margin-block-start', '-.25rem'],
   ['font-size', '87.5%'], ['font-weight', '500'], ['line-height', '1.5'],
   ['min-block-size', '5rem'], ['height', '1.125rem'], ['flex', '0 0 1.5rem'],
-  ['padding', 'var(--zdp-space-2, 8px)'], ['gap', 'calc(var(--zdp-space-2) + 1px)']
+  ['padding', 'var(--zdp-space-2, 8px)'], ['gap', 'calc(var(--zdp-space-2) + 1px)'],
+  ['padding', '2.6cqi'], ['gap', 'clamp(8px, 4cqi, var(--zdp-space-8))'],
+  ['font-size', 'clamp(var(--zdp-type-caption-size), 3cqi, var(--local-size))']
 ])('rejects raw %s: %s, including nested rules and fallbacks', (property, value) => {
   const source = `<div />\n<style>\n@media (max-width: 40rem) { .fixture { ${property}: ${value}; } }\n</style>`;
   expect(findStyleTokenViolations(source)).toEqual([{ property, value, line: 3 }]);
@@ -18,6 +20,7 @@ test('allows token calculations, zero resets, relative layout, comments and keyw
       /* gap: 1rem; font-weight: 500; */
       .fixture {
         gap: var(--zdp-space-2) var(--zdp-space-4);
+        column-gap: clamp(var(--zdp-space-6), 4cqi, var(--zdp-space-12));
         padding: calc((var(--zdp-control-icon-md) - var(--zdp-space-6)) / 2);
         min-block-size: calc(var(--zdp-space-10) * 2);
         font-size: var(--zdp-type-caption-size);

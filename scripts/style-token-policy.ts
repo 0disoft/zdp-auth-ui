@@ -23,7 +23,11 @@ export function findStyleTokenViolations(source: string): StyleTokenViolation[] 
       const property = node.property.toLowerCase();
       if (!tokenProperties.test(property)) continue;
       // Keep var() fallbacks visible while ignoring digits in token names.
-      const value = node.value.replace(/\/\*[\s\S]*?\*\//g, '').replace(/--[\w-]+/g, '');
+      const value = node.value
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        // A fluid container dimension is allowed between two design-system token bounds.
+        .replace(/\bclamp\(\s*var\(--zdp-(?:space|type|font-size)-[\w-]+\)\s*,\s*\d+(?:\.\d+)?cqi\s*,\s*var\(--zdp-(?:space|type|font-size)-[\w-]+\)\s*\)/gi, '')
+        .replace(/--[\w-]+/g, '');
       const numbers = value.matchAll(/(?<![\w-])([-+]?(?:\d*\.)?\d+(?:e[-+]?\d+)?)([a-z]+|%)?/gi);
       for (const [, number, unit] of numbers) {
         if (Number(number) === 0) continue;

@@ -6,6 +6,8 @@
 
 - Add shared Doubloon owner recovery-contact verification and existing-passkey binding forms, with Korean and English fallback copy.
 - Add a closed owner enrollment projection parser; wallet key generation, signing and publication stay disabled.
+- Guide owners through recovery one step at a time and show desktop connection permissions, account context, and consent before approval.
+- Use Design System 0.67.3 for the shared auth components.
 
 ## 0.11.3
 

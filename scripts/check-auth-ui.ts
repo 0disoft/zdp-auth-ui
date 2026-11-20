@@ -55,7 +55,8 @@ const componentDesignSystemImports: Record<string, readonly string[]> = {
   'src/lib/components/LoginIdField.svelte': ['ErrorText', 'Field', 'HelpText', 'Input', 'Label'],
   'src/lib/components/PasswordSignupFields.svelte': ['Checkbox', 'Stack'],
   'src/lib/components/AuthShell.svelte': ['Button', 'Divider', 'Inline', 'Link', 'Stack', 'Surface'],
-  'src/lib/components/ProductLinkApproval.svelte': ['Button', 'Inline', 'Stack', 'Surface']
+  // The review layout uses native sectioning and a tokenized CSS grid.
+  'src/lib/components/ProductLinkApproval.svelte': ['Button']
 } as const;
 const rawColorPattern = /#(?:[0-9a-fA-F]{3,8})\b|rgb[a]?\(|hsl[a]?\(|oklch\(/;
 const requiredFiles = [
