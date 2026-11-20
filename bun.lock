@@ -7,7 +7,7 @@
       "dependencies": {
         "@simplewebauthn/browser": "^14.0.0",
         "lucide-svelte": "1",
-        "zdp-design-system": "^0.67.2",
+        "zdp-design-system": "^0.67.3",
       },
       "devDependencies": {
         "@sveltejs/package": "^3",
@@ -187,7 +187,7 @@
 
     "vitefu": ["vitefu@1.1.3", "", { "peerDependencies": { "vite": "^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0" }, "optionalPeers": ["vite"] }, "sha512-ub4okH7Z5KLjb6hDyjqrGXqWtWvoYdU3IGm/NorpgHncKoLTCfRIbvlhBm7r0YstIaQRYlp4yEbFqDcKSzXSSg=="],
 
-    "zdp-design-system": ["zdp-design-system@0.67.2", "", { "dependencies": { "@floating-ui/dom": "1" }, "peerDependencies": { "svelte": "^5.56.0" } }, "sha512-tLhlFy7alo8m6T9YYHEoIjlkvTdZzW3UW4s96RdgRPUDnQd+yarq1EpaU5tlYB30GTXgQR6wtu+np+eiTQ28YQ=="],
+    "zdp-design-system": ["zdp-design-system@0.67.3", "", { "dependencies": { "@floating-ui/dom": "1" }, "peerDependencies": { "svelte": "^5.56.0" } }, "sha512-7TE8gLRuw19pHnOo7FY4Igm+qDmxd5hehNkZ+L7MoCycqWh5I4oFem+5lfE10wAZd0xM2VN60zP88pxQ6NMv5g=="],
 
     "zimmerframe": ["zimmerframe@1.1.5", "", {}, "sha512-msJxIvYDYcoNL+PJsu+7qmpDWsYmAxTY+2TNYXXF0hzBzBk0BMecOqDOG/EckUoKCuKwObfbugIl8QpqHDXeFA=="],
 
