@@ -151,7 +151,7 @@
   "dependencies": {
     "@simplewebauthn/browser": "^14.0.0",
     "lucide-svelte": "1",
-    "zdp-design-system": "^0.67.3"
+    "zdp-design-system": "^0.67.4"
   },
   "devDependencies": {
     "@sveltejs/package": "^3",
