@@ -17,6 +17,8 @@ try {
   const page = await browser.newPage(), errors = []; page.setDefaultTimeout(8000); page.on('pageerror', error => errors.push(error.message));
   // Fresh Vite caches compile the shared Svelte graph before the fixture loads.
   page.setDefaultNavigationTimeout(60000);
+  await page.clock.install({ time: '2026-07-15T04:04:00.000Z' });
+  await page.clock.pauseAt('2026-07-15T04:05:00.000Z');
   await page.clock.setFixedTime('2026-07-15T04:05:00.000Z');
   await page.goto(`http://127.0.0.1:${address.port}`, { waitUntil: 'domcontentloaded' });
   const fixture = page.getByTestId('link-clock-fixture'), fresh = fixture.getByTestId('clock-new-request'), refresh = fixture.getByTestId('clock-same-request');
@@ -42,8 +44,10 @@ try {
   assert.deepEqual(await page.evaluate(() => window.clockFixtureFormatters), ['en']);
   await approve.focus();
   await page.clock.setFixedTime('2026-07-15T04:04:55.000Z');
-  // Real timers and performance.now continue while only the wall clock moves back.
-  await page.waitForTimeout(1400);
+  // Advance timers and performance.now independently of the wall clock.
+  await page.clock.runFor(999);
+  assert.equal(await approve.count(), 1, 'approval remains visible immediately before expiry');
+  await page.clock.runFor(1);
   assert.equal(await approve.count(), 0, 'wall-clock rollback must not extend the one-second request lifetime');
   assert.equal(await fixture.getByRole('alert').evaluate(status => status.ownerDocument.activeElement === status), true,
     'expiry preserves keyboard focus on the status in light DOM');
@@ -57,35 +61,41 @@ try {
   assert.equal(await fixture.getByTestId('clock-decisions').textContent(), '1', 'a different newly issued challenge retains its own fresh lifetime');
 
   await fixture.getByTestId('clock-aging-request').click(); await approve.waitFor();
-  await page.waitForTimeout(1250);
-  const agingStatus = fixture.getByRole('alert');
-  await agingStatus.waitFor();
-  const agingText = await agingStatus.textContent();
+  await page.clock.runFor(1000);
+  assert.equal(await approve.count(), 1, 'the maximum request age is inclusive');
+  await page.clock.runFor(1);
+  const status = fixture.getByRole('alert');
+  const staleText = 'This request is out of date. Start again from the desktop product.';
+  const expiredText = 'This request expired. Start again from the desktop product.';
+  assert.equal((await status.textContent()).trim(), staleText);
   assert.equal(await approve.count(), 0, 'freshness expiry removes approval controls');
-  await page.waitForTimeout(1500);
-  assert.notEqual(await agingStatus.textContent(), agingText, 'a fresh request must pass through stale to expired without a parent refresh');
+  await page.clock.runFor(1498);
+  assert.equal((await status.textContent()).trim(), staleText);
+  await page.clock.runFor(1);
+  assert.equal((await status.textContent()).trim(), expiredText, 'the stale request expires without a parent refresh');
 
   await page.evaluate(() => { window.clockFixtureTimers = []; });
   await fixture.getByTestId('clock-stale-request').click();
-  const status = fixture.getByRole('alert');
   await status.waitFor();
-  const staleText = await status.textContent();
+  assert.equal((await status.textContent()).trim(), staleText);
   assert.equal(await approve.count(), 0);
   await refresh.click();
-  await page.waitForTimeout(1400);
-  assert.notEqual(await status.textContent(), staleText, 'a stale request must still transition at its future expiry');
+  await page.clock.runFor(1000);
+  assert.equal((await status.textContent()).trim(), expiredText, 'a stale request must still transition at its future expiry');
   const staleTimers = await page.evaluate(() => window.clockFixtureTimers);
   assert.ok(staleTimers.length > 0 && staleTimers.every(delay => delay > 0), 'past freshness deadlines must not schedule zero-delay callbacks');
 
   await page.evaluate(() => { window.clockFixtureTimers = []; });
   await fixture.getByTestId('clock-expired-request').click(); await status.waitFor();
-  await refresh.click(); await page.waitForTimeout(100);
+  await refresh.click(); await page.clock.runFor(100);
   assert.deepEqual(await page.evaluate(() => window.clockFixtureTimers), [], 'initially expired pending requests must not schedule another deadline');
 
   await fixture.getByTestId('clock-future-request').click();
   await status.waitFor();
+  await page.clock.runFor(999);
   assert.equal(await approve.count(), 0);
-  await approve.waitFor({ timeout: 4000 });
+  await page.clock.runFor(1);
+  assert.equal(await approve.count(), 1, 'a future-issued request becomes actionable at the skew boundary');
 
   const formatterCount = await page.evaluate(() => window.clockFixtureFormatters.length);
   await fixture.getByTestId('clock-format-request').click(); await approve.waitFor();
@@ -110,7 +120,9 @@ try {
   await refresh.click();
   assert.equal(await approve.count(), 1, 'the forward-adjusted clock is still inside the request lifetime');
   await page.clock.setFixedTime('2026-07-15T05:00:00.000Z');
-  await status.waitFor({ timeout: 5000 });
+  await page.clock.runFor(1999);
+  assert.equal(await approve.count(), 1);
+  await page.clock.runFor(1);
   assert.equal(await approve.count(), 0, 'elapsed time continues from the latest observed wall clock after rollback');
 
   await page.evaluate(() => { window.mountShadowProductLinkClockFixture(); });
@@ -119,7 +131,7 @@ try {
   const shadowApprove = shadow.getByRole('button', { name: 'Approve connection', exact: true });
   await shadowApprove.focus();
   assert.equal(await shadowApprove.evaluate(button => button.getRootNode().activeElement === button), true);
-  await page.waitForTimeout(1400);
+  await page.clock.runFor(1000);
   const shadowStatus = shadow.getByRole('alert');
   await shadowStatus.waitFor();
   assert.equal(await shadowStatus.evaluate(status => status.getRootNode().activeElement === status), true,
