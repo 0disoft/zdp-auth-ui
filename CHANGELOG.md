@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.12.1
+
+- Keep owner passkey cancellation scoped to the panel and restore interrupted approval attempts using the same candidate ID.
+- Update approval, contact verification, and owner recovery controls at their deadlines without polling the panel every second.
+- Revalidate future-issued desktop connection requests as they become eligible, and keep deadlines advancing if the wall clock rolls back.
+- Share owner contact and notification rules across enrollment, recovery validation, and the owner panel.
+- Use Design System 0.67.4.
+
 ## 0.12.0
 
 - Add shared Doubloon owner recovery-contact verification and existing-passkey binding forms, with Korean and English fallback copy.
