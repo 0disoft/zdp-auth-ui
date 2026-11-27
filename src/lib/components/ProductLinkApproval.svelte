@@ -50,7 +50,6 @@
   let clockScope: string | null = null;
   let clockWallOrigin = 0;
   let clockElapsedOrigin = 0;
-  let clockHighWater = 0;
   let decisionFocusRequested = $state(false);
   let sameTaskDecisionHandled = false;
   let previousDisposition: ZdpProductLinkDisposition | null = $state(null);
@@ -126,16 +125,15 @@
   function readClock(): Date {
     const scope = request?.challengeRef ?? '';
     const wall = Date.now(), elapsed = performance.now();
-    if (clockScope !== scope) {
+    const elapsedTime = clockWallOrigin + Math.max(0, elapsed - clockElapsedOrigin);
+    // Keep advancing from a newer wall time even if the wall clock rolls back.
+    if (clockScope !== scope || wall > elapsedTime) {
       clockScope = scope;
       clockWallOrigin = wall;
       clockElapsedOrigin = elapsed;
-      clockHighWater = wall;
+      return new Date(wall);
     }
-    // Preserve elapsed lifetime and already observed expiry across clock changes
-    // and snapshot refreshes. A newly issued challenge starts its own clock.
-    clockHighWater = Math.max(clockHighWater, wall, clockWallOrigin + Math.max(0, elapsed - clockElapsedOrigin));
-    return new Date(clockHighWater);
+    return new Date(elapsedTime);
   }
 
   function clearDeadlineRefresh(): void {

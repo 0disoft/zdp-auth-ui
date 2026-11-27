@@ -102,6 +102,17 @@ try {
   const fallbackCount = await page.evaluate(() => window.clockFixtureFormatters.length);
   await fixture.getByTestId('clock-format-request').click(); await refresh.click();
   assert.equal(await page.evaluate(() => window.clockFixtureFormatters.length), fallbackCount, 'fallback formatter is also reused');
+
+  await page.clock.setFixedTime('2026-07-15T05:00:00.000Z');
+  await fixture.getByTestId('clock-format-request').click();
+  await approve.waitFor();
+  await page.clock.setFixedTime('2026-07-15T05:00:18.000Z');
+  await refresh.click();
+  assert.equal(await approve.count(), 1, 'the forward-adjusted clock is still inside the request lifetime');
+  await page.clock.setFixedTime('2026-07-15T05:00:00.000Z');
+  await status.waitFor({ timeout: 5000 });
+  assert.equal(await approve.count(), 0, 'elapsed time continues from the latest observed wall clock after rollback');
+
   await page.evaluate(() => { window.mountShadowProductLinkClockFixture(); });
   const shadow = page.locator('#shadow-product-link-host').getByTestId('link-clock-fixture');
   await shadow.getByTestId('clock-new-request').click();
