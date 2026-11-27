@@ -129,3 +129,72 @@ export async function checkOwnerAccessMissingApproval(page) {
   assert.deepEqual((await fixture.getByTestId('owner-approval-attempt-ids').textContent()).split(','),
     [first, first, first], 'Inspecting the same package after a storage failure keeps the attempted candidate ID.');
 }
+
+export async function checkOwnerRecoveryJourney(page) {
+  const start = Date.parse('2026-07-15T04:05:00.000Z');
+  const readyAt = start + 86_400_000;
+  await page.clock.setFixedTime(start);
+  await page.evaluate(() => window.mountOwnerRecoveryJourneyFixture());
+  const fixture = page.getByTestId('owner-recovery-journey');
+  const button = name => fixture.getByRole('button', { name, exact: true });
+  const heading = name => fixture.getByRole('heading', { name, exact: true });
+  const calls = async () => JSON.parse(await fixture.getByTestId('recovery-calls').textContent());
+  const contact = name => fixture.locator('.contact').filter({ has: page.getByText(name, { exact: true }) });
+  const email = contact('Recovery email 1'), phone = contact('Recovery phone 2');
+  const confirm = async target => {
+    await target.getByLabel('Verification code').fill('000000');
+    await target.getByRole('button', { name: 'Verify contact', exact: true }).click();
+  };
+  await button('Start recovery').click();
+  await heading('Verify contacts · 0/2').waitFor();
+  await email.getByRole('button', { name: 'Send verification code', exact: true }).click();
+  const recheck = email.getByRole('button', { name: 'Recheck original send', exact: true });
+  await recheck.waitFor();
+  assert.equal(await email.getByRole('textbox', { name: 'Verification code' }).count(), 0);
+  await recheck.click();
+  await confirm(email);
+  await heading('Verify contacts · 1/2').waitFor();
+  await email.getByText('Verified', { exact: true }).waitFor();
+  await phone.getByRole('button', { name: 'Send verification code', exact: true }).click();
+  await confirm(phone);
+  await heading('Security notices').waitFor();
+  assert.equal(await fixture.locator('.notice-list li').count(), 2);
+  assert.equal(await button('Use passkey to bind').count(), 0);
+  await button('Send undispatched notifications').click();
+  await heading('24-hour wait').waitFor();
+  assert.equal(await fixture.locator('time').getAttribute('datetime'), new Date(readyAt).toISOString());
+  assert.equal(await button('Use passkey to bind').count(), 0);
+  await page.clock.setFixedTime(readyAt);
+  const bind = button('Use passkey to bind');
+  await bind.waitFor();
+  assert.equal(await bind.isDisabled(), true);
+
+  await page.evaluate(() => {
+    const original = navigator.credentials.create;
+    window.restoreRecoveryFixtureCredentials = () => { navigator.credentials.create = original; };
+    navigator.credentials.create = async () => {
+      const bytes = new Uint8Array([1]).buffer;
+      return { id: 'fixture-key', rawId: bytes, type: 'public-key',
+        response: { attestationObject: bytes, clientDataJSON: bytes }, getClientExtensionResults: () => ({}) };
+    };
+  });
+  try {
+    await fixture.getByLabel('New passkey label').fill('  Recovery key  ');
+    await bind.click();
+    await fixture.getByText('Completed', { exact: true }).waitFor();
+  } finally {
+    await page.evaluate(() => window.restoreRecoveryFixtureCredentials());
+  }
+
+  const recovery_id = 'fixture-journey';
+  const firstSlot = { recovery_id, slot: 'email_a' }, secondSlot = { recovery_id, slot: 'phone_b' };
+  const firstChallenge = { ...firstSlot, challenge_id: 'fixture-email_a' };
+  assert.deepEqual(await calls(), [
+    ['start'], ['request', firstSlot], ['delivery-status', firstChallenge], ['confirm', firstChallenge, true],
+    ['request', secondSlot], ['confirm', { ...secondSlot, challenge_id: 'fixture-phone_b' }, true],
+    ['notices', { recovery_id }], ['begin', { operation: 'rebind', recovery_id }],
+    ['complete', { operation: 'rebind', recovery_id, ceremony_id: 'fixture-registration', label: 'Recovery key',
+      credential: { id: 'fixture-key', rawId: 'AQ', type: 'public-key',
+        response: { attestationObject: 'AQ', clientDataJSON: 'AQ' }, clientExtensionResults: {} } }]
+  ]);
+}
