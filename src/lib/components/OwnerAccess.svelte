@@ -43,9 +43,11 @@
   let approvalComplete = $state<OwnerAccessApprovalComplete|null>(null), packageError = $state(false);
   let approvalAttemptId = $state<string|null>(null), approvalStatus = $state<OwnerAccessApprovalStatus|null>(null);
   let rebindLabel = $state('');
-  let approvalReady = $derived(!!approvalDraft && !!approvalDigest && confirmation.trim() === approvalDigest);
-  let approvalCanReprepare = $derived(!!approvalAttemptId && approvalStatus?.state === 'pending' &&
-    Date.parse(approvalStatus.expires_at) > Date.now());
+  let approvalDraftExpiresAt = $derived(approvalDraft ? Date.parse(approvalDraft.candidate.expires_at) : 0);
+  let approvalRetryExpiresAt = $derived(approvalStatus?.state === 'pending'
+    ? Math.min(approvalDraftExpiresAt, Date.parse(approvalStatus.expires_at)) : 0);
+  let approvalReady = $derived(approvalDraftExpiresAt > now && !!approvalDigest && confirmation.trim() === approvalDigest);
+  let approvalCanReprepare = $derived(!!approvalAttemptId && approvalRetryExpiresAt > now);
   let activeRecovery = $derived(isActive(recovery));
   let rebindAvailable = $derived(recovery?.state === 'countdown' && !!recovery.ready_at && Date.parse(recovery.ready_at) <= now);
   let activeStep = $derived(recovery?.state === 'notifying' ? 1
@@ -119,9 +121,10 @@
     } catch { packageError = true; } finally { busy = false; }
   }
 
-  async function runApproval(input:NonNullable<ReturnType<typeof parseOwnerAccessApprovalInput>>,candidateId:string) {
+  async function runApproval(input:NonNullable<ReturnType<typeof parseOwnerAccessApprovalInput>>,candidateId:string,deadline:number) {
     const signal = ceremonyLifetime.signal;
     if (signal.aborted) return;
+    if (deadline <= Date.now()) { feedback = 'expired'; return; }
     approvalAttemptId = candidateId; approvalStatus = null;
     await rememberAttempt(input.candidate_digest_confirmation,candidateId);
     if (signal.aborted) return;
@@ -152,7 +155,7 @@
     startAction('approval');
     try {
       if (!input || !await ownerAccessApprovalMatches(input)) { feedback = 'failed'; return; }
-      await runApproval(input, crypto.randomUUID());
+      await runApproval(input, crypto.randomUUID(), approvalDraftExpiresAt);
     } catch { feedback = 'unconfirmed'; } finally { busy = false; }
   }
   async function reprepareApproval() {
@@ -161,7 +164,7 @@
     startAction('approval');
     try {
       if (!input || !await ownerAccessApprovalMatches(input)) { feedback = 'failed'; return; }
-      await runApproval(input, approvalAttemptId);
+      await runApproval(input, approvalAttemptId, approvalRetryExpiresAt);
     } catch { feedback = 'unconfirmed'; } finally { busy = false; }
   }
   async function refreshApproval() {

@@ -7,6 +7,14 @@
   let delayBegin = $state(false);
   let requests = $state(0);
   let result = $state('idle');
+  let restoreAttempt = $state(false);
+  let approvalRequests = $state(0);
+  const candidateId = '00000000-0000-4000-8000-000000000001';
+  const approvalAttempts = {
+    read: () => restoreAttempt ? candidateId : null,
+    remember: () => {},
+    forget: () => {}
+  };
   let releaseBegin: (() => void) | undefined;
   const initialRecovery: OwnerAccessRecoveryStatus = {
     recovery_id: 'fixture-recovery', state: 'collecting', notification_policy: 'email-pair-v1',
@@ -15,7 +23,17 @@
   const options = { challenge: 'AA', rpId: location.hostname };
   const unused = async () => { throw new Error('Unexpected fixture operation'); };
   const port: OwnerAccessClientPort = {
-    readRecovery: unused, beginApproval: unused, completeApproval: unused, approvalStatus: unused,
+    readRecovery: unused, completeApproval: unused,
+    async beginApproval() {
+      approvalRequests++;
+      return { ok: false, feedback: 'expired', retryAfter: null };
+    },
+    async approvalStatus() {
+      return { ok: true, value: {
+        candidate_id: candidateId, candidate_digest: 'sha256:' + 'a'.repeat(64),
+        expires_at: new Date(Date.now() + 10_000).toISOString(), state: 'pending', approval_ref: null
+      } };
+    },
     startRecovery: unused, continueRecoveryNotifications: unused, requestContact: unused, contactDeliveryStatus: unused,
     confirmContact: unused, vetoContact: unused, completeRecoveryCeremony: unused,
     async beginRecoveryCeremony() {
@@ -42,9 +60,11 @@
   <button type="button" onclick={() => releaseBegin?.()}>Finish ceremony preparation</button>
   <button type="button" onclick={startOther}>Start other passkey prompt</button>
   <button type="button" onclick={() => otherSignal?.abort()}>Cancel other passkey prompt</button>
+  <button type="button" onclick={() => { restoreAttempt = true; }}>Restore pending approval attempt</button>
   <output data-testid="owner-ceremony-requests">{requests}</output>
+  <output data-testid="owner-approval-requests">{approvalRequests}</output>
   <output data-testid="other-prompt-result">{result}</output>
   {#if visible}
-    <OwnerAccess {port} {initialRecovery} {authenticate} expectedRpId={location.hostname} />
+    <OwnerAccess {port} {initialRecovery} {authenticate} {approvalAttempts} expectedRpId={location.hostname} />
   {/if}
 </section>

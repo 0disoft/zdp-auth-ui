@@ -46,3 +46,47 @@ export async function checkOwnerAccessCeremonies(page) {
     await page.evaluate(() => window.restoreOwnerFixtureCredentials());
   }
 }
+
+export async function checkOwnerAccessApprovalExpiry(page) {
+  const fixture = page.getByTestId('owner-access-fixture');
+  const button = (name) => fixture.getByRole('button', { name, exact: true });
+  const start = Date.parse('2026-07-15T04:05:00.000Z');
+  const expires_at = new Date(start + 30_000).toISOString();
+  const sha = 'sha256:' + 'a'.repeat(64);
+  const draft = {
+    candidate: {
+      schema: 'doubloon.mainnet-owner-passkey-candidate/v1', profile: 'mainnet:owner-passkey-contact-recovery:20261112',
+      network: 'sui_mainnet', chain_identifier: 'fixture', operation_ref: 'fixture',
+      transaction_bytes_digest: sha, source_commit: 'a'.repeat(40), source_tree_sha256: sha,
+      sender: '0x' + 'a'.repeat(64), signer_public_key_base64: 'A'.repeat(43) + '=',
+      gas_budget_mist: '100', nonce: sha, expires_at
+    },
+    binding_digest: sha, receipt_ref: 'fixture', expected_approval_revision: '1',
+    transaction_binding_digest: sha, evidence_manifest_digest: sha
+  };
+  const inspect = async () => {
+    await fixture.getByLabel('Approval package', { exact: true }).fill(JSON.stringify(draft));
+    await button('Inspect package').click();
+    const digest = await fixture.locator('dd code').first().textContent();
+    assert.match(digest, /^sha256:[a-f0-9]{64}$/u);
+    await fixture.getByLabel('Type the complete candidate hash').fill(digest);
+  };
+  const approve = button('Confirm hash and use passkey');
+  await page.clock.setFixedTime(start);
+  await button('Toggle owner panel').click();
+  await button('Publication approval').click();
+  await inspect();
+  assert.equal(await approve.isEnabled(), true);
+  await page.clock.setFixedTime(start + 30_000);
+  await fixture.locator('button:disabled').filter({ hasText: 'Confirm hash and use passkey' }).waitFor();
+
+  await page.clock.setFixedTime(start);
+  await button('Restore pending approval attempt').click();
+  await inspect();
+  await button('Refresh approval status').click();
+  const reprepare = button('Prepare this same candidate again');
+  await reprepare.waitFor();
+  await page.clock.setFixedTime(start + 10_000);
+  await reprepare.waitFor({ state: 'hidden' });
+  assert.equal(await fixture.getByTestId('owner-approval-requests').textContent(), '0');
+}
