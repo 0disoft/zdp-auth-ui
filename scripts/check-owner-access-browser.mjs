@@ -130,6 +130,54 @@ export async function checkOwnerAccessMissingApproval(page) {
     [first, first, first], 'Inspecting the same package after a storage failure keeps the attempted candidate ID.');
 }
 
+export async function checkOwnerAccessLostCompletion(page) {
+  const start = Date.parse('2026-07-15T04:05:00.000Z');
+  await page.clock.setFixedTime(start);
+  await page.evaluate(() => {
+    const original = navigator.credentials.get;
+    window.restoreApprovalFixtureCredentials = () => { navigator.credentials.get = original; };
+    navigator.credentials.get = async () => {
+      const bytes = new Uint8Array([1]).buffer;
+      return { id: 'fixture-assertion', rawId: bytes, type: 'public-key',
+        response: { authenticatorData: bytes, clientDataJSON: bytes, signature: bytes },
+        getClientExtensionResults: () => ({}) };
+    };
+    window.mountOwnerAccessFixture();
+  });
+  try {
+    const fixture = page.getByTestId('owner-access-fixture').last();
+    const button = name => fixture.getByRole('button', { name, exact: true });
+    const read = async id => JSON.parse(await fixture.getByTestId(id).textContent());
+    const completed = fixture.getByText('Candidate approval completed.', { exact: true });
+    await button('Lose approval completion response').click();
+    await button('Publication approval').click();
+    await inspectApproval(fixture, new Date(start + 60_000).toISOString());
+    const digest = await fixture.locator('dd code').first().textContent();
+    await button('Confirm hash and use passkey').click();
+    await fixture.getByRole('alert').getByText(/The outcome is unknown/).waitFor();
+    assert.equal(await completed.count(), 0);
+    assert.deepEqual(await read('owner-approval-status-ids'), []);
+    assert.deepEqual(await read('owner-approval-forgotten-digests'), []);
+    const handoff = await read('owner-approval-completion-calls');
+    const id = handoff[0]?.candidate_id;
+    assert.match(id, /^[0-9a-f-]{36}$/u);
+    assert.deepEqual(handoff, [{ candidate_id: id, ceremony_id: 'fixture-approval-ceremony', credential: {
+      id: 'fixture-assertion', rawId: 'AQ', type: 'public-key',
+      response: { authenticatorData: 'AQ', clientDataJSON: 'AQ', signature: 'AQ' }, clientExtensionResults: {}
+    } }]);
+    await button('Refresh approval status').click();
+    await completed.waitFor();
+    await fixture.getByText('fixture-approval-reference', { exact: true }).waitFor();
+    assert.deepEqual(await read('owner-approval-status-ids'), [id]);
+    assert.deepEqual(await read('owner-approval-completion-calls'), handoff);
+    assert.deepEqual(await read('owner-approval-forgotten-digests'), [digest]);
+    assert.equal(await fixture.getByTestId('owner-approval-requests').textContent(), '1');
+    assert.equal(await button('Prepare this same candidate again').count(), 0);
+  } finally {
+    await page.evaluate(() => window.restoreApprovalFixtureCredentials());
+  }
+}
+
 export async function checkOwnerRecoveryJourney(page) {
   const start = Date.parse('2026-07-15T04:05:00.000Z');
   const readyAt = start + 86_400_000;

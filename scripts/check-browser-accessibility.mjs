@@ -12,7 +12,7 @@ import { checkAuthShellTransitions } from './check-auth-shell-transitions.mjs';
 import { checkPasskeyPolicyFocus } from './check-passkey-policy-focus.mjs';
 import { checkProductLinkFocusLifecycle } from './check-product-link-focus-lifecycle.mjs';
 import { checkOwnerAccessApprovalExpiry, checkOwnerAccessCeremonies, checkOwnerAccessMissingApproval,
-  checkOwnerRecoveryJourney } from './check-owner-access-browser.mjs';
+  checkOwnerAccessLostCompletion, checkOwnerRecoveryJourney } from './check-owner-access-browser.mjs';
 
 const root = process.cwd();
 const cacheDir = await mkdtemp(join(tmpdir(), 'zdp-auth-ui-browser-'));
@@ -760,6 +760,7 @@ try {
   await checkOwnerAccessCeremonies(page);
   await checkOwnerAccessApprovalExpiry(page);
   await checkOwnerAccessMissingApproval(page);
+  await checkOwnerAccessLostCompletion(page);
   await checkOwnerRecoveryJourney(page);
   assert.deepEqual(browserErrors, [], 'Policy transition fixtures must not introduce browser errors.');
   console.log('Auth UI browser accessibility, login/signup handoff, and product-link flow check passed.');
