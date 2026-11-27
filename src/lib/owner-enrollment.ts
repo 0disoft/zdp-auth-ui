@@ -1,5 +1,6 @@
-export const ownerContactSlots = Object.freeze(['email_a', 'email_b', 'phone_a', 'phone_b'] as const);
-export type OwnerContactSlot = typeof ownerContactSlots[number];
+import { ownerContactSlots, type OwnerContactSlot } from './owner-contacts';
+
+export { ownerContactSlots, type OwnerContactSlot } from './owner-contacts';
 export interface OwnerEnrollment {
   schema: 'doubloon.owner-enrollment/v1'; enabled: boolean;
   slots: { slot: OwnerContactSlot; status: 'not_set' | 'pending' | 'verified'; masked_contact: string | null;
@@ -25,7 +26,7 @@ export function parseOwnerEnrollment(v: unknown): OwnerEnrollment | null {
   if (!record(v) || !exact(v, ['schema','enabled','slots','passkey','key_generation_authorized','signing_authorized','publication_authorized']) ||
       v.schema !== 'doubloon.owner-enrollment/v1' || typeof v.enabled !== 'boolean' ||
       v.key_generation_authorized !== false || v.signing_authorized !== false || v.publication_authorized !== false ||
-      !Array.isArray(v.slots) || v.slots.length !== 4 || !record(v.passkey) || !exact(v.passkey, ['status','passkey_id'])) return null;
+      !Array.isArray(v.slots) || v.slots.length !== ownerContactSlots.length || !record(v.passkey) || !exact(v.passkey, ['status','passkey_id'])) return null;
   const seen = new Set<unknown>();
   for (const s of v.slots) {
     if (!record(s) || !exact(s, ['slot','status','masked_contact','attempt_id','delivery_status']) ||

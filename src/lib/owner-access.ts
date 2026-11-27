@@ -4,6 +4,15 @@ import type {
   PublicKeyCredentialRequestOptionsJSON,
   RegistrationResponseJSON
 } from '@simplewebauthn/browser';
+import {
+  getOwnerAccessNotificationSlots,
+  ownerAccessNotificationPolicies,
+  ownerContactSlots,
+  type OwnerAccessNotificationPolicy,
+  type OwnerContactSlot
+} from './owner-contacts';
+
+export { ownerAccessNotificationPolicies, type OwnerAccessNotificationPolicy } from './owner-contacts';
 
 export const ownerAccessCandidateFields = Object.freeze([
   'schema','profile','network','chain_identifier','operation_ref','transaction_bytes_digest',
@@ -22,7 +31,6 @@ export const ownerAccessRecoveryStates = Object.freeze([
 ] as const);
 export const ownerAccessDeliveryStatuses = Object.freeze(['pending','accepted','unknown','rejected'] as const);
 export const ownerAccessNotificationStatuses = Object.freeze(['pending','accepted','unknown','rejected'] as const);
-export const ownerAccessNotificationPolicies = Object.freeze(['all-contacts-v1','email-pair-v1'] as const);
 
 export type OwnerAccessCandidate = Readonly<{schema:'doubloon.mainnet-owner-passkey-candidate/v1';
   profile:'mainnet:owner-passkey-contact-recovery:20261112';network:'sui_mainnet';
@@ -40,8 +48,7 @@ export type OwnerAccessApprovalComplete = Readonly<{candidate_id:string;approval
 export type OwnerAccessApprovalStatus = Readonly<{candidate_id:string;candidate_digest:string;
   expires_at:string;state:'pending'|'approved'|'consumed'|'cancelled'|'expired';approval_ref:string|null}>;
 export type OwnerAccessRecoveryState = typeof ownerAccessRecoveryStates[number];
-export type OwnerAccessContactSlot = 'email_a'|'email_b'|'phone_a'|'phone_b';
-export type OwnerAccessNotificationPolicy = typeof ownerAccessNotificationPolicies[number];
+export type OwnerAccessContactSlot = OwnerContactSlot;
 export type OwnerAccessRecoveryStatus = Readonly<{recovery_id:string|null;state:OwnerAccessRecoveryState;
   notification_policy:OwnerAccessNotificationPolicy;
   proof_slots:readonly OwnerAccessContactSlot[];notifications:readonly Readonly<{
@@ -87,7 +94,6 @@ export interface OwnerAccessClientPort {
     Promise<OwnerAccessResult<OwnerAccessRecoveryStatus>>;
 }
 
-const slots = Object.freeze(['email_a','email_b','phone_a','phone_b'] as const);
 const candidateSchema = 'doubloon.mainnet-owner-passkey-candidate/v1';
 const profile = 'mainnet:owner-passkey-contact-recovery:20261112';
 const sha = /^sha256:[a-f0-9]{64}$/u,hex40 = /^[a-f0-9]{40}$/u,address = /^0x[a-f0-9]{64}$/u;
@@ -102,7 +108,7 @@ const exact = (value:Record<string,unknown>,fields:readonly string[]) => Object.
   fields.every(field => Object.hasOwn(value,field));
 const time = (value:unknown):value is string => typeof value === 'string' && value.length <= 64 &&
   Number.isFinite(Date.parse(value)) && !/[\u0000-\u001f\u007f]/u.test(value);
-const slot = (value:unknown):value is OwnerAccessContactSlot => slots.includes(value as OwnerAccessContactSlot);
+const slot = (value:unknown):value is OwnerAccessContactSlot => ownerContactSlots.includes(value as OwnerAccessContactSlot);
 
 export function parseOwnerAccessCandidate(value:unknown):OwnerAccessCandidate|null {
   if (!record(value) || !exact(value,ownerAccessCandidateFields) || value.schema !== candidateSchema ||
@@ -146,9 +152,9 @@ export function parseOwnerAccessRecoveryStatus(value:unknown):OwnerAccessRecover
     hasPolicy && !ownerAccessNotificationPolicies.includes(value.notification_policy as OwnerAccessNotificationPolicy) ||
     !ownerAccessRecoveryStates.includes(value.state as OwnerAccessRecoveryState) ||
     !(value.recovery_id === null || opaque(value.recovery_id,256)) ||
-    !Array.isArray(value.proof_slots) || value.proof_slots.length > 4 ||
+    !Array.isArray(value.proof_slots) || value.proof_slots.length > ownerContactSlots.length ||
     !value.proof_slots.every(slot) || new Set(value.proof_slots).size !== value.proof_slots.length ||
-    !Array.isArray(value.notifications) || value.notifications.length > 4 ||
+    !Array.isArray(value.notifications) || value.notifications.length > ownerContactSlots.length ||
     !(value.countdown_at === null || time(value.countdown_at)) || !(value.ready_at === null || time(value.ready_at))) return null;
   if (value.state === 'none' ? value.recovery_id !== null : value.recovery_id === null) return null;
   const seen = new Set<string>(), notifications: Array<{slot:OwnerAccessContactSlot;
@@ -160,7 +166,7 @@ export function parseOwnerAccessRecoveryStatus(value:unknown):OwnerAccessRecover
       status:item.status as typeof ownerAccessNotificationStatuses[number]}));
   }
   const policy = hasPolicy ? value.notification_policy as OwnerAccessNotificationPolicy : 'all-contacts-v1';
-  const requiredNotices:readonly OwnerAccessContactSlot[] = policy === 'email-pair-v1' ? ['email_a','email_b'] : slots;
+  const requiredNotices = getOwnerAccessNotificationSlots(policy);
   if (!notifications.every(item => requiredNotices.includes(item.slot))) return null;
   if (value.state === 'countdown' || value.state === 'completed') {
     if (value.proof_slots.length < 2 || notifications.length !== requiredNotices.length ||

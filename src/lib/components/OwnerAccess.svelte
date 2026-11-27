@@ -12,6 +12,7 @@
     type OwnerAccessRecoveryStatus
   } from '../owner-access';
   import { getOwnerAccessMessages } from '../owner-access-messages';
+  import { getOwnerAccessNotificationSlots, ownerContactSlots } from '../owner-contacts';
   interface Props {
     port: OwnerAccessClientPort; expectedRpId: string; locale?: string;
     initialRecovery?: OwnerAccessRecoveryStatus | null; localPreview?: boolean;
@@ -26,7 +27,6 @@
   const panelTitle = titleId + '-panel';
   const m = $derived(getOwnerAccessMessages(locale));
   const ceremonyLifetime = new AbortController();
-  const slots = ['email_a','email_b','phone_a','phone_b'] as const;
   let recovery = $state<OwnerAccessRecoveryStatus | null>(untrack(() => initialRecovery));
   let delivery = $state<Partial<Record<OwnerAccessContactSlot,OwnerAccessContactDelivery>>>({});
   let pendingDeliveries = $state<OwnerAccessContactSlot[]>([]);
@@ -57,7 +57,7 @@
   let activeStep = $derived(recovery?.state === 'notifying' ? 1
     : recovery?.state === 'countdown' ? (rebindAvailable ? 3 : 2)
     : 0);
-  let noticeSlots = $derived(recovery?.notification_policy === 'all-contacts-v1' ? slots : slots.slice(0, 2));
+  let noticeSlots = $derived(getOwnerAccessNotificationSlots(recovery?.notification_policy));
   let hasPendingNotifications = $derived(!!recovery?.notifications.some(item => item.status === 'pending'));
 
   onMount(() => { mounted = true; });
@@ -299,7 +299,7 @@
     const form = event.currentTarget as HTMLFormElement, values = new FormData(form);
     const slot = String(values.get('slot') ?? '') as OwnerAccessContactSlot;
     let token = String(values.get('veto_token') ?? ''); form.reset(); values.forEach((_v,key)=>values.delete(key));
-    if (!slots.includes(slot) || !token) { token = ''; return; }
+    if (!ownerContactSlots.includes(slot) || !token) { token = ''; return; }
     startAction('receipt');
     try {
       const result = await port.vetoContact({recovery_id:recovery.recovery_id,slot,veto_token:token});
@@ -433,7 +433,7 @@
             <h4>{m.steps[0]} · {Math.min(2, recovery.proof_slots.length)}/2</h4>
             <p>{m.chooseContacts}</p>
             <div class="contacts">
-              {#each slots as slot}
+              {#each ownerContactSlots as slot}
                 {@const proof = recovery.proof_slots.includes(slot)}
                 {@const status = delivery[slot]?.delivery_status}
                 {@const expired = delivery[slot] && Date.parse(delivery[slot].expires_at) <= now}
