@@ -147,6 +147,15 @@
     try { await approvalAttempts?.forget(digest); } catch {}
   }
 
+  async function recordApprovalCompletion(value: OwnerAccessApprovalComplete, digest: string) {
+    await forgetAttempt(digest);
+    approvalComplete = value;
+    approvalDraft = null;
+    approvalDigest = '';
+    confirmation = '';
+    feedback = 'saved';
+  }
+
   async function inspectPackage(event:SubmitEvent) {
     event.preventDefault();
     if (busy) return;
@@ -190,28 +199,20 @@
       ceremony_id:begin.value.ceremony_id,credential});
     credential = undefined;
     if (!complete.ok) { feedback = complete.feedback; retryAfter = complete.retryAfter; return; }
-    await forgetAttempt(input.candidate_digest_confirmation);
-    approvalComplete = complete.value; approvalDraft = null; approvalDigest = ''; confirmation = ''; feedback = 'saved';
+    await recordApprovalCompletion(complete.value, input.candidate_digest_confirmation);
   }
 
-  async function submitApproval() {
+  async function submitApproval(mode: 'new' | 'retry') {
     now = Date.now();
-    if (!approvalDraft || !approvalReady || busy || approvalAttemptId) return;
+    const retry = mode === 'retry';
+    const candidateId = approvalAttemptId;
+    if (!approvalDraft || busy) return;
+    if (retry ? !approvalCanReprepare || !candidateId : !approvalReady || candidateId) return;
     const input = parseOwnerAccessApprovalInput({...approvalDraft,candidate_digest_confirmation:confirmation.trim()});
     startAction('approval');
     try {
       if (!input || !await ownerAccessApprovalMatches(input)) { feedback = 'failed'; return; }
-      await runApproval(input, crypto.randomUUID(), approvalDraftExpiresAt);
-    } catch { feedback = 'unconfirmed'; } finally { busy = false; }
-  }
-  async function reprepareApproval() {
-    now = Date.now();
-    if (!approvalDraft || !approvalCanReprepare || !approvalAttemptId || busy) return;
-    const input = parseOwnerAccessApprovalInput({...approvalDraft,candidate_digest_confirmation:confirmation.trim()});
-    startAction('approval');
-    try {
-      if (!input || !await ownerAccessApprovalMatches(input)) { feedback = 'failed'; return; }
-      await runApproval(input, approvalAttemptId, approvalRetryExpiresAt);
+      await runApproval(input, candidateId || crypto.randomUUID(), retry ? approvalRetryExpiresAt : approvalDraftExpiresAt);
     } catch { feedback = 'unconfirmed'; } finally { busy = false; }
   }
   async function refreshApproval() {
@@ -229,10 +230,8 @@
       }
       approvalStatus = result.value; retryAfter = null;
       if ((result.value.state === 'approved' || result.value.state === 'consumed') && result.value.approval_ref) {
-        await forgetAttempt(approvalDigest);
-        approvalComplete = {candidate_id:result.value.candidate_id,approval_ref:result.value.approval_ref,
-          candidate_digest:result.value.candidate_digest,expires_at:result.value.expires_at};
-        approvalDraft = null; approvalDigest = ''; confirmation = ''; feedback = 'saved';
+        await recordApprovalCompletion({candidate_id:result.value.candidate_id,approval_ref:result.value.approval_ref,
+          candidate_digest:result.value.candidate_digest,expires_at:result.value.expires_at}, approvalDigest);
       } else feedback = result.value.state === 'expired' ? 'expired' : result.value.state === 'cancelled' ? 'failed' : 'unconfirmed';
     } catch { feedback = 'unconfirmed'; } finally { busy = false; }
   }
@@ -386,10 +385,10 @@
           {#if approvalAttemptId && !approvalComplete}<div class="approval-recovery"><p>{m.approvalPendingHelp}</p>
             {#if approvalStatus}<p role="status">{m.approvalStates[approvalStatus.state]}{#if approvalStatus.approval_ref} · <code>{approvalStatus.approval_ref}</code>{/if}</p>{/if}
             <Button type="button" disabled={busy} onclick={() => void refreshApproval()}>{busy ? m.wait : m.refreshApproval}</Button>
-            {#if approvalCanReprepare}<Button type="button" disabled={busy} onclick={() => void reprepareApproval()}>{m.reprepareApproval}</Button>{/if}
+            {#if approvalCanReprepare}<Button type="button" disabled={busy} onclick={() => void submitApproval('retry')}>{m.reprepareApproval}</Button>{/if}
           </div>{/if}
           <label>{m.confirmDigest}<input bind:value={confirmation} type="text" autocomplete="off" spellcheck="false" pattern="sha256:[a-f0-9]{64}" maxlength="71" /></label>
-          <Button type="button" disabled={busy || !approvalReady || !!approvalAttemptId} onclick={() => void submitApproval()}>{busy ? m.wait : m.approve}</Button>
+          <Button type="button" disabled={busy || !approvalReady || !!approvalAttemptId} onclick={() => void submitApproval('new')}>{busy ? m.wait : m.approve}</Button>
         {/if}
       {/if}
       {@render result('approval')}
