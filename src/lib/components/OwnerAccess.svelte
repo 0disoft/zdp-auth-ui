@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button, Surface } from 'zdp-design-system';
   import { onDestroy, onMount, untrack, type Snippet } from 'svelte';
-  import { startPasskeyAuthentication, startPasskeyRegistration, cancelPasskeyCeremony,
+  import { startPasskeyAuthentication, startPasskeyRegistration,
     ZdpPasskeyCeremonyError } from '../passkey';
   import {
     ownerAccessCandidateDigest, ownerAccessApprovalMatches, parseOwnerAccessApprovalDraft,
@@ -25,6 +25,7 @@
   const titleId = $props.id();
   const panelTitle = titleId + '-panel';
   const m = $derived(getOwnerAccessMessages(locale));
+  const ceremonyLifetime = new AbortController();
   const slots = ['email_a','email_b','phone_a','phone_b'] as const;
   let recovery = $state<OwnerAccessRecoveryStatus | null>(untrack(() => initialRecovery));
   let delivery = $state<Partial<Record<OwnerAccessContactSlot,OwnerAccessContactDelivery>>>({});
@@ -59,7 +60,7 @@
     const timer = setInterval(() => { now = Date.now(); }, 1000);
     return () => clearInterval(timer);
   });
-  onDestroy(cancelPasskeyCeremony);
+  onDestroy(() => ceremonyLifetime.abort());
 
   function isActive(status: OwnerAccessRecoveryStatus | null) {
     return status?.state === 'collecting' || status?.state === 'notifying' || status?.state === 'countdown';
@@ -119,18 +120,23 @@
   }
 
   async function runApproval(input:NonNullable<ReturnType<typeof parseOwnerAccessApprovalInput>>,candidateId:string) {
+    const signal = ceremonyLifetime.signal;
+    if (signal.aborted) return;
     approvalAttemptId = candidateId; approvalStatus = null;
     await rememberAttempt(input.candidate_digest_confirmation,candidateId);
+    if (signal.aborted) return;
     const begin = await port.beginApproval(input,candidateId);
     if (!begin.ok) { feedback = begin.feedback; retryAfter = begin.retryAfter; return; }
     approvalAttemptId = begin.value.candidate_id; await rememberAttempt(input.candidate_digest_confirmation,begin.value.candidate_id);
+    if (signal.aborted) return;
     let credential;
     feedback = 'checking_passkey';
-    try { credential = await authenticate(begin.value.options,{timeoutMs:60000}); }
+    try { credential = await authenticate(begin.value.options,{timeoutMs:60000,signal}); }
     catch (error) {
       feedback = passkeyFailure(error);
       return;
     }
+    if (signal.aborted) return;
     feedback = null;
     const complete = await port.completeApproval({candidate_id:begin.value.candidate_id,
       ceremony_id:begin.value.ceremony_id,credential});
@@ -249,18 +255,21 @@
     const label = operation === 'rebind' ? rebindLabel.trim() : undefined;
     if (operation === 'rebind' && (!label || Array.from(label).length > 80)) return;
     startAction(operation);
+    const signal = ceremonyLifetime.signal;
     try {
       const begin = await port.beginRecoveryCeremony({operation,recovery_id:recovery.recovery_id});
+      if (signal.aborted) return;
       if (!begin.ok) { feedback = begin.feedback; retryAfter = begin.retryAfter; return; }
       let credential;
       feedback = 'checking_passkey';
       try { credential = begin.value.kind === 'registration'
-        ? await register(begin.value.options,{timeoutMs:60000})
-        : await authenticate(begin.value.options,{timeoutMs:60000}); }
+        ? await register(begin.value.options,{timeoutMs:60000,signal})
+        : await authenticate(begin.value.options,{timeoutMs:60000,signal}); }
       catch (error) {
         feedback = passkeyFailure(error);
         return;
       }
+      if (signal.aborted) return;
       feedback = null;
       const complete = await port.completeRecoveryCeremony({operation,recovery_id:recovery.recovery_id,
         ceremony_id:begin.value.ceremony_id,credential,...(label ? {label} : {})});
