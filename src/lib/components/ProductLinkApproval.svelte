@@ -8,6 +8,7 @@
   import { onMount, tick } from 'svelte';
   import type { ZdpAuthMessages, ZdpAuthLocale } from '../i18n';
   import {
+    productLinkFutureClockSkewMs,
     validateProductLinkRequest,
     type ZdpProductLinkDecision,
     type ZdpProductLinkDecisionDetail,
@@ -109,8 +110,9 @@
 
     const nowMs = readClock().getTime();
     if (expiresAtMs <= nowMs) return;
-    // Expiry is inclusive; request age becomes stale only after the age limit.
-    const deadlines = [expiresAtMs, issuedAtMs + maxRequestAgeMs + 1]
+    // Revalidate when a future-issued request enters the allowed skew window,
+    // when its age exceeds the limit, or when it expires.
+    const deadlines = [issuedAtMs - productLinkFutureClockSkewMs, issuedAtMs + maxRequestAgeMs + 1, expiresAtMs]
       .filter(deadline => Number.isSafeInteger(deadline) && deadline > nowMs);
     if (deadlines.length === 0) return;
     const delayMs = Math.min(...deadlines) - nowMs;

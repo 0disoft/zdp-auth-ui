@@ -82,6 +82,11 @@ try {
   await refresh.click(); await page.waitForTimeout(100);
   assert.deepEqual(await page.evaluate(() => window.clockFixtureTimers), [], 'initially expired pending requests must not schedule another deadline');
 
+  await fixture.getByTestId('clock-future-request').click();
+  await status.waitFor();
+  assert.equal(await approve.count(), 0);
+  await approve.waitFor({ timeout: 4000 });
+
   const formatterCount = await page.evaluate(() => window.clockFixtureFormatters.length);
   await fixture.getByTestId('clock-format-request').click(); await approve.waitFor();
   await page.clock.setFixedTime('2026-07-15T04:04:56.000Z');

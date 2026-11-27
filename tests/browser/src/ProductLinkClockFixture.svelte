@@ -5,11 +5,13 @@
   let locale = 'en';
   let request: ZdpProductLinkRequest;
   let trust: ZdpProductLinkTrustPolicy;
-  function start(scenario: 'fresh' | 'aging' | 'stale' | 'expired' | 'formatting' = 'fresh') {
+  function start(scenario: 'fresh' | 'aging' | 'stale' | 'expired' | 'future' | 'formatting' = 'fresh') {
     const challengeRef = `plc_monotonic_clock_fixture_${++sequence}`, wall = Date.now();
     const lifetime = scenario === 'formatting' ? 20_000 : 1000;
-    const issuedAt = scenario === 'stale' || scenario === 'expired' ? wall - 2000 : wall;
-    const expiresAt = scenario === 'expired' ? wall - 1000 : wall + (scenario === 'aging' ? 2500 : lifetime);
+    const issuedAt = scenario === 'future' ? wall + 31_000
+      : scenario === 'stale' || scenario === 'expired' ? wall - 2000 : wall;
+    const expiresAt = scenario === 'expired' ? wall - 1000
+      : scenario === 'future' ? issuedAt + lifetime : wall + (scenario === 'aging' ? 2500 : lifetime);
     const verificationUri = `https://accounts.zdp.example/auth/product-link?challenge=${challengeRef}`;
     request = { challengeRef, verificationUri, state: 'pending', productLabel: 'Fixture desktop', accountLabel: 'Fixture account', workspaceLabel: null,
       requestedItems: [{ ref: 'fixture_read', kind: 'scope', label: 'Read fixture', description: 'Local test only' }], consentImplications: ['Fixture consent'],
@@ -24,6 +26,7 @@
   <button type="button" data-testid="clock-stale-request" onclick={() => start('stale')}>Stale clock fixture request</button>
   <button type="button" data-testid="clock-aging-request" onclick={() => start('aging')}>Aging clock fixture request</button>
   <button type="button" data-testid="clock-expired-request" onclick={() => start('expired')}>Expired clock fixture request</button>
+  <button type="button" data-testid="clock-future-request" onclick={() => start('future')}>Future-issued clock fixture request</button>
   <button type="button" data-testid="clock-format-request" onclick={() => start('formatting')}>Formatting fixture request</button>
   <button type="button" data-testid="clock-locale" onclick={() => { locale = locale === 'en' ? 'ko' : 'en'; }}>Change formatting locale</button>
   <button type="button" data-testid="clock-invalid-locale" onclick={() => { locale = 'invalid_locale'; }}>Invalid formatting locale</button>

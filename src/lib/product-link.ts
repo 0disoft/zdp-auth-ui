@@ -60,6 +60,7 @@ const detailTextMaxLength = 500;
 const maximumRequestedItems = 32;
 const maximumConsentImplications = 16;
 const maximumChallengeTtlMs = 600_000;
+export const productLinkFutureClockSkewMs = 30_000;
 const forbiddenVerificationQueryConcepts = [
   'authorization',
   'callback',
@@ -117,7 +118,7 @@ export function validateProductLinkRequest(
     return { disposition: request.state, actionable: false };
   }
 
-  if (issuedAtMs > nowMs + 30_000 || nowMs - issuedAtMs > trust.maxRequestAgeMs) {
+  if (issuedAtMs > nowMs + productLinkFutureClockSkewMs || nowMs - issuedAtMs > trust.maxRequestAgeMs) {
     return { disposition: 'stale', actionable: false };
   }
 
