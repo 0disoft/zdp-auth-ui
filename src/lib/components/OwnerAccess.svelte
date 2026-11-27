@@ -42,10 +42,12 @@
   let approvalDraft = $state<OwnerAccessApprovalDraft|null>(null), approvalDigest = $state(''), confirmation = $state('');
   let approvalComplete = $state<OwnerAccessApprovalComplete|null>(null), packageError = $state(false);
   let approvalAttemptId = $state<string|null>(null), approvalStatus = $state<OwnerAccessApprovalStatus|null>(null);
+  let approvalLookupRejected = $state(false);
   let rebindLabel = $state('');
   let approvalDraftExpiresAt = $derived(approvalDraft ? Date.parse(approvalDraft.candidate.expires_at) : 0);
   let approvalRetryExpiresAt = $derived(approvalStatus?.state === 'pending'
-    ? Math.min(approvalDraftExpiresAt, Date.parse(approvalStatus.expires_at)) : 0);
+    ? Math.min(approvalDraftExpiresAt, Date.parse(approvalStatus.expires_at))
+    : !approvalStatus && approvalLookupRejected ? approvalDraftExpiresAt : 0);
   let approvalReady = $derived(approvalDraftExpiresAt > now && !!approvalDigest && confirmation.trim() === approvalDigest);
   let approvalCanReprepare = $derived(!!approvalAttemptId && approvalRetryExpiresAt > now);
   let activeRecovery = $derived(isActive(recovery));
@@ -112,7 +114,7 @@
     const source = String(values.get('approval_package') ?? ''); form.reset(); values.forEach((_v,key)=>values.delete(key));
     startAction('approval');
     packageError = false; approvalDraft = null; approvalDigest = ''; confirmation = ''; approvalComplete = null;
-    approvalAttemptId = null; approvalStatus = null;
+    approvalAttemptId = null; approvalStatus = null; approvalLookupRejected = false;
     try {
       const draft = parseOwnerAccessApprovalDraft(JSON.parse(source));
       if (!draft || Date.parse(draft.candidate.expires_at) <= Date.now()) { packageError = true; return; }
@@ -125,7 +127,7 @@
     const signal = ceremonyLifetime.signal;
     if (signal.aborted) return;
     if (deadline <= Date.now()) { feedback = 'expired'; return; }
-    approvalAttemptId = candidateId; approvalStatus = null;
+    approvalAttemptId = candidateId; approvalStatus = null; approvalLookupRejected = false;
     await rememberAttempt(input.candidate_digest_confirmation,candidateId);
     if (signal.aborted) return;
     const begin = await port.beginApproval(input,candidateId);
@@ -170,9 +172,16 @@
   async function refreshApproval() {
     if (!approvalAttemptId || busy) return;
     startAction('approval');
+    approvalLookupRejected = false;
     try {
       const result = await port.approvalStatus({candidate_id:approvalAttemptId});
-      if (!result.ok) { feedback = result.feedback; retryAfter = result.retryAfter; return; }
+      if (!result.ok) {
+        // The begin request may have failed before a candidate existed. The
+        // consumer reports a missing candidate as a rejected status lookup.
+        // An explicit begin with the same ID lets the server check or create it.
+        approvalLookupRejected = result.feedback === 'failed';
+        feedback = result.feedback; retryAfter = result.retryAfter; return;
+      }
       approvalStatus = result.value; retryAfter = null;
       if ((result.value.state === 'approved' || result.value.state === 'consumed') && result.value.approval_ref) {
         await forgetAttempt(approvalDigest);

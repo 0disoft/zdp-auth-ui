@@ -9,6 +9,8 @@
   let result = $state('idle');
   let restoreAttempt = $state(false);
   let approvalRequests = $state(0);
+  let approvalAttemptIds = $state<string[]>([]);
+  let approvalStatusFailure = $state<'unconfirmed' | 'failed' | null>(null);
   const candidateId = '00000000-0000-4000-8000-000000000001';
   const approvalAttempts = {
     read: () => restoreAttempt ? candidateId : null,
@@ -24,11 +26,16 @@
   const unused = async () => { throw new Error('Unexpected fixture operation'); };
   const port: OwnerAccessClientPort = {
     readRecovery: unused, completeApproval: unused,
-    async beginApproval() {
+    async beginApproval(_input, id) {
       approvalRequests++;
+      if (approvalStatusFailure) {
+        approvalAttemptIds = [...approvalAttemptIds, id ?? 'missing'];
+        return { ok: false, feedback: 'unconfirmed', retryAfter: null };
+      }
       return { ok: false, feedback: 'expired', retryAfter: null };
     },
     async approvalStatus() {
+      if (approvalStatusFailure) return { ok: false, feedback: approvalStatusFailure, retryAfter: null };
       return { ok: true, value: {
         candidate_id: candidateId, candidate_digest: 'sha256:' + 'a'.repeat(64),
         expires_at: new Date(Date.now() + 10_000).toISOString(), state: 'pending', approval_ref: null
@@ -61,8 +68,11 @@
   <button type="button" onclick={startOther}>Start other passkey prompt</button>
   <button type="button" onclick={() => otherSignal?.abort()}>Cancel other passkey prompt</button>
   <button type="button" onclick={() => { restoreAttempt = true; }}>Restore pending approval attempt</button>
+  <button type="button" onclick={() => { approvalStatusFailure = 'unconfirmed'; }}>Disconnect approval service</button>
+  <button type="button" onclick={() => { approvalStatusFailure = 'failed'; }}>Report missing approval</button>
   <output data-testid="owner-ceremony-requests">{requests}</output>
   <output data-testid="owner-approval-requests">{approvalRequests}</output>
+  <output data-testid="owner-approval-attempt-ids">{approvalAttemptIds.join(',')}</output>
   <output data-testid="other-prompt-result">{result}</output>
   {#if visible}
     <OwnerAccess {port} {initialRecovery} {authenticate} {approvalAttempts} expectedRpId={location.hostname} />
