@@ -43,6 +43,7 @@
   let approvalComplete = $state<OwnerAccessApprovalComplete|null>(null), packageError = $state(false);
   let approvalAttemptId = $state<string|null>(null), approvalStatus = $state<OwnerAccessApprovalStatus|null>(null);
   let approvalLookupRejected = $state(false);
+  const liveApprovalAttempts = new Map<string, { candidateId: string; expiresAt: number }>();
   let rebindLabel = $state('');
   let approvalDraftExpiresAt = $derived(approvalDraft ? Date.parse(approvalDraft.candidate.expires_at) : 0);
   let approvalRetryExpiresAt = $derived(approvalStatus?.state === 'pending'
@@ -95,15 +96,26 @@
     }).format(new Date(time)) + (locale === 'ko' ? ' KST' : ' UTC');
   }
 
-  async function rememberAttempt(digest:string,candidateId:string) {
+  async function rememberAttempt(digest:string,candidateId:string,expiresAt:number) {
+    liveApprovalAttempts.set(digest, { candidateId, expiresAt });
     try { await approvalAttempts?.remember(digest,candidateId); } catch {}
   }
-  async function recallAttempt(digest:string) {
-    try { const value = await approvalAttempts?.read(digest);
-      return value && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u.test(value) ? value : null;
+  async function recallAttempt(digest:string,expiresAt:number) {
+    const timestamp = Date.now();
+    for (const [key, attempt] of liveApprovalAttempts) {
+      if (attempt.expiresAt <= timestamp) liveApprovalAttempts.delete(key);
+    }
+    const inMemory = liveApprovalAttempts.get(digest);
+    if (inMemory) return inMemory.candidateId;
+    try {
+      const value = await approvalAttempts?.read(digest);
+      if (!value || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u.test(value)) return null;
+      liveApprovalAttempts.set(digest, { candidateId: value, expiresAt });
+      return value;
     } catch { return null; }
   }
   async function forgetAttempt(digest:string) {
+    liveApprovalAttempts.delete(digest);
     try { await approvalAttempts?.forget(digest); } catch {}
   }
 
@@ -117,9 +129,10 @@
     approvalAttemptId = null; approvalStatus = null; approvalLookupRejected = false;
     try {
       const draft = parseOwnerAccessApprovalDraft(JSON.parse(source));
-      if (!draft || Date.parse(draft.candidate.expires_at) <= Date.now()) { packageError = true; return; }
+      const expiresAt = draft ? Date.parse(draft.candidate.expires_at) : 0;
+      if (!draft || expiresAt <= Date.now()) { packageError = true; return; }
       approvalDraft = draft; approvalDigest = await ownerAccessCandidateDigest(draft.candidate);
-      approvalAttemptId = await recallAttempt(approvalDigest);
+      approvalAttemptId = await recallAttempt(approvalDigest, expiresAt);
     } catch { packageError = true; } finally { busy = false; }
   }
 
@@ -128,11 +141,13 @@
     if (signal.aborted) return;
     if (deadline <= Date.now()) { feedback = 'expired'; return; }
     approvalAttemptId = candidateId; approvalStatus = null; approvalLookupRejected = false;
-    await rememberAttempt(input.candidate_digest_confirmation,candidateId);
+    const expiresAt = Date.parse(input.candidate.expires_at);
+    await rememberAttempt(input.candidate_digest_confirmation,candidateId,expiresAt);
     if (signal.aborted) return;
     const begin = await port.beginApproval(input,candidateId);
     if (!begin.ok) { feedback = begin.feedback; retryAfter = begin.retryAfter; return; }
-    approvalAttemptId = begin.value.candidate_id; await rememberAttempt(input.candidate_digest_confirmation,begin.value.candidate_id);
+    approvalAttemptId = begin.value.candidate_id;
+    await rememberAttempt(input.candidate_digest_confirmation,begin.value.candidate_id,expiresAt);
     if (signal.aborted) return;
     let credential;
     feedback = 'checking_passkey';

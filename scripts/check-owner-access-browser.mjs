@@ -99,8 +99,9 @@ export async function checkOwnerAccessMissingApproval(page) {
   const reprepare = button('Prepare this same candidate again');
   const refresh = button('Refresh approval status');
   const count = fixture.getByTestId('owner-approval-requests');
+  const expiresAt = new Date('2026-07-15T04:06:00.000Z').toISOString();
   await button('Publication approval').click();
-  await inspectApproval(fixture, new Date('2026-07-15T04:06:00.000Z').toISOString());
+  await inspectApproval(fixture, expiresAt);
   await button('Disconnect approval service').click();
   await button('Confirm hash and use passkey').click();
   await refresh.waitFor();
@@ -117,4 +118,14 @@ export async function checkOwnerAccessMissingApproval(page) {
   const [first, second] = (await fixture.getByTestId('owner-approval-attempt-ids').textContent()).split(',');
   assert.match(first, /^[0-9a-f-]{36}$/u);
   assert.equal(second, first, 'The explicit retry keeps the same candidate ID.');
+
+  // The fixture's persistence port discards writes and returns no saved ID.
+  await inspectApproval(fixture, expiresAt);
+  await refresh.waitFor();
+  assert.equal(await button('Confirm hash and use passkey').isDisabled(), true);
+  await refresh.click();
+  await reprepare.click();
+  await count.getByText('3', { exact: true }).waitFor();
+  assert.deepEqual((await fixture.getByTestId('owner-approval-attempt-ids').textContent()).split(','),
+    [first, first, first], 'Inspecting the same package after a storage failure keeps the attempted candidate ID.');
 }
