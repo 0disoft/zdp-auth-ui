@@ -68,31 +68,56 @@ async function inspectApproval(fixture, expires_at) {
 }
 
 export async function checkOwnerAccessApprovalExpiry(page) {
+  await page.evaluate(() => {
+    window.ownerDeadlineCallbacks = 0;
+    for (const name of ['setTimeout', 'setInterval']) {
+      const schedule = window[name].bind(window);
+      window[name] = (callback, delay, ...args) => {
+        if (typeof callback !== 'function' || !new Error().stack?.includes('/components/OwnerAccess.svelte:')) {
+          return schedule(callback, delay, ...args);
+        }
+        return schedule((...params) => {
+          window.ownerDeadlineCallbacks++;
+          callback(...params);
+        }, delay, ...args);
+      };
+    }
+    window.mountOwnerAccessFixture();
+  });
   const fixture = page.getByTestId('owner-access-fixture');
   const button = (name) => fixture.getByRole('button', { name, exact: true });
-  const start = Date.parse('2026-07-15T04:05:00.000Z');
-  const expiresAt = new Date(start + 30_000).toISOString();
+  const callbacks = () => page.evaluate(() => window.ownerDeadlineCallbacks);
   const approve = button('Confirm hash and use passkey');
-  await page.clock.setFixedTime(start);
-  await button('Toggle owner panel').click();
   await button('Publication approval').click();
-  await inspectApproval(fixture, expiresAt);
-  assert.equal(await approve.isEnabled(), true);
-  await page.clock.setFixedTime(start + 30_000);
-  await fixture.locator('button:disabled').filter({ hasText: 'Confirm hash and use passkey' }).waitFor();
+  await page.clock.runFor(60_000);
+  assert.equal(await callbacks(), 0, 'An idle panel must not wake up once per second.');
 
-  await page.clock.setFixedTime(start);
+  const expiry = await page.evaluate(() => new Date(Date.now() + 30_000).toISOString());
+  await inspectApproval(fixture, expiry);
+  assert.equal(await approve.isEnabled(), true);
+  await page.clock.runFor(29_999);
+  assert.equal(await approve.isEnabled(), true);
+  assert.equal(await callbacks(), 0);
+  await page.clock.runFor(1);
+  assert.equal(await approve.isDisabled(), true);
+  assert.equal(await callbacks(), 1);
+
   await button('Restore pending approval attempt').click();
-  await inspectApproval(fixture, expiresAt);
+  await inspectApproval(fixture, await page.evaluate(() => new Date(Date.now() + 30_000).toISOString()));
   await button('Refresh approval status').click();
   const reprepare = button('Prepare this same candidate again');
   await reprepare.waitFor();
-  await page.clock.setFixedTime(start + 10_000);
-  await reprepare.waitFor({ state: 'hidden' });
+  await page.clock.runFor(9_999);
+  assert.equal(await reprepare.count(), 1);
+  await page.clock.runFor(1);
+  assert.equal(await reprepare.count(), 0);
+  await page.clock.runFor(20_000);
+  assert.equal(await callbacks(), 2, 'Only deadlines that change the visible approval actions should wake the panel.');
   assert.equal(await fixture.getByTestId('owner-approval-requests').textContent(), '0');
 }
 
 export async function checkOwnerAccessMissingApproval(page) {
+  await page.clock.setFixedTime('2026-07-15T04:05:00.000Z');
   await page.evaluate(() => window.mountOwnerAccessFixture());
   const fixture = page.getByTestId('owner-access-fixture').last();
   const button = (name) => fixture.getByRole('button', { name, exact: true });
@@ -179,9 +204,8 @@ export async function checkOwnerAccessLostCompletion(page) {
 }
 
 export async function checkOwnerRecoveryJourney(page) {
-  const start = Date.parse('2026-07-15T04:05:00.000Z');
-  const readyAt = start + 86_400_000;
-  await page.clock.setFixedTime(start);
+  const day = 86_400_000;
+  const readyAt = await page.evaluate(milliseconds => Date.now() + milliseconds, day);
   await page.evaluate(() => window.mountOwnerRecoveryJourneyFixture());
   const fixture = page.getByTestId('owner-recovery-journey');
   const button = name => fixture.getByRole('button', { name, exact: true });
@@ -212,9 +236,14 @@ export async function checkOwnerRecoveryJourney(page) {
   await heading('24-hour wait').waitFor();
   assert.equal(await fixture.locator('time').getAttribute('datetime'), new Date(readyAt).toISOString());
   assert.equal(await button('Use passkey to bind').count(), 0);
-  await page.clock.setFixedTime(readyAt);
+  const callbacksBeforeWait = await page.evaluate(() => window.ownerDeadlineCallbacks);
+  await page.clock.runFor(day - 1);
+  assert.equal(await page.evaluate(() => window.ownerDeadlineCallbacks), callbacksBeforeWait);
+  assert.equal(await button('Use passkey to bind').count(), 0);
+  await page.clock.runFor(1);
   const bind = button('Use passkey to bind');
   await bind.waitFor();
+  assert.equal(await page.evaluate(() => window.ownerDeadlineCallbacks), callbacksBeforeWait + 1);
   assert.equal(await bind.isDisabled(), true);
 
   await page.evaluate(() => {

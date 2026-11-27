@@ -758,10 +758,21 @@ try {
   await checkPasskeyPolicyFocus(page);
   await checkProductLinkFocusLifecycle(page);
   await checkOwnerAccessCeremonies(page);
-  await checkOwnerAccessApprovalExpiry(page);
   await checkOwnerAccessMissingApproval(page);
   await checkOwnerAccessLostCompletion(page);
-  await checkOwnerRecoveryJourney(page);
+  const ownerClockPage = await browser.newPage();
+  const ownerClockErrors = [];
+  ownerClockPage.on('pageerror', error => ownerClockErrors.push(error.message));
+  try {
+    await ownerClockPage.clock.install({ time: '2026-07-15T04:04:00.000Z' });
+    await ownerClockPage.clock.pauseAt('2026-07-15T04:05:00.000Z');
+    await ownerClockPage.goto(`http://127.0.0.1:${address.port}`, { waitUntil: 'load' });
+    await checkOwnerAccessApprovalExpiry(ownerClockPage);
+    await checkOwnerRecoveryJourney(ownerClockPage);
+    assert.deepEqual(ownerClockErrors, []);
+  } finally {
+    await ownerClockPage.close();
+  }
   assert.deepEqual(browserErrors, [], 'Policy transition fixtures must not introduce browser errors.');
   console.log('Auth UI browser accessibility, login/signup handoff, and product-link flow check passed.');
 } finally {

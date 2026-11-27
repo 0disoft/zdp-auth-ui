@@ -52,18 +52,46 @@
   let approvalReady = $derived(approvalDraftExpiresAt > now && !!approvalDigest && confirmation.trim() === approvalDigest);
   let approvalCanReprepare = $derived(!!approvalAttemptId && approvalRetryExpiresAt > now);
   let activeRecovery = $derived(isActive(recovery));
-  let rebindAvailable = $derived(recovery?.state === 'countdown' && !!recovery.ready_at && Date.parse(recovery.ready_at) <= now);
+  let rebindReadyAt = $derived(recovery?.state === 'countdown' && recovery.ready_at ? Date.parse(recovery.ready_at) : Infinity);
+  let rebindAvailable = $derived(rebindReadyAt <= now);
   let activeStep = $derived(recovery?.state === 'notifying' ? 1
     : recovery?.state === 'countdown' ? (rebindAvailable ? 3 : 2)
     : 0);
   let noticeSlots = $derived(recovery?.notification_policy === 'all-contacts-v1' ? slots : slots.slice(0, 2));
   let hasPendingNotifications = $derived(!!recovery?.notifications.some(item => item.status === 'pending'));
 
-  onMount(() => {
-    mounted = true;
-    now = Date.now();
-    const timer = setInterval(() => { now = Date.now(); }, 1000);
-    return () => clearInterval(timer);
+  onMount(() => { mounted = true; });
+  $effect.pre(() => {
+    if (!mounted) return;
+    const deadlines = section === 'approval'
+      ? [approvalAttemptId ? approvalRetryExpiresAt : approvalDraftExpiresAt]
+      : section === 'enrollment' && enrollment ? []
+      : recovery?.state === 'collecting'
+        ? Object.values(delivery).map(challenge => Date.parse(challenge.expires_at))
+        : [rebindReadyAt];
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    function refreshClock() {
+      clearTimeout(timer);
+      const current = Date.now();
+      now = current;
+      let next = Infinity;
+      for (const deadline of deadlines) {
+        if (deadline > current && deadline < next) next = deadline;
+      }
+      if (Number.isFinite(next)) {
+        // Browser timers cannot represent delays larger than a signed 32-bit integer.
+        timer = setTimeout(refreshClock, Math.min(next - current, 2_147_483_647));
+      }
+    }
+    refreshClock();
+    if (!deadlines.some(deadline => Number.isFinite(deadline) && deadline > 0)) return;
+    window.addEventListener('focus', refreshClock);
+    document.addEventListener('visibilitychange', refreshClock);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('focus', refreshClock);
+      document.removeEventListener('visibilitychange', refreshClock);
+    };
   });
   onDestroy(() => ceremonyLifetime.abort());
 
@@ -167,6 +195,7 @@
   }
 
   async function submitApproval() {
+    now = Date.now();
     if (!approvalDraft || !approvalReady || busy || approvalAttemptId) return;
     const input = parseOwnerAccessApprovalInput({...approvalDraft,candidate_digest_confirmation:confirmation.trim()});
     startAction('approval');
@@ -176,6 +205,7 @@
     } catch { feedback = 'unconfirmed'; } finally { busy = false; }
   }
   async function reprepareApproval() {
+    now = Date.now();
     if (!approvalDraft || !approvalCanReprepare || !approvalAttemptId || busy) return;
     const input = parseOwnerAccessApprovalInput({...approvalDraft,candidate_digest_confirmation:confirmation.trim()});
     startAction('approval');
@@ -278,6 +308,7 @@
     } catch { feedback = 'unconfirmed'; } finally { busy = false; }
   }
   async function runCeremony(operation:OwnerAccessRecoveryCeremony) {
+    if (operation === 'rebind') now = Date.now();
     if (busy || !activeRecovery || !recovery?.recovery_id || (operation === 'rebind' && !rebindAvailable)) return;
     const label = operation === 'rebind' ? rebindLabel.trim() : undefined;
     if (operation === 'rebind' && (!label || Array.from(label).length > 80)) return;
